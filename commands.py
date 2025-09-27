@@ -162,9 +162,9 @@ class CreatorManagement(commands.Cog):
         
         await interaction.response.send_message(embed=embed)
 
-class AddCreatorModal(discord.ui.Modal, title='Creator hinzufügen'):
+class AddCreatorModal(discord.ui.Modal):
     def __init__(self, db):
-        super().__init__()
+        super().__init__(title='Creator hinzufügen')
         self.db = db
 
     discord_user = discord.ui.TextInput(
@@ -273,9 +273,9 @@ class AddCreatorModal(discord.ui.Modal, title='Creator hinzufügen'):
         
         await interaction.followup.send(embed=embed, view=view, ephemeral=True)
 
-class RequestCreatorModal(discord.ui.Modal, title='Streamer-Anfrage stellen'):
+class RequestCreatorModal(discord.ui.Modal):
     def __init__(self, bot: commands.Bot, db):
-        super().__init__()
+        super().__init__(title='Streamer-Anfrage stellen')
         self.bot = bot
         self.db = db
 

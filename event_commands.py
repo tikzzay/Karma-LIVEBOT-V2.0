@@ -467,22 +467,37 @@ class ServerInfoView(discord.ui.View):
     )
     async def select_option(self, interaction: discord.Interaction, select: discord.ui.Select):
         option_type = select.values[0]
+        logger.info(f"🔄 ServerInfo dropdown selection: '{option_type}' by user {interaction.user}")
         
         if option_type == "server_overview":
+            logger.info(f"📋 Calling show_server_overview for user {interaction.user}")
             await self.show_server_overview(interaction)
         elif option_type == "bot_api_test":
+            logger.info(f"🔌 Calling run_bot_api_test for user {interaction.user}")
             await self.run_bot_api_test(interaction)
         elif option_type == "live_demo":
+            logger.info(f"📺 Calling run_live_demo for user {interaction.user}")
             await self.run_live_demo(interaction)
         elif option_type == "event_test":
+            logger.info(f"🎮 Calling run_event_test for user {interaction.user}")
             await self.run_event_test(interaction)
         elif option_type == "leave_server":
+            logger.info(f"🚪 Calling show_leave_server_modal for user {interaction.user}")
             await self.show_leave_server_modal(interaction)
         elif option_type == "server_unban":
+            logger.info(f"🔓 Calling show_server_unban_modal for user {interaction.user}")
             await self.show_server_unban_modal(interaction)
+        else:
+            logger.warning(f"❌ Unknown option selected: '{option_type}' by user {interaction.user}")
 
     async def show_server_overview(self, interaction: discord.Interaction):
         """Show detailed server overview with specified format - ALL servers"""
+        logger.info(f"🌍 STARTING show_server_overview for user {interaction.user}")
+        
+        # Defer to get more time for invite operations
+        await interaction.response.defer()
+        logger.info(f"✅ Deferred interaction for show_server_overview")
+        
         embed = discord.Embed(
             title="🌍 Server-Übersicht (Alle Server)",
             description=f"Bot ist auf **{len(self.bot.guilds)}** Server(n)",
@@ -523,29 +538,75 @@ class ServerInfoView(discord.ui.View):
                 created_at = guild.created_at.strftime("%d.%m.%Y") if guild.created_at else "Unbekannt"
                 joined_at = guild.me.joined_at.strftime("%d.%m.%Y") if guild.me.joined_at else "Unbekannt"
                 
-                # Try to get existing permanent invite first (read-only)
+                # Delete old permanent invites and create new one
                 invite_link = "Keine Berechtigung"
                 try:
-                    # First check for existing permanent invites
-                    if guild.me.guild_permissions.manage_guild:
-                        invites = await guild.invites()
-                        permanent_invites = [inv for inv in invites if inv.max_age == 0 and inv.max_uses == 0]
-                        if permanent_invites:
-                            invite_link = permanent_invites[0].url
-                        else:
-                            invite_link = "Kein permanenter Invite vorhanden"
-                    else:
-                        # Fallback: try to create invite only if no manage_guild permission
+                    logger.info(f"Processing invites for guild: {guild.name}")
+                    
+                    # Check permissions first
+                    if not guild.me.guild_permissions.manage_guild:
+                        logger.warning(f"No manage_guild permission in {guild.name}")
+                        # Try to create simple invite without managing
                         for channel in guild.text_channels:
                             if channel.permissions_for(guild.me).create_instant_invite:
                                 invite = await channel.create_invite(
                                     max_age=0, max_uses=0, unique=False,
-                                    reason="Server overview - reuse existing"
+                                    reason="Server overview - simple invite"
                                 )
                                 invite_link = invite.url
+                                logger.info(f"Created simple invite for {guild.name}: {invite_link}")
                                 break
-                except:
-                    invite_link = "Fehler beim Abrufen"
+                        if invite_link == "Keine Berechtigung":
+                            invite_link = "Kann keinen Invite erstellen"
+                    else:
+                        # We have manage_guild permission - delete old and create new
+                        logger.info(f"Has manage_guild permission in {guild.name}, managing invites")
+                        
+                        # Get all current invites
+                        invites = await guild.invites()
+                        logger.info(f"Found {len(invites)} existing invites in {guild.name}")
+                        
+                        # Delete only BOT-CREATED permanent invites (max_age=0 and max_uses=0)
+                        deleted_count = 0
+                        skipped_count = 0
+                        for invite in invites:
+                            if invite.max_age == 0 and invite.max_uses == 0:
+                                # Only delete invites created by THIS BOT
+                                if invite.inviter and invite.inviter.id == self.bot.user.id:
+                                    try:
+                                        await invite.delete(reason="Server overview - cleanup bot's old permanent invites")
+                                        deleted_count += 1
+                                        logger.info(f"Deleted bot's old permanent invite: {invite.url}")
+                                    except Exception as e:
+                                        logger.warning(f"Failed to delete bot invite {invite.url}: {e}")
+                                else:
+                                    skipped_count += 1
+                                    inviter_name = invite.inviter.display_name if invite.inviter else "Unknown"
+                                    logger.info(f"Skipped user/admin permanent invite: {invite.url} (created by {inviter_name})")
+                        
+                        logger.info(f"Deleted {deleted_count} bot invites, skipped {skipped_count} user/admin invites from {guild.name}")
+                        
+                        # Create new permanent invite
+                        best_channel = None
+                        for channel in guild.text_channels:
+                            if channel.permissions_for(guild.me).create_instant_invite:
+                                best_channel = channel
+                                break
+                        
+                        if best_channel:
+                            invite = await best_channel.create_invite(
+                                max_age=0, max_uses=0, unique=True,
+                                reason="Server overview - new permanent invite"
+                            )
+                            invite_link = invite.url
+                            logger.info(f"Created new permanent invite for {guild.name}: {invite_link}")
+                        else:
+                            invite_link = "Kann keinen Invite erstellen"
+                            logger.warning(f"No suitable channel found for invite creation in {guild.name}")
+                        
+                except Exception as e:
+                    invite_link = f"Fehler: {str(e)[:50]}"
+                    logger.error(f"Error processing invites for {guild.name}: {e}")
                 
                 # Build server info according to specification
                 server_info = (
@@ -578,7 +639,7 @@ class ServerInfoView(discord.ui.View):
         
         # Add summary footer
         embed.set_footer(text=f"Angezeigt: {servers_shown}/{len(self.bot.guilds)} Server | 🎥 Total DB-Streamer: {total_streamers} | KARMA-LiveBOT")
-        await interaction.response.edit_message(embed=embed, view=None)
+        await interaction.edit_original_response(embed=embed, view=None)
 
     async def run_bot_api_test(self, interaction: discord.Interaction):
         """Comprehensive Bot API Test according to specification"""
@@ -912,9 +973,9 @@ class ServerInfoView(discord.ui.View):
         await interaction.response.send_modal(modal)
 
 
-class LeaveServerModal(discord.ui.Modal, title='Bot Server verlassen'):
+class LeaveServerModal(discord.ui.Modal):
     def __init__(self, bot):
-        super().__init__()
+        super().__init__(title='Bot Server verlassen')
         self.bot = bot
 
     server_id = discord.ui.TextInput(
@@ -1002,9 +1063,9 @@ class LeaveServerConfirmView(discord.ui.View):
         await interaction.response.edit_message(embed=embed, view=None)
 
 
-class ServerUnbanModal(discord.ui.Modal, title='Server Unban'):
+class ServerUnbanModal(discord.ui.Modal):
     def __init__(self, bot):
-        super().__init__()
+        super().__init__(title='Server Unban')
         self.bot = bot
 
     server_id = discord.ui.TextInput(
