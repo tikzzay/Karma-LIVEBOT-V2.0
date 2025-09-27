@@ -4,7 +4,7 @@
 
 KARMA-LiveBOT is a fully functional Discord bot that monitors and notifies about live streams across multiple platforms (Twitch, YouTube, and TikTok). The bot differentiates between two types of streamers - "Karma Streamers" (premium tier with enhanced cyberpunk-style notifications and daily streak tracking) and "Regular Streamers" (standard simple notifications). The bot operates entirely within Discord with no external dashboard, using different monitoring frequencies and notification styles based on streamer tier.
 
-**Status**: ✅ **READY TO RUN** - Setup completed in Replit environment
+**Status**: 🔧 **SETUP COMPLETE - NEEDS CONFIGURATION** - Code ready, requires Discord bot credentials
 **Last Updated**: September 27, 2025
 
 ## User Preferences
@@ -145,3 +145,49 @@ Preferred communication style: Simple, everyday language.
 - **Automatic Initialization**: Database tables are created automatically on first run
 - **Persistent Storage**: SQLite database persists between restarts
 - **Cloud Storage**: Database location optimized for cloud deployment (Railway/Render compatible)
+
+## 🚀 QUICK START GUIDE
+
+### Current Status
+✅ **Dependencies Installed**: All Python packages are installed and ready  
+✅ **Code Setup**: Bot code is configured for Replit environment  
+✅ **Workflow Configured**: Discord bot workflow is set up to run automatically  
+❌ **Missing**: Discord bot credentials (required to start)  
+
+### Next Steps - What You Need To Do:
+
+**STEP 1: Create Discord Bot Application**
+1. Go to https://discord.com/developers/applications
+2. Click "New Application" and name it (e.g., "KARMA-LiveBOT")
+3. Go to "Bot" tab in the left sidebar
+4. Click "Add Bot" to create a bot user
+5. Copy the "Token" (this is your `DISCORD_TOKEN`)
+6. Go back to "General Information" tab and copy the "Application ID" (this is your `DISCORD_APP_ID`)
+
+**STEP 2: Add Environment Variables in Replit**
+1. Click the "Secrets" tab in the left sidebar of Replit
+2. Add these required secrets:
+   - Key: `DISCORD_TOKEN`, Value: [paste your bot token from step 1]
+   - Key: `DISCORD_APP_ID`, Value: [paste your application ID from step 1]
+
+**STEP 3: Optional API Keys (for full functionality)**
+Add these optional secrets for enhanced features:
+   - Key: `TWITCH_CLIENT_ID`, Value: [your Twitch API client ID]
+   - Key: `TWITCH_CLIENT_SECRET`, Value: [your Twitch API client secret]  
+   - Key: `YOUTUBE_API_KEY`, Value: [your YouTube Data API v3 key]
+
+**STEP 4: Start the Bot**
+1. The bot will automatically restart when you add the secrets
+2. Check the "Console" tab to see if the bot starts successfully
+3. Your bot should show as "Online" in Discord
+
+**STEP 5: Invite Bot to Your Discord Server**
+1. Go back to Discord Developer Portal → Your Application → OAuth2 → URL Generator
+2. Select "bot" and "applications.commands" scopes
+3. Select permissions: "Send Messages", "Use Slash Commands", "Manage Roles"
+4. Copy the generated URL and open it to invite your bot to a server
+
+### Troubleshooting
+- **Bot won't start**: Check that `DISCORD_TOKEN` and `DISCORD_APP_ID` are set in Replit Secrets
+- **No commands visible**: Make sure bot has "applications.commands" scope when invited
+- **Permission errors**: Ensure bot has required permissions in your Discord server

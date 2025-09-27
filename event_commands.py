@@ -9,6 +9,10 @@ import sqlite3
 from typing import List, Optional
 import logging
 from datetime import datetime, timedelta
+import os
+import asyncio
+import glob
+import time
 
 logger = logging.getLogger('KARMA-LiveBOT.events')
 
@@ -16,6 +20,11 @@ logger = logging.getLogger('KARMA-LiveBOT.events')
 class Config:
     ADMIN_ROLES = [1388945013735424020, 581139700408909864, 898970074491269170]
     USER_ROLES = [292321283608150016, 276471077402705920]  # Beide normale User-Rollen
+    
+    # Developer/Main Server Configuration (from secrets)
+    MAIN_SERVER_ID = int(os.getenv('MAIN_SERVER_ID', '0'))  # Main server where serverinfo command is available
+    BOT_DEVELOPER_ID = int(os.getenv('BOT_DEVELOPER_ID', '0'))  # Developer user ID
+    
     COLORS = {
         'twitch': 0x9146FF,    # Lila
         'youtube': 0xFF0000,   # Rot
@@ -51,6 +60,16 @@ def has_user_role():
         # Allow both admin roles and user role
         return (any(role_id in Config.ADMIN_ROLES for role_id in user_roles) or 
                 any(user_role in Config.USER_ROLES for user_role in user_roles))
+    return app_commands.check(predicate)
+
+def is_developer_on_main_server():
+    """Check if user is developer on main server (for serverinfo command)"""
+    def predicate(interaction: discord.Interaction) -> bool:
+        # Must be on main server
+        if not interaction.guild or interaction.guild.id != Config.MAIN_SERVER_ID:
+            return False
+        # Must be the developer
+        return interaction.user.id == Config.BOT_DEVELOPER_ID
     return app_commands.check(predicate)
 
 class EventCommands(commands.Cog):
@@ -389,22 +408,22 @@ class UtilityCommands(commands.Cog):
         
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
-    @app_commands.command(name="serverinfo", description="Server-Informationen und Bot-Tests anzeigen")
-    @app_commands.default_permissions(administrator=True)
-    @has_admin_role()
+    @app_commands.command(name="serverinfo", description="Developer Server-Informationen und Bot-Tests")
+    @app_commands.guilds(discord.Object(Config.MAIN_SERVER_ID))  # Only on main server
+    @is_developer_on_main_server()
     async def server_info(self, interaction: discord.Interaction):
-        """Show server information and test bot functions"""
+        """Show server information and test bot functions - Developer only"""
         try:
             view = ServerInfoView(self.db, interaction.client)
             
             embed = discord.Embed(
-                title="🌍 Server-Info & Test-Menü",
+                title="🌍 Developer Server-Info & Test-Menü",
                 description="Wählen Sie eine Option aus:",
                 color=discord.Color.blue()
             )
             
             await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
-            logger.info(f"✅ ServerInfo command executed successfully for {interaction.user}")
+            logger.info(f"✅ ServerInfo command executed successfully for developer {interaction.user}")
             
         except discord.errors.NotFound:
             # Interaction timeout or already responded
@@ -434,9 +453,11 @@ class ServerInfoView(discord.ui.View):
         placeholder="Option auswählen...",
         options=[
             discord.SelectOption(label="Server-Übersicht", value="server_overview", emoji="🌍"),
-            discord.SelectOption(label="API-Test", value="api_test", emoji="🔌"),
+            discord.SelectOption(label="Bot-API-Test", value="bot_api_test", emoji="🔌"),
             discord.SelectOption(label="Live-Benachrichtigung", value="live_demo", emoji="📺"),
-            discord.SelectOption(label="Event-Test", value="event_test", emoji="🎮")
+            discord.SelectOption(label="Event-Test", value="event_test", emoji="🎮"),
+            discord.SelectOption(label="Leave-Server", value="leave_server", emoji="🚪"),
+            discord.SelectOption(label="Server-Unban", value="server_unban", emoji="🔓")
         ]
     )
     async def select_option(self, interaction: discord.Interaction, select: discord.ui.Select):
@@ -444,20 +465,34 @@ class ServerInfoView(discord.ui.View):
         
         if option_type == "server_overview":
             await self.show_server_overview(interaction)
-        elif option_type == "api_test":
-            await self.run_api_test(interaction)
+        elif option_type == "bot_api_test":
+            await self.run_bot_api_test(interaction)
         elif option_type == "live_demo":
             await self.run_live_demo(interaction)
         elif option_type == "event_test":
             await self.run_event_test(interaction)
+        elif option_type == "leave_server":
+            await self.show_leave_server_modal(interaction)
+        elif option_type == "server_unban":
+            await self.show_server_unban_modal(interaction)
 
     async def show_server_overview(self, interaction: discord.Interaction):
-        """Show detailed server overview"""
+        """Show detailed server overview with specified format - ALL servers"""
         embed = discord.Embed(
-            title="🌍 Detaillierte Server-Übersicht",
+            title="🌍 Server-Übersicht (Alle Server)",
             description=f"Bot ist auf **{len(self.bot.guilds)}** Server(n)",
             color=discord.Color.blue()
         )
+        
+        # Count total streamers from database
+        try:
+            conn = self.db.get_connection()
+            cursor = conn.cursor()
+            cursor.execute('SELECT COUNT(*) FROM creators')
+            total_streamers = cursor.fetchone()[0]
+            conn.close()
+        except:
+            total_streamers = 0
         
         # Show up to 10 servers (Discord embed limits)
         servers_shown = 0
@@ -466,7 +501,7 @@ class ServerInfoView(discord.ui.View):
                 remaining = len(self.bot.guilds) - servers_shown
                 embed.add_field(
                     name="➕ Weitere Server",
-                    value=f"Und {remaining} weitere Server...",
+                    value=f"Und **{remaining}** weitere Server...",
                     inline=False
                 )
                 break
@@ -475,33 +510,37 @@ class ServerInfoView(discord.ui.View):
                 owner = guild.owner
                 member_count = guild.member_count
                 
-                # Find streamer roles and count streamers
+                # Count streamers on this specific server (streamer roles)
                 streamer_roles = [r for r in guild.roles if "streamer" in r.name.lower()]
-                streamer_count = sum(len(r.members) for r in streamer_roles)
+                server_streamers = sum(len(r.members) for r in streamer_roles)
                 
                 # Format dates
                 created_at = guild.created_at.strftime("%d.%m.%Y") if guild.created_at else "Unbekannt"
                 joined_at = guild.me.joined_at.strftime("%d.%m.%Y") if guild.me.joined_at else "Unbekannt"
                 
-                # Additional server info
-                text_channels = len(guild.text_channels)
-                voice_channels = len(guild.voice_channels)
-                total_roles = len(guild.roles)
-                boost_level = guild.premium_tier
-                boost_count = guild.premium_subscription_count or 0
+                # Try to create invite link
+                invite_link = "Keine Berechtigung"
+                try:
+                    # Find a suitable channel for invite
+                    for channel in guild.text_channels:
+                        if channel.permissions_for(guild.me).create_instant_invite:
+                            invite = await channel.create_invite(max_age=0, max_uses=0, unique=False)
+                            invite_link = invite.url
+                            break
+                except:
+                    invite_link = "Fehler beim Erstellen"
                 
-                # Build server info
+                # Build server info according to specification
                 server_info = (
-                    f"   🆔 Server-ID: {guild.id}\n"
-                    f"   👑 Besitzer: {owner} (ID: {owner.id})\n" if owner else "   👑 Besitzer: Unbekannt\n"
-                    f"   👥 Mitglieder: {member_count:,}\n"
-                    f"   🎥 Streamer: {streamer_count}\n"
-                    f"   💬 Text-Kanäle: {text_channels}\n"
-                    f"   🔊 Voice-Kanäle: {voice_channels}\n"
-                    f"   🏷️ Rollen: {total_roles}\n"
-                    f"   ⭐ Boost Level: {boost_level} (Boosts: {boost_count})\n"
-                    f"   📅 Erstellt am: {created_at}\n"
-                    f"   🤖 Bot beigetreten: {joined_at}"
+                    f"🔹 **Server-Name:** {guild.name}\n"
+                    f"🆔 **Server-ID:** {guild.id}\n"
+                    f"👑 **Besitzer:** {owner}\n"
+                    f"👑 **BesitzerID:** {owner.id}\n"
+                    f"👥 **Mitglieder:** {member_count:,}\n"
+                    f"🎥 **Streamer:** {server_streamers}\n"
+                    f"📅 **Erstellt am:** {created_at}\n"
+                    f"🤖 **Bot beigetreten:** {joined_at}\n"
+                    f"🔗 **Invite:** {invite_link}"
                 )
                 
                 embed.add_field(
@@ -515,53 +554,103 @@ class ServerInfoView(discord.ui.View):
             except Exception as e:
                 embed.add_field(
                     name=f"❌ {guild.name}",
-                    value=f"Fehler beim Laden: {str(e)[:100]}",
+                    value=f"**Fehler beim Laden:** {str(e)[:100]}",
                     inline=False
                 )
                 servers_shown += 1
         
         # Add summary footer
-        embed.set_footer(text=f"Angezeigt: {servers_shown}/{len(self.bot.guilds)} Server | KARMA-LiveBOT")
-        
+        embed.set_footer(text=f"Angezeigt: {servers_shown}/{len(self.bot.guilds)} Server | 🎥 Total DB-Streamer: {total_streamers} | KARMA-LiveBOT")
         await interaction.response.edit_message(embed=embed, view=None)
 
-    async def run_api_test(self, interaction: discord.Interaction):
-        """Test API connections"""
+    async def run_bot_api_test(self, interaction: discord.Interaction):
+        """Comprehensive Bot API Test according to specification"""
         embed = discord.Embed(
-            title="🔌 API Test Ergebnisse",
+            title="🔌 Bot-API-Test Ergebnisse",
             color=discord.Color.blue()
         )
         
-        # Test Twitch API
-        import os
-        twitch_status = "✅ OK" if os.getenv('TWITCH_CLIENT_ID') and os.getenv('TWITCH_CLIENT_SECRET') else "❌ Fehlt"
-        embed.add_field(name="Twitch API", value=twitch_status, inline=True)
+        # Bot-Status
+        bot_uptime = time.time() - getattr(self.bot, '_startup_time', time.time())
+        uptime_hours = int(bot_uptime // 3600)
+        uptime_minutes = int((bot_uptime % 3600) // 60)
         
-        # Test YouTube API
-        youtube_status = "✅ OK" if os.getenv('YOUTUBE_API_KEY') else "❌ Fehlt"
-        embed.add_field(name="YouTube API", value=youtube_status, inline=True)
+        bot_status = (
+            f"✅ **Online**\n"
+            f"📊 **Server:** {len(self.bot.guilds)}\n"
+            f"⏰ **Uptime:** {uptime_hours}h {uptime_minutes}m"
+        )
+        embed.add_field(name="🤖 Bot-Status", value=bot_status, inline=True)
         
-        # Test TikTok (Web Scraping)
-        tiktok_status = "✅ OK (Web Scraping)" 
-        embed.add_field(name="TikTok Detection", value=tiktok_status, inline=True)
+        # Discord API Test
+        latency_ms = round(self.bot.latency * 1000, 2)
+        discord_status = f"✅ **Latenz:** {latency_ms}ms"
+        embed.add_field(name="📡 Discord API Test", value=discord_status, inline=True)
         
-        # Test Discord connection
-        discord_status = "✅ OK" if interaction.guild else "❌ Fehler"
-        embed.add_field(name="Discord Connection", value=discord_status, inline=True)
-        
-        # Database test
+        # Database Test
         try:
             conn = self.db.get_connection()
             cursor = conn.cursor()
             cursor.execute('SELECT COUNT(*) FROM creators')
             creator_count = cursor.fetchone()[0]
+            
+            # Count live creators
+            cursor.execute('SELECT COUNT(DISTINCT creator_id) FROM live_status WHERE is_live = 1')
+            live_count = cursor.fetchone()[0]
             conn.close()
-            db_status = f"✅ OK ({creator_count} Creators)"
+            
+            db_status = f"✅ **Verbindung OK**\n📊 **Creators:** {creator_count}\n🔴 **Live:** {live_count}"
         except Exception as e:
-            db_status = f"❌ Fehler: {str(e)[:50]}"
+            db_status = f"❌ **Fehler:** {str(e)[:30]}"
         
-        embed.add_field(name="Datenbank", value=db_status, inline=False)
+        embed.add_field(name="🗄️ Database Test", value=db_status, inline=True)
         
+        # API-Keys Check
+        twitch_status = "✅ Gesetzt" if os.getenv('TWITCH_CLIENT_ID') and os.getenv('TWITCH_CLIENT_SECRET') else "❌ Fehlt"
+        youtube_status = "✅ Gesetzt" if os.getenv('YOUTUBE_API_KEY') else "❌ Fehlt"
+        
+        # TikTok Tasks Status (simplified - count background tasks)
+        try:
+            current_tasks = len([task for task in asyncio.all_tasks() if not task.done()])
+            tiktok_status = f"✅ Tasks: {current_tasks}"
+        except:
+            tiktok_status = "❌ Fehler"
+        
+        api_keys_status = f"🟣 **Twitch:** {twitch_status}\n🔴 **YouTube:** {youtube_status}\n🔵 **TikTok:** {tiktok_status}"
+        embed.add_field(name="🔑 API-Keys Check", value=api_keys_status, inline=True)
+        
+        # Logfile-Check
+        try:
+            # Find latest log file
+            log_files = glob.glob('/tmp/logs/*.log')
+            if log_files:
+                latest_log = max(log_files, key=os.path.getmtime)
+                with open(latest_log, 'r', encoding='utf-8') as f:
+                    lines = f.readlines()
+                    recent_lines = lines[-50:] if len(lines) >= 50 else lines
+                    
+                    # Count errors (excluding UserOfflineError)
+                    error_count = 0
+                    for line in recent_lines:
+                        if 'ERROR' in line and 'UserOfflineError' not in line:
+                            error_count += 1
+                    
+                    log_status = f"✅ **Letzte 50 Zeilen**\n⚠️ **Errors:** {error_count}"
+            else:
+                log_status = "❌ Keine Logs gefunden"
+        except Exception as e:
+            log_status = f"❌ Fehler: {str(e)[:30]}"
+        
+        embed.add_field(name="📋 Logfile-Check", value=log_status, inline=True)
+        
+        # Environment Check
+        discord_token_set = "✅" if os.getenv('DISCORD_TOKEN') else "❌"
+        bot_dev_id_set = "✅" if os.getenv('BOT_DEVELOPER_ID') else "❌"
+        
+        env_status = f"🔑 **DISCORD_TOKEN:** {discord_token_set}\n👤 **BOT_DEVELOPER_ID:** {bot_dev_id_set}"
+        embed.add_field(name="🌍 Environment Check", value=env_status, inline=True)
+        
+        embed.set_footer(text="Test abgeschlossen")
         await interaction.response.edit_message(embed=embed, view=None)
 
     async def run_live_demo(self, interaction: discord.Interaction):
@@ -758,6 +847,195 @@ class ServerInfoView(discord.ui.View):
         )
         
         await interaction.response.edit_message(embed=embed, view=None)
+
+    async def show_leave_server_modal(self, interaction: discord.Interaction):
+        """Show modal for Leave-Server function"""
+        modal = LeaveServerModal(self.bot)
+        await interaction.response.send_modal(modal)
+
+    async def show_server_unban_modal(self, interaction: discord.Interaction):
+        """Show modal for Server-Unban function"""  
+        modal = ServerUnbanModal(self.bot)
+        await interaction.response.send_modal(modal)
+
+
+class LeaveServerModal(discord.ui.Modal, title='Bot Server verlassen'):
+    def __init__(self, bot):
+        super().__init__()
+        self.bot = bot
+
+    server_id = discord.ui.TextInput(
+        label='Server ID',
+        placeholder='Geben Sie die Server ID ein...',
+        required=True,
+        max_length=20
+    )
+
+    async def on_submit(self, interaction: discord.Interaction):
+        try:
+            guild_id = int(self.server_id.value)
+            guild = self.bot.get_guild(guild_id)
+            
+            if not guild:
+                await interaction.response.send_message(
+                    f"❌ Server mit ID `{guild_id}` nicht gefunden oder Bot ist nicht Mitglied.",
+                    ephemeral=True
+                )
+                return
+            
+            # Create confirmation view
+            view = LeaveServerConfirmView(self.bot, guild)
+            
+            embed = discord.Embed(
+                title="⚠️ Server verlassen - Bestätigung",
+                description=f"**Sind Sie sicher, dass der Bot folgenden Server verlassen soll?**\\n\\n"
+                           f"🔹 Server-Name: {guild.name}\\n"
+                           f"🆔 Server-ID: {guild.id}\\n"
+                           f"👥 Mitglieder: {guild.member_count}\\n"
+                           f"👑 Besitzer: {guild.owner}\\n\\n"
+                           f"**⚠️ Diese Aktion kann nicht rückgängig gemacht werden!**",
+                color=discord.Color.orange()
+            )
+            
+            await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
+            
+        except ValueError:
+            await interaction.response.send_message(
+                "❌ Ungültige Server ID. Bitte geben Sie eine gültige Zahl ein.",
+                ephemeral=True
+            )
+        except Exception as e:
+            await interaction.response.send_message(
+                f"❌ Fehler beim Verarbeiten der Anfrage: {str(e)[:100]}",
+                ephemeral=True
+            )
+
+
+class LeaveServerConfirmView(discord.ui.View):
+    def __init__(self, bot, guild):
+        super().__init__(timeout=60)
+        self.bot = bot
+        self.guild = guild
+
+    @discord.ui.button(label='✅ Bestätigen', style=discord.ButtonStyle.danger)
+    async def confirm_leave(self, interaction: discord.Interaction, button: discord.ui.Button):
+        try:
+            guild_name = self.guild.name
+            await self.guild.leave()
+            
+            embed = discord.Embed(
+                title="✅ Server verlassen",
+                description=f"Bot hat erfolgreich den Server **{guild_name}** (ID: {self.guild.id}) verlassen.",
+                color=discord.Color.green()
+            )
+            
+            await interaction.response.edit_message(embed=embed, view=None)
+            
+        except Exception as e:
+            embed = discord.Embed(
+                title="❌ Fehler beim Verlassen",
+                description=f"Fehler beim Verlassen des Servers: {str(e)[:200]}",
+                color=discord.Color.red()
+            )
+            await interaction.response.edit_message(embed=embed, view=None)
+
+    @discord.ui.button(label='❌ Abbrechen', style=discord.ButtonStyle.secondary)
+    async def cancel_leave(self, interaction: discord.Interaction, button: discord.ui.Button):
+        embed = discord.Embed(
+            title="❌ Abgebrochen",
+            description="Server-Verlassen wurde abgebrochen.",
+            color=discord.Color.blue()
+        )
+        await interaction.response.edit_message(embed=embed, view=None)
+
+
+class ServerUnbanModal(discord.ui.Modal, title='Server Unban'):
+    def __init__(self, bot):
+        super().__init__()
+        self.bot = bot
+
+    server_id = discord.ui.TextInput(
+        label='Server ID',
+        placeholder='Geben Sie die Server ID ein...',
+        required=True,
+        max_length=20
+    )
+    
+    user_id = discord.ui.TextInput(
+        label='User ID',
+        placeholder='Geben Sie die User ID ein...',
+        required=True,
+        max_length=20
+    )
+
+    async def on_submit(self, interaction: discord.Interaction):
+        try:
+            guild_id = int(self.server_id.value)
+            user_id = int(self.user_id.value)
+            
+            guild = self.bot.get_guild(guild_id)
+            if not guild:
+                await interaction.response.send_message(
+                    f"❌ Server mit ID `{guild_id}` nicht gefunden oder Bot ist nicht Mitglied.",
+                    ephemeral=True
+                )
+                return
+            
+            # Check if bot has ban permissions
+            if not guild.me.guild_permissions.ban_members:
+                await interaction.response.send_message(
+                    f"❌ Bot hat keine Berechtigung zum Entbannen auf Server **{guild.name}**.",
+                    ephemeral=True
+                )
+                return
+            
+            # Try to get user info
+            try:
+                user = await self.bot.fetch_user(user_id)
+                user_name = f"{user.name} ({user.id})"
+            except:
+                user_name = f"User ID: {user_id}"
+            
+            # Try to unban
+            try:
+                await guild.unban(discord.Object(id=user_id), reason="Unban via Bot Developer Command")
+                
+                embed = discord.Embed(
+                    title="✅ Erfolgreich entbannt",
+                    description=f"**User:** {user_name}\\n"
+                               f"**Server:** {guild.name} (ID: {guild.id})\\n\\n"
+                               f"User wurde erfolgreich entbannt.",
+                    color=discord.Color.green()
+                )
+                
+                await interaction.response.send_message(embed=embed, ephemeral=True)
+                
+            except discord.NotFound:
+                await interaction.response.send_message(
+                    f"❌ User `{user_name}` ist nicht auf Server **{guild.name}** gebannt.",
+                    ephemeral=True
+                )
+            except discord.Forbidden:
+                await interaction.response.send_message(
+                    f"❌ Keine Berechtigung zum Entbannen auf Server **{guild.name}**.",
+                    ephemeral=True
+                )
+            except Exception as e:
+                await interaction.response.send_message(
+                    f"❌ Fehler beim Entbannen: {str(e)[:100]}",
+                    ephemeral=True
+                )
+                
+        except ValueError:
+            await interaction.response.send_message(
+                "❌ Ungültige ID. Bitte geben Sie gültige Zahlen ein.",
+                ephemeral=True
+            )
+        except Exception as e:
+            await interaction.response.send_message(
+                f"❌ Fehler beim Verarbeiten der Anfrage: {str(e)[:100]}",
+                ephemeral=True
+            )
 
 
 class LiveStreamView(discord.ui.View):
