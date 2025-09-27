@@ -4,8 +4,8 @@
 
 KARMA-LiveBOT is a fully functional Discord bot that monitors and notifies about live streams across multiple platforms (Twitch, YouTube, and TikTok). The bot differentiates between two types of streamers - "Karma Streamers" (premium tier with enhanced cyberpunk-style notifications and daily streak tracking) and "Regular Streamers" (standard simple notifications). The bot operates entirely within Discord with no external dashboard, using different monitoring frequencies and notification styles based on streamer tier.
 
-**Status**: ✅ **COMPLETED** - All features implemented and tested
-**Last Updated**: September 25, 2025
+**Status**: ✅ **READY TO RUN** - Setup completed in Replit environment
+**Last Updated**: September 27, 2025
 
 ## User Preferences
 
@@ -99,3 +99,49 @@ Preferred communication style: Simple, everyday language.
 - **Twitch API**: Standard rate limits with OAuth2 token refresh
 - **YouTube API**: Quota-based limits requiring efficient usage patterns
 - **TikTok Scraping**: Custom rate limiting to avoid detection and blocking
+
+## Replit Environment Setup
+
+### Project Structure
+- **Main Entry Point**: `main.py` - Discord bot application
+- **Command Modules**: `commands.py`, `event_commands.py` - Discord slash commands
+- **Database**: `karma_bot.db` - SQLite database for persistent storage
+- **Dependencies**: Managed via Python package installer with packages from `pyproject.toml` and `requirements.txt`
+
+### Workflow Configuration
+- **Discord Bot Workflow**: Configured to run `python main.py` as a console application
+- **Process Type**: Long-running backend service (Discord bot)
+- **Output**: Console logs for monitoring bot activity and debugging
+
+### Required Environment Variables
+**CRITICAL**: The following environment variables must be configured in Replit Secrets for the bot to function:
+
+1. **Discord Bot Configuration**:
+   - `DISCORD_TOKEN` - Your Discord bot token (from Discord Developer Portal)
+   - `DISCORD_APP_ID` - Your Discord application ID
+
+2. **Streaming Platform APIs** (optional but recommended for full functionality):
+   - `TWITCH_CLIENT_ID` - Twitch API client ID
+   - `TWITCH_CLIENT_SECRET` - Twitch API client secret
+   - `YOUTUBE_API_KEY` - YouTube Data API v3 key
+
+### Setup Instructions
+1. **Configure Discord Bot**:
+   - Create bot application at https://discord.com/developers/applications
+   - Generate bot token and copy to `DISCORD_TOKEN` secret
+   - Copy application ID to `DISCORD_APP_ID` secret
+
+2. **Optional API Configuration**:
+   - Setup Twitch API credentials for Twitch stream monitoring
+   - Setup YouTube API key for YouTube stream monitoring
+   - TikTok monitoring works without API keys (uses web scraping)
+
+3. **Start the Bot**:
+   - The workflow will automatically start when environment variables are configured
+   - Monitor console logs for startup status and errors
+   - Bot status will show as online in Discord when successfully connected
+
+### Database Management
+- **Automatic Initialization**: Database tables are created automatically on first run
+- **Persistent Storage**: SQLite database persists between restarts
+- **Cloud Storage**: Database location optimized for cloud deployment (Railway/Render compatible)

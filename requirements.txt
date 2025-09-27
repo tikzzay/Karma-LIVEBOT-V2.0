@@ -19,3 +19,15 @@ PyNaCl
 python-dotenv
 requests
 tiktoklive
+aiohttp
+beautifulsoup4
+brotli
+discord.py
+flask
+gunicorn
+httpx
+PyNaCl
+python-dotenv
+requests
+schedule
+tiktoklive

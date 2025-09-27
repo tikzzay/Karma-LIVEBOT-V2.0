@@ -1975,10 +1975,251 @@ async def status_rotator():
     except Exception as e:
         logger.error(f"Error updating bot status: {e}")
 
+# Global variable to track bot start time
+bot_start_time = None
+
+# Auto-Restart Task
+@tasks.loop(hours=12)
+async def auto_restart_task():
+    """Automatic restart every 12 hours to prevent memory leaks and refresh connections"""
+    try:
+        # Check if enough time has passed since bot start (at least 11.5 hours)
+        if bot_start_time:
+            uptime = datetime.now() - bot_start_time
+            if uptime.total_seconds() < 41400:  # 11.5 hours in seconds
+                logger.info(f"🔄 AUTO-RESTART: Skipping restart - bot uptime is only {uptime}. Next check in 12 hours.")
+                return
+        
+        logger.info("🔄 AUTO-RESTART: Initiating scheduled 12-hour restart...")
+        
+        # Send notification to admin channels if possible
+        for guild in bot.guilds:
+            try:
+                # Try to find a suitable channel for admin notifications
+                for channel in guild.text_channels:
+                    if any(keyword in channel.name.lower() for keyword in ['admin', 'log', 'bot', 'dev']):
+                        embed = discord.Embed(
+                            title="🔄 Scheduled Restart",
+                            description="Bot restarting automatically (12-hour maintenance cycle)",
+                            color=0x00FF00,
+                            timestamp=datetime.now().replace(tzinfo=datetime.now().astimezone().tzinfo)
+                        )
+                        await channel.send(embed=embed)
+                        break
+            except Exception as e:
+                logger.warning(f"Could not send restart notification to {guild.name}: {e}")
+        
+        # Close all connections gracefully
+        logger.info("🔄 AUTO-RESTART: Closing connections...")
+        await tiktok_live_checker.cleanup()
+        
+        # Exit - Replit/Railway will automatically restart the bot
+        logger.info("🔄 AUTO-RESTART: Exiting for restart...")
+        os._exit(0)
+        
+    except Exception as e:
+        logger.error(f"🚨 AUTO-RESTART ERROR: {e}")
+
+# Log Cleanup Task
+@tasks.loop(hours=6)
+async def log_cleanup_task():
+    """Clean old log files every 6 hours, keep only 10 newest files"""
+    try:
+        logger.info("🗑️ LOG-CLEANUP: Starting log cleanup process...")
+        
+        # Define log directories to clean
+        log_paths = [
+            '/tmp/logs/',
+            './logs/',
+            './',
+        ]
+        
+        for log_path in log_paths:
+            try:
+                if not os.path.exists(log_path):
+                    continue
+                    
+                # Find all log files
+                log_files = []
+                for root, dirs, files in os.walk(log_path):
+                    for file in files:
+                        if file.endswith(('.log', '.txt')) and any(keyword in file.lower() for keyword in ['discord', 'bot', 'karma', 'workflow']):
+                            full_path = os.path.join(root, file)
+                            try:
+                                stat = os.stat(full_path)
+                                log_files.append((full_path, stat.st_mtime))
+                            except OSError:
+                                continue
+                
+                # Sort by modification time (newest first)
+                log_files.sort(key=lambda x: x[1], reverse=True)
+                
+                # Keep only 10 newest, delete the rest
+                if len(log_files) > 10:
+                    files_to_delete = log_files[10:]
+                    deleted_count = 0
+                    
+                    for file_path, _ in files_to_delete:
+                        try:
+                            os.remove(file_path)
+                            deleted_count += 1
+                            logger.info(f"🗑️ Deleted old log: {os.path.basename(file_path)}")
+                        except OSError as e:
+                            logger.warning(f"Could not delete {file_path}: {e}")
+                    
+                    logger.info(f"🗑️ LOG-CLEANUP: Deleted {deleted_count} old log files in {log_path}")
+                else:
+                    logger.info(f"🗑️ LOG-CLEANUP: No cleanup needed in {log_path} ({len(log_files)} files)")
+                    
+            except Exception as path_error:
+                logger.warning(f"Error cleaning log path {log_path}: {path_error}")
+        
+        logger.info("🗑️ LOG-CLEANUP: Process completed")
+        
+    except Exception as e:
+        logger.error(f"🚨 LOG-CLEANUP ERROR: {e}")
+
+# TikTok Task Recovery
+@tasks.loop(minutes=30)
+async def tiktok_recovery_task():
+    """TikTok task recovery every 30 minutes - restart failed TikTok checks"""
+    try:
+        logger.info("🔧 TIKTOK-RECOVERY: Starting TikTok task recovery check...")
+        
+        conn = db.get_connection()
+        cursor = conn.cursor()
+        
+        # Get all creators with TikTok usernames
+        cursor.execute('SELECT id, discord_username, tiktok_username FROM creators WHERE tiktok_username IS NOT NULL AND tiktok_username != ""')
+        tiktok_creators = cursor.fetchall()
+        
+        if not tiktok_creators:
+            logger.info("🔧 TIKTOK-RECOVERY: No TikTok creators found")
+            conn.close()
+            return
+        
+        logger.info(f"🔧 TIKTOK-RECOVERY: Checking {len(tiktok_creators)} TikTok creators...")
+        
+        # Reset any stuck TikTok connections
+        try:
+            if hasattr(tiktok_live_checker, 'session') and tiktok_live_checker.session:
+                await tiktok_live_checker.session.close()
+                tiktok_live_checker.session = None
+                logger.info("🔧 TIKTOK-RECOVERY: Reset TikTok HTTP session")
+        except Exception as session_error:
+            logger.warning(f"Error resetting TikTok session: {session_error}")
+        
+        # Test TikTok connectivity with a quick check
+        recovery_success = 0
+        recovery_failed = 0
+        
+        for creator_id, username, tiktok_user in tiktok_creators[:3]:  # Test only first 3 to avoid rate limits
+            try:
+                logger.info(f"🔧 Testing TikTok connectivity for {username} (@{tiktok_user})...")
+                
+                # Quick connectivity test with timeout
+                test_result = await asyncio.wait_for(
+                    tiktok_live_checker.get_stream_info(tiktok_user),
+                    timeout=15.0
+                )
+                
+                if test_result is not None:
+                    recovery_success += 1
+                    logger.info(f"✅ TikTok recovery successful for {username}")
+                else:
+                    recovery_failed += 1
+                    logger.warning(f"⚠️ TikTok recovery failed for {username}")
+                    
+            except asyncio.TimeoutError:
+                recovery_failed += 1
+                logger.warning(f"⚠️ TikTok recovery timeout for {username}")
+            except Exception as test_error:
+                recovery_failed += 1
+                logger.warning(f"⚠️ TikTok recovery error for {username}: {test_error}")
+        
+        # Reset TikTok API caches to prevent stale data
+        try:
+            if hasattr(tiktok_live_checker, 'cache'):
+                tiktok_live_checker.cache.clear()
+            if hasattr(tiktok_live_checker, 'scrape_cache'):
+                tiktok_live_checker.scrape_cache.clear()
+            if hasattr(tiktok_live_checker, 'quota_backoff'):
+                # Don't clear quota backoff - it's there for protection
+                pass
+            logger.info("🔧 TIKTOK-RECOVERY: Cleared TikTok caches")
+        except Exception as cache_error:
+            logger.warning(f"Error clearing TikTok caches: {cache_error}")
+        
+        conn.close()
+        
+        logger.info(f"🔧 TIKTOK-RECOVERY: Completed - Success: {recovery_success}, Failed: {recovery_failed}")
+        
+    except Exception as e:
+        logger.error(f"🚨 TIKTOK-RECOVERY ERROR: {e}")
+
 @bot.event
 async def on_ready():
+    global bot_start_time
+    bot_start_time = datetime.now()
     logger.info(f'{bot.user} has connected to Discord!')
     logger.info(f'Bot is in {len(bot.guilds)} guilds')
+    logger.info(f"🔄 Bot started at {bot_start_time} - first auto-restart will be after 12 hours of uptime")
+    
+    # 🌍 DETAILED SERVER OVERVIEW
+    logger.info("🌍 ========== DETAILED SERVER OVERVIEW ==========")
+    for guild in bot.guilds:
+        try:
+            owner = guild.owner
+            member_count = guild.member_count
+            
+            # Find streamer roles and count streamers
+            streamer_roles = [r for r in guild.roles if "streamer" in r.name.lower()]
+            streamer_count = sum(len(r.members) for r in streamer_roles)
+            
+            # Server region (newer Discord servers may not have region)
+            region = getattr(guild, "region", "Unbekannt")
+            if region is None:
+                region = "Automatisch"
+            
+            # Format dates
+            created_at = guild.created_at.strftime("%d.%m.%Y %H:%M:%S") if guild.created_at else "Unbekannt"
+            joined_at = guild.me.joined_at.strftime("%d.%m.%Y %H:%M:%S") if guild.me.joined_at else "Unbekannt"
+            
+            # Additional server info
+            text_channels = len(guild.text_channels)
+            voice_channels = len(guild.voice_channels)
+            total_roles = len(guild.roles)
+            boost_level = guild.premium_tier
+            boost_count = guild.premium_subscription_count or 0
+            
+            # Build server info lines
+            info_lines = [
+                f"\n🔹 {guild.name}",
+                f"   🆔 Server-ID: {guild.id}",
+                f"   👑 Besitzer: {owner} (ID: {owner.id})" if owner else "   👑 Besitzer: Unbekannt",
+                f"   👥 Mitglieder: {member_count:,}",
+                f"   🎥 Streamer: {streamer_count}",
+                f"   💬 Text-Kanäle: {text_channels}",
+                f"   🔊 Voice-Kanäle: {voice_channels}",
+                f"   🏷️ Rollen: {total_roles}",
+                f"   ⭐ Boost Level: {boost_level} (Boosts: {boost_count})",
+                f"   🌍 Region: {region}",
+                f"   📅 Erstellt am: {created_at}",
+                f"   🤖 Bot beigetreten: {joined_at}",
+                f"   ---"
+            ]
+            
+            logger.info("\n".join(info_lines))
+            
+            # Log streamer roles for debugging
+            if streamer_roles:
+                role_names = [f"{role.name} ({len(role.members)} Mitglieder)" for role in streamer_roles]
+                logger.info(f"   🎬 Streamer-Rollen: {', '.join(role_names)}")
+            
+        except Exception as e:
+            logger.error(f"   ❌ Fehler beim Laden der Server-Info für {guild.name}: {e}")
+    
+    logger.info("🌍 ============ END SERVER OVERVIEW ============\n")
     
     # Start the live check tasks
     live_checker.start()
@@ -1990,6 +2231,18 @@ async def on_ready():
     # Start keep-alive ping for Render.com
     keep_alive_ping.start()
     logger.info("🔄 Keep-alive ping started - preventing Render.com sleep every 10 minutes")
+    
+    # Start auto-restart task
+    auto_restart_task.start()
+    logger.info("🔄 Auto-restart task started - restarting every 12 hours")
+    
+    # Start log cleanup task
+    log_cleanup_task.start()
+    logger.info("🗑️ Log cleanup task started - cleaning logs every 6 hours (keep 10 newest)")
+    
+    # Start TikTok recovery task
+    tiktok_recovery_task.start()
+    logger.info("🔧 TikTok recovery task started - checking TikTok connectivity every 30 minutes")
     
     # Import and add command cogs (pass DatabaseManager class)
     import commands
