@@ -645,6 +645,16 @@ class TikTokLiveChecker:
         self.httpx_session = None  # HTTP/2 session for advanced WAF bypass
         self.session_cookies = {}  # Store session cookies per domain
         self.waf_backoff = {}  # Track WAF blocks per username {username: {'blocks': count, 'next_check': timestamp}}
+    
+    async def cleanup(self):
+        """Cleanup HTTP sessions to prevent resource leaks"""
+        if self.httpx_session:
+            try:
+                await self.httpx_session.aclose()
+                self.httpx_session = None
+                logger.info("TikTok: HTTP session cleaned up successfully")
+            except Exception as e:
+                logger.warning(f"TikTok: Session cleanup error: {e}")
         
     def _implement_waf_backoff(self, username: str):
         """Implement exponential backoff for WAF blocked users"""
@@ -708,7 +718,7 @@ class TikTokLiveChecker:
                 'Cache-Control': 'max-age=0'
             }
             
-            response = await self.httpx_session.get('https://www.tiktok.com/', headers=homepage_headers)
+            response = await self.httpx_session.get('https://www.tiktok.com/', headers=homepage_headers, timeout=15.0)
             
             # Extract and store cookies with robust error handling
             cookies = {}
@@ -763,7 +773,7 @@ class TikTokLiveChecker:
         url = f'https://www.tiktok.com/@{username}/live'
         
         # Main request with cookies
-        response = await self.httpx_session.get(url, headers=headers, cookies=cookies)
+        response = await self.httpx_session.get(url, headers=headers, cookies=cookies, timeout=15.0)
         html = response.text
         
         return html, str(response.url), len(html)
@@ -798,7 +808,7 @@ class TikTokLiveChecker:
             sec_user_id = None
             for endpoint in api_endpoints:
                 try:
-                    response = await self.httpx_session.get(endpoint, headers=profile_headers)
+                    response = await self.httpx_session.get(endpoint, headers=profile_headers, timeout=10.0)
                     
                     if response.status_code == 200 and 'application/json' in response.headers.get('content-type', ''):
                         data = response.json()
@@ -844,7 +854,7 @@ class TikTokLiveChecker:
                 
                 for webcast_url in webcast_endpoints:
                     try:
-                        response = await self.httpx_session.get(webcast_url, headers=webcast_headers)
+                        response = await self.httpx_session.get(webcast_url, headers=webcast_headers, timeout=10.0)
                         
                         if response.status_code == 200 and response.text.strip().startswith('{'):
                             data = response.json()
@@ -884,7 +894,7 @@ class TikTokLiveChecker:
                 'Sec-Fetch-User': '?1'
             }
             
-            response = await self.httpx_session.get(mobile_url, headers=mobile_web_headers)
+            response = await self.httpx_session.get(mobile_url, headers=mobile_web_headers, timeout=10.0)
             html = response.text
             
             # Detect WAF/blocks and return appropriate status
@@ -983,7 +993,10 @@ class TikTokLiveChecker:
                 logger.info(f"TikTok {username}: TikTokLive library confirmed - USER IS LIVE!")
                 
                 try:
-                    await client.disconnect()
+                    # Wrap disconnect in timeout to prevent hanging
+                    await asyncio.wait_for(client.disconnect(), timeout=3.0)
+                except asyncio.TimeoutError:
+                    logger.warning(f"TikTok {username}: Client disconnect timed out")
                 except:
                     pass
                 
@@ -1002,7 +1015,7 @@ class TikTokLiveChecker:
                     if not hasattr(self, 'session') or not self.session:
                         self.session = aiohttp.ClientSession(timeout=timeout)
                     
-                    async with self.session.get(url, headers=headers) as response:
+                    async with self.session.get(url, headers=headers, timeout=aiohttp.ClientTimeout(total=10)) as response:
                         if response.status == 200:
                             html = await response.text()
                             
@@ -1455,7 +1468,13 @@ async def handle_stream_status(creator_id, discord_user_id, username, streamer_t
                 
                 # Send live notification AFTER status is saved (CRASH-RESISTANT)
                 try:
-                    await send_live_notification(creator_id, discord_user_id, username, streamer_type, platform, platform_username, stream_info)
+                    # Wrap notification sending in timeout to prevent hanging (ChatGPT fix)
+                    await asyncio.wait_for(
+                        send_live_notification(creator_id, discord_user_id, username, streamer_type, platform, platform_username, stream_info),
+                        timeout=30.0
+                    )
+                except asyncio.TimeoutError:
+                    logger.error(f"🚨 CRITICAL: Live notification TIMED OUT for {username} on {platform} after 30s")
                 except Exception as notification_error:
                     logger.error(f"🚨 CRITICAL: Live notification failed for {username} on {platform}: {notification_error}")
                     # Continue processing - don't let notification failures stop the live checker
@@ -1486,7 +1505,8 @@ async def handle_stream_status(creator_id, discord_user_id, username, streamer_t
                         try:
                             live_role = guild.get_role(Config.LIVE_ROLE)
                             if live_role and live_role not in member.roles:
-                                await member.add_roles(live_role)
+                                # Add role with timeout (ChatGPT fix)
+                                await asyncio.wait_for(member.add_roles(live_role), timeout=10.0)
                                 logger.info(f"✅ Added live role to {username}")
                             else:
                                 logger.debug(f"Live role already assigned or not found for {username}")
@@ -1575,12 +1595,15 @@ async def send_live_notification(creator_id, discord_user_id, username, streamer
         
         conn.close()
         
-        # Get notification channel
+        # Get notification channel with timeout (ChatGPT fix)
         channel = bot.get_channel(int(channel_id))
         if not channel:
-            # Try to fetch channel as fallback
+            # Try to fetch channel as fallback with timeout
             try:
-                channel = await bot.fetch_channel(int(channel_id))
+                channel = await asyncio.wait_for(bot.fetch_channel(int(channel_id)), timeout=10.0)
+            except asyncio.TimeoutError:
+                logger.error(f"Channel fetch timed out for {channel_id} - {username} on {platform}")
+                return
             except:
                 logger.error(f"Channel {channel_id} not found for {username} on {platform}")
                 return
@@ -1588,9 +1611,16 @@ async def send_live_notification(creator_id, discord_user_id, username, streamer
         # Create embed based on streamer type and platform
         embed = await create_live_embed(creator_id, discord_user_id, username, streamer_type, platform, platform_username, stream_info)
         
-        # Send to notification channel (check if it's a text-sendable channel)
+        # Send to notification channel with timeout (ChatGPT fix)
         if isinstance(channel, (discord.TextChannel, discord.Thread, discord.DMChannel)):
-            await channel.send(embed=embed, view=LiveNotificationView(platform, platform_username))
+            try:
+                await asyncio.wait_for(
+                    channel.send(embed=embed, view=LiveNotificationView(platform, platform_username)),
+                    timeout=15.0
+                )
+            except asyncio.TimeoutError:
+                logger.error(f"Channel send timed out for {username} on {platform}")
+                return
         else:
             logger.error(f"Channel {channel_id} is not a text channel for {username} on {platform}")
             return
@@ -2028,8 +2058,8 @@ async def create_health_server():
     app.router.add_get('/health', health_check)
     app.router.add_get('/status', health_check)
     
-    # Get port from environment (Render.com sets PORT)
-    port = int(os.getenv('PORT', 10000))
+    # Get port from environment (backend health check server)
+    port = int(os.getenv('PORT', 8080))
     
     # Start server
     runner = web.AppRunner(app)
@@ -2060,6 +2090,8 @@ async def main():
         # Cleanup
         if server_runner:
             await server_runner.cleanup()
+        # Clean up TikTok session to prevent resource leaks
+        await tiktok_live_checker.cleanup()
         await bot.close()
 
 if __name__ == '__main__':

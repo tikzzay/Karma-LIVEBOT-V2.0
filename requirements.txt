@@ -10,3 +10,12 @@ flask
 brotli
 httpx
 gunicorn
+aiohttp
+beautifulsoup4
+discord.py
+flask
+gunicorn
+PyNaCl
+python-dotenv
+requests
+tiktoklive
