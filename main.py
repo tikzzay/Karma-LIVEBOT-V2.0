@@ -2176,11 +2176,6 @@ async def on_ready():
             streamer_roles = [r for r in guild.roles if "streamer" in r.name.lower()]
             streamer_count = sum(len(r.members) for r in streamer_roles)
             
-            # Server region (newer Discord servers may not have region)
-            region = getattr(guild, "region", "Unbekannt")
-            if region is None:
-                region = "Automatisch"
-            
             # Format dates
             created_at = guild.created_at.strftime("%d.%m.%Y %H:%M:%S") if guild.created_at else "Unbekannt"
             joined_at = guild.me.joined_at.strftime("%d.%m.%Y %H:%M:%S") if guild.me.joined_at else "Unbekannt"
@@ -2203,7 +2198,6 @@ async def on_ready():
                 f"   🔊 Voice-Kanäle: {voice_channels}",
                 f"   🏷️ Rollen: {total_roles}",
                 f"   ⭐ Boost Level: {boost_level} (Boosts: {boost_count})",
-                f"   🌍 Region: {region}",
                 f"   📅 Erstellt am: {created_at}",
                 f"   🤖 Bot beigetreten: {joined_at}",
                 f"   ---"
@@ -2211,10 +2205,7 @@ async def on_ready():
             
             logger.info("\n".join(info_lines))
             
-            # Log streamer roles for debugging
-            if streamer_roles:
-                role_names = [f"{role.name} ({len(role.members)} Mitglieder)" for role in streamer_roles]
-                logger.info(f"   🎬 Streamer-Rollen: {', '.join(role_names)}")
+            # Streamer roles are counted above, no need to log details
             
         except Exception as e:
             logger.error(f"   ❌ Fehler beim Laden der Server-Info für {guild.name}: {e}")

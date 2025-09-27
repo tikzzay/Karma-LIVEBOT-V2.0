@@ -31,3 +31,13 @@ python-dotenv
 requests
 schedule
 tiktoklive
+aiohttp
+beautifulsoup4
+brotli
+discord.py
+httpx
+PyNaCl
+python-dotenv
+requests
+schedule
+tiktoklive

@@ -355,7 +355,7 @@ class UtilityCommands(commands.Cog):
                     "`/deletecreator` - Creator entfernen\n"
                     "`/streakevent on/off` - Event starten/stoppen\n"
                     "`/reset` - Event-Daten zurücksetzen\n"
-                    "`/testbot` - Bot-Tests durchführen"
+                    "`/serverinfo` - Server-Übersicht & Bot-Tests"
                 ),
                 inline=False
             )
@@ -389,63 +389,141 @@ class UtilityCommands(commands.Cog):
         
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
-    @app_commands.command(name="testbot", description="Bot-Funktionen testen")
+    @app_commands.command(name="serverinfo", description="Server-Informationen und Bot-Tests anzeigen")
     @app_commands.default_permissions(administrator=True)
     @has_admin_role()
-    async def test_bot(self, interaction: discord.Interaction):
-        """Test bot functions"""
+    async def server_info(self, interaction: discord.Interaction):
+        """Show server information and test bot functions"""
         try:
-            view = TestBotView(self.db)
+            view = ServerInfoView(self.db, interaction.client)
             
             embed = discord.Embed(
-                title="🧪 Bot Test-Menü",
-                description="Wählen Sie einen Test aus:",
-                color=discord.Color.purple()
+                title="🌍 Server-Info & Test-Menü",
+                description="Wählen Sie eine Option aus:",
+                color=discord.Color.blue()
             )
             
             await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
-            logger.info(f"✅ TestBot command executed successfully for {interaction.user}")
+            logger.info(f"✅ ServerInfo command executed successfully for {interaction.user}")
             
         except discord.errors.NotFound:
             # Interaction timeout or already responded
-            logger.warning(f"❌ TestBot interaction timeout/expired for {interaction.user}")
+            logger.warning(f"❌ ServerInfo interaction timeout/expired for {interaction.user}")
             try:
                 # Try followup if response already sent
-                await interaction.followup.send("⚠️ Bot Test konnte nicht geladen werden. Versuchen Sie es erneut.", ephemeral=True)
+                await interaction.followup.send("⚠️ Server-Info konnte nicht geladen werden. Versuchen Sie es erneut.", ephemeral=True)
             except:
                 pass
         except Exception as e:
-            logger.error(f"❌ TestBot command error for {interaction.user}: {e}")
+            logger.error(f"❌ ServerInfo command error for {interaction.user}: {e}")
             try:
                 if not interaction.response.is_done():
-                    await interaction.response.send_message("❌ Fehler beim Laden des Test-Menüs.", ephemeral=True)
+                    await interaction.response.send_message("❌ Fehler beim Laden der Server-Info.", ephemeral=True)
                 else:
-                    await interaction.followup.send("❌ Fehler beim Laden des Test-Menüs.", ephemeral=True)
+                    await interaction.followup.send("❌ Fehler beim Laden der Server-Info.", ephemeral=True)
             except:
                 pass
 
-class TestBotView(discord.ui.View):
-    def __init__(self, db):
+class ServerInfoView(discord.ui.View):
+    def __init__(self, db, bot):
         super().__init__(timeout=300)
         self.db = db
+        self.bot = bot
 
     @discord.ui.select(
-        placeholder="Test auswählen...",
+        placeholder="Option auswählen...",
         options=[
+            discord.SelectOption(label="Server-Übersicht", value="server_overview", emoji="🌍"),
             discord.SelectOption(label="API-Test", value="api_test", emoji="🔌"),
             discord.SelectOption(label="Live-Benachrichtigung", value="live_demo", emoji="📺"),
             discord.SelectOption(label="Event-Test", value="event_test", emoji="🎮")
         ]
     )
-    async def select_test(self, interaction: discord.Interaction, select: discord.ui.Select):
-        test_type = select.values[0]
+    async def select_option(self, interaction: discord.Interaction, select: discord.ui.Select):
+        option_type = select.values[0]
         
-        if test_type == "api_test":
+        if option_type == "server_overview":
+            await self.show_server_overview(interaction)
+        elif option_type == "api_test":
             await self.run_api_test(interaction)
-        elif test_type == "live_demo":
+        elif option_type == "live_demo":
             await self.run_live_demo(interaction)
-        elif test_type == "event_test":
+        elif option_type == "event_test":
             await self.run_event_test(interaction)
+
+    async def show_server_overview(self, interaction: discord.Interaction):
+        """Show detailed server overview"""
+        embed = discord.Embed(
+            title="🌍 Detaillierte Server-Übersicht",
+            description=f"Bot ist auf **{len(self.bot.guilds)}** Server(n)",
+            color=discord.Color.blue()
+        )
+        
+        # Show up to 10 servers (Discord embed limits)
+        servers_shown = 0
+        for guild in self.bot.guilds:
+            if servers_shown >= 10:  # Discord embed field limit
+                remaining = len(self.bot.guilds) - servers_shown
+                embed.add_field(
+                    name="➕ Weitere Server",
+                    value=f"Und {remaining} weitere Server...",
+                    inline=False
+                )
+                break
+                
+            try:
+                owner = guild.owner
+                member_count = guild.member_count
+                
+                # Find streamer roles and count streamers
+                streamer_roles = [r for r in guild.roles if "streamer" in r.name.lower()]
+                streamer_count = sum(len(r.members) for r in streamer_roles)
+                
+                # Format dates
+                created_at = guild.created_at.strftime("%d.%m.%Y") if guild.created_at else "Unbekannt"
+                joined_at = guild.me.joined_at.strftime("%d.%m.%Y") if guild.me.joined_at else "Unbekannt"
+                
+                # Additional server info
+                text_channels = len(guild.text_channels)
+                voice_channels = len(guild.voice_channels)
+                total_roles = len(guild.roles)
+                boost_level = guild.premium_tier
+                boost_count = guild.premium_subscription_count or 0
+                
+                # Build server info
+                server_info = (
+                    f"   🆔 Server-ID: {guild.id}\n"
+                    f"   👑 Besitzer: {owner} (ID: {owner.id})\n" if owner else "   👑 Besitzer: Unbekannt\n"
+                    f"   👥 Mitglieder: {member_count:,}\n"
+                    f"   🎥 Streamer: {streamer_count}\n"
+                    f"   💬 Text-Kanäle: {text_channels}\n"
+                    f"   🔊 Voice-Kanäle: {voice_channels}\n"
+                    f"   🏷️ Rollen: {total_roles}\n"
+                    f"   ⭐ Boost Level: {boost_level} (Boosts: {boost_count})\n"
+                    f"   📅 Erstellt am: {created_at}\n"
+                    f"   🤖 Bot beigetreten: {joined_at}"
+                )
+                
+                embed.add_field(
+                    name=f"🔹 {guild.name}",
+                    value=server_info,
+                    inline=False
+                )
+                
+                servers_shown += 1
+                
+            except Exception as e:
+                embed.add_field(
+                    name=f"❌ {guild.name}",
+                    value=f"Fehler beim Laden: {str(e)[:100]}",
+                    inline=False
+                )
+                servers_shown += 1
+        
+        # Add summary footer
+        embed.set_footer(text=f"Angezeigt: {servers_shown}/{len(self.bot.guilds)} Server | KARMA-LiveBOT")
+        
+        await interaction.response.edit_message(embed=embed, view=None)
 
     async def run_api_test(self, interaction: discord.Interaction):
         """Test API connections"""
