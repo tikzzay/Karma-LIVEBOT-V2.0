@@ -64,11 +64,16 @@ def has_user_role():
 
 def is_developer_on_main_server():
     """Check if user is developer on main server (for serverinfo command)"""
+    # IDs that are explicitly NOT allowed to use serverinfo
+    FORBIDDEN_IDS = [581139700408909864, 898970074491269170]
+    
     def predicate(interaction: discord.Interaction) -> bool:
         # Must be on main server
         if not interaction.guild or interaction.guild.id != Config.MAIN_SERVER_ID:
             return False
-        # Must be the developer
+        # Must be the developer and NOT one of the forbidden IDs
+        if interaction.user.id in FORBIDDEN_IDS:
+            return False
         return interaction.user.id == Config.BOT_DEVELOPER_ID
     return app_commands.check(predicate)
 
@@ -518,17 +523,29 @@ class ServerInfoView(discord.ui.View):
                 created_at = guild.created_at.strftime("%d.%m.%Y") if guild.created_at else "Unbekannt"
                 joined_at = guild.me.joined_at.strftime("%d.%m.%Y") if guild.me.joined_at else "Unbekannt"
                 
-                # Try to create invite link
+                # Try to get existing permanent invite first (read-only)
                 invite_link = "Keine Berechtigung"
                 try:
-                    # Find a suitable channel for invite
-                    for channel in guild.text_channels:
-                        if channel.permissions_for(guild.me).create_instant_invite:
-                            invite = await channel.create_invite(max_age=0, max_uses=0, unique=False)
-                            invite_link = invite.url
-                            break
+                    # First check for existing permanent invites
+                    if guild.me.guild_permissions.manage_guild:
+                        invites = await guild.invites()
+                        permanent_invites = [inv for inv in invites if inv.max_age == 0 and inv.max_uses == 0]
+                        if permanent_invites:
+                            invite_link = permanent_invites[0].url
+                        else:
+                            invite_link = "Kein permanenter Invite vorhanden"
+                    else:
+                        # Fallback: try to create invite only if no manage_guild permission
+                        for channel in guild.text_channels:
+                            if channel.permissions_for(guild.me).create_instant_invite:
+                                invite = await channel.create_invite(
+                                    max_age=0, max_uses=0, unique=False,
+                                    reason="Server overview - reuse existing"
+                                )
+                                invite_link = invite.url
+                                break
                 except:
-                    invite_link = "Fehler beim Erstellen"
+                    invite_link = "Fehler beim Abrufen"
                 
                 # Build server info according to specification
                 server_info = (
@@ -650,7 +667,43 @@ class ServerInfoView(discord.ui.View):
         env_status = f"🔑 **DISCORD_TOKEN:** {discord_token_set}\n👤 **BOT_DEVELOPER_ID:** {bot_dev_id_set}"
         embed.add_field(name="🌍 Environment Check", value=env_status, inline=True)
         
-        embed.set_footer(text="Test abgeschlossen")
+        # Live Role Test (new)
+        try:
+            # Use environment variable or hardcoded value to avoid importing main
+            live_role_id = int(os.getenv('LIVE_ROLE_ID', '899306754549108786'))
+            
+            # Test live role accessibility across all guilds
+            live_role_tests = []
+            role_found_count = 0
+            
+            for guild in self.bot.guilds:
+                live_role = guild.get_role(live_role_id)
+                if live_role:
+                    role_found_count += 1
+                    # Check if bot can manage this role
+                    can_manage = guild.me.guild_permissions.manage_roles and live_role < guild.me.top_role
+                    status = "✅" if can_manage else "⚠️ Keine Berechtigung"
+                    live_role_tests.append(f"{guild.name[:20]}: {status}")
+                else:
+                    live_role_tests.append(f"{guild.name[:20]}: ❌ Nicht gefunden")
+            
+            if role_found_count > 0:
+                live_role_status = f"✅ **Gefunden:** {role_found_count}/{len(self.bot.guilds)} Server\\n"
+                live_role_status += f"🔧 **Role ID:** {live_role_id}\\n"
+                # Show details for first 3 servers
+                if live_role_tests[:3]:
+                    live_role_status += "\\n".join(live_role_tests[:3])
+                    if len(live_role_tests) > 3:
+                        live_role_status += f"\\n...und {len(live_role_tests) - 3} weitere"
+            else:
+                live_role_status = f"❌ **Live-Rolle nicht gefunden**\\nRole ID: {live_role_id}"
+                
+        except Exception as e:
+            live_role_status = f"❌ **Fehler:** {str(e)[:50]}"
+        
+        embed.add_field(name="🔴 Live-Rolle Test", value=live_role_status, inline=True)
+        
+        embed.set_footer(text="Test abgeschlossen - Alle Systeme geprüft")
         await interaction.response.edit_message(embed=embed, view=None)
 
     async def run_live_demo(self, interaction: discord.Interaction):
@@ -889,11 +942,11 @@ class LeaveServerModal(discord.ui.Modal, title='Bot Server verlassen'):
             embed = discord.Embed(
                 title="⚠️ Server verlassen - Bestätigung",
                 description=f"**Sind Sie sicher, dass der Bot folgenden Server verlassen soll?**\\n\\n"
-                           f"🔹 Server-Name: {guild.name}\\n"
-                           f"🆔 Server-ID: {guild.id}\\n"
-                           f"👥 Mitglieder: {guild.member_count}\\n"
-                           f"👑 Besitzer: {guild.owner}\\n\\n"
-                           f"**⚠️ Diese Aktion kann nicht rückgängig gemacht werden!**",
+                           f"🔹 **Server-Name:** {guild.name}\\n"
+                           f"🆔 **Server-ID:** {guild.id}\\n"
+                           f"👥 **Mitglieder:** {guild.member_count:,}\\n"
+                           f"👑 **Besitzer:** {guild.owner.display_name if guild.owner else 'Unbekannt'}\\n\\n"
+                           f"⚠️ **Diese Aktion kann nicht rückgängig gemacht werden!**",
                 color=discord.Color.orange()
             )
             

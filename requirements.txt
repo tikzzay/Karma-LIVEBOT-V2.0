@@ -8,12 +8,3 @@ PyNaCl
 brotli>=1.1.0
 schedule>=1.2.2
 httpx
-aiohttp
-beautifulsoup4
-brotli
-discord.py
-PyNaCl
-python-dotenv
-requests
-schedule
-tiktoklive
