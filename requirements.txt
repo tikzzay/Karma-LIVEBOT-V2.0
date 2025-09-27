@@ -1,0 +1,12 @@
+discord.py
+aiohttp
+requests
+beautifulsoup4
+tiktoklive
+python-dotenv
+gunicorn
+PyNaCl
+flask
+brotli
+httpx
+gunicorn
