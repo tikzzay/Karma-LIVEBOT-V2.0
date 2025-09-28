@@ -1645,38 +1645,85 @@ class ServerManagement(commands.Cog):
         if existing_count >= 20:
             embed = discord.Embed(
                 title="❌ Limit erreicht",
-                description="Maximal 20 Social Media Stats-Channels sind erlaubt. Lösche zuerst bestehende Channels.",
+                description="Maximal 20 Social Media Stats-Channels sind erlaubt. Verwende `/deletesocialmediastatschannel` um bestehende zu löschen.",
                 color=discord.Color.red()
             )
             await interaction.response.send_message(embed=embed, ephemeral=True)
             return
         
-        # Create setup view
-        view = SocialMediaStatsSetupView(self.db, interaction.guild, existing_count)
+        # Create simple platform selection view
+        view = SimplePlatformSelectionView(self.db, interaction.guild)
         
         embed = discord.Embed(
             title="📱 Social Media Stats-Channels Setup",
-            description="Erstellen Sie Voice Channels die Social Media Follower-Zahlen anzeigen:",
+            description="Wähle die Plattformen aus, für die du Follower-Counter erstellen möchtest:",
             color=discord.Color.purple()
         )
         
         embed.add_field(
             name="📋 Verfügbare Plattformen",
-            value="• Instagram\n• X (Twitter)\n• YouTube\n• TikTok\n• Twitch",
-            inline=False
-        )
-        
-        embed.add_field(
-            name="⚙️ Funktionen",
-            value="• Username-Validierung (prüft ob User existiert)\n• Updates alle 5 Minuten\n• Format: '[Platform] Follower: [Anzahl]'",
+            value="🟣 Twitch\n📹 YouTube\n🎥 TikTok\n📷 Instagram\n🐦 X (Twitter)",
             inline=False
         )
         
         embed.add_field(
             name="⚠️ Hinweise",
-            value=f"• Bereits verwendet: {existing_count}/20 Slots\n• Channels werden gesperrt (nur Anzeige)\n• Einige APIs benötigen Konfiguration",
+            value=f"• Verwendet: {existing_count}/20 Channels\n• Updates alle 5 Minuten\n• Username wird validiert",
             inline=False
         )
+        
+        await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
+
+    @app_commands.command(name="deletesocialmediastatschannel", description="Social Media Stats-Channels löschen")
+    @app_commands.default_permissions(administrator=True)
+    @has_admin_role()
+    async def delete_social_media_stats_channels(self, interaction: discord.Interaction):
+        """Delete social media stats channels command"""
+        conn = self.db.get_connection()
+        cursor = conn.cursor()
+        
+        # Get existing social media stats channels for this guild
+        cursor.execute('''
+            SELECT channel_id, platform, username, last_follower_count
+            FROM social_media_stats_channels 
+            WHERE guild_id = ?
+        ''', (str(interaction.guild.id),))
+        channels = cursor.fetchall()
+        conn.close()
+        
+        if not channels:
+            embed = discord.Embed(
+                title="📱 Keine Social Media Channels",
+                description="Keine Social Media Stats-Channels in diesem Server konfiguriert.",
+                color=discord.Color.orange()
+            )
+            await interaction.response.send_message(embed=embed, ephemeral=True)
+            return
+        
+        # Create deletion view
+        view = SocialMediaDeletionView(self.db, interaction.guild, channels)
+        
+        embed = discord.Embed(
+            title="🗑️ Social Media Stats-Channels löschen",
+            description=f"Wähle die Channels aus, die gelöscht werden sollen:\n\n",
+            color=discord.Color.red()
+        )
+        
+        # List existing channels
+        channel_list = []
+        for channel_id, platform, username, count in channels:
+            channel = interaction.guild.get_channel(int(channel_id))
+            if channel:
+                emoji_map = {'instagram': '📷', 'x': '❌', 'twitter': '🐦', 'youtube': '📹', 'tiktok': '🎥', 'twitch': '🟣'}
+                emoji = emoji_map.get(platform, '📱')
+                channel_list.append(f"{emoji} {platform.title()}: @{username} ({count:,} Follower)")
+        
+        if channel_list:
+            embed.add_field(
+                name="📋 Bestehende Channels",
+                value="\n".join(channel_list[:10]),  # Limit to 10 for display
+                inline=False
+            )
         
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
 
@@ -2178,92 +2225,106 @@ class RefreshStatsButton(discord.ui.Button):
 
 # ===== SOCIAL MEDIA STATS SETUP VIEWS =====
 
-class SocialMediaStatsSetupView(discord.ui.View):
-    def __init__(self, db, guild, existing_count):
+class SimplePlatformSelectionView(discord.ui.View):
+    def __init__(self, db, guild):
         super().__init__(timeout=300)
         self.db = db
         self.guild = guild
-        self.existing_count = existing_count
-        self.selected_platforms = []  # List of (platform, username) tuples
+        self.selected_platforms = []
         
-        # Add platform selection button
-        self.add_item(AddSocialMediaChannelButton(db, guild))
+        # Add platform selection dropdown
+        self.add_item(PlatformDropdown())
+        # Add create button (initially disabled)
+        self.create_button = CreateSocialMediaChannelsButtonSimple(db, guild, self)
+        self.create_button.disabled = True
+        self.add_item(self.create_button)
+    
+    def update_create_button(self):
+        """Enable/disable create button based on selection"""
+        self.create_button.disabled = len(self.selected_platforms) == 0
+
+class PlatformDropdown(discord.ui.Select):
+    def __init__(self):
+        options = [
+            discord.SelectOption(label="Twitch", description="Twitch-Follower anzeigen", emoji="🟣", value="twitch"),
+            discord.SelectOption(label="YouTube", description="YouTube-Abonnenten anzeigen", emoji="📹", value="youtube"),
+            discord.SelectOption(label="TikTok", description="TikTok-Follower anzeigen", emoji="🎥", value="tiktok"),
+            discord.SelectOption(label="Instagram", description="Instagram-Follower anzeigen", emoji="📷", value="instagram"),
+            discord.SelectOption(label="X (Twitter)", description="X/Twitter-Follower anzeigen", emoji="🐦", value="x")
+        ]
+        super().__init__(placeholder="Wähle Plattformen aus...", min_values=1, max_values=5, options=options)
+    
+    async def callback(self, interaction: discord.Interaction):
+        self.view.selected_platforms = self.values
+        self.view.update_create_button()
         
-    async def update_display(self, interaction: discord.Interaction):
-        """Update the display with current selections"""
-        remaining_slots = 20 - self.existing_count - len(self.selected_platforms)
+        selected_names = []
+        emoji_map = {'twitch': '🟣', 'youtube': '📹', 'tiktok': '🎥', 'instagram': '📷', 'x': '❌'}
+        for platform in self.values:
+            emoji = emoji_map.get(platform, '📱')
+            selected_names.append(f"{emoji} {platform.title()}")
         
         embed = discord.Embed(
             title="📱 Social Media Stats-Channels Setup",
-            description="Ihre aktuelle Auswahl:",
-            color=discord.Color.purple()
+            description=f"**Ausgewählte Plattformen:** {', '.join(selected_names)}\n\nKlicke auf '\u2705 Kanäle erstellen' um fortzufahren.",
+            color=discord.Color.green()
         )
         
-        if self.selected_platforms:
-            platform_list = []
-            for platform, username in self.selected_platforms:
-                emoji_map = {
-                    'instagram': '📷',
-                    'x': '❌',
-                    'twitter': '🐦',
-                    'youtube': '📹',
-                    'tiktok': '🎥',
-                    'twitch': '🟣'
-                }
-                emoji = emoji_map.get(platform, '📱')
-                platform_list.append(f"{emoji} {platform.title()}: @{username}")
-            
-            embed.add_field(
-                name="📋 Ausgewählte Kanäle",
-                value="\n".join(platform_list),
-                inline=False
-            )
-        
-        embed.add_field(
-            name="📊 Zusammenfassung",
-            value=f"Gewählt: {len(self.selected_platforms)}\nVerfügbare Slots: {remaining_slots}/20",
-            inline=False
-        )
-        
-        # Show create button if we have selections
-        if len(self.selected_platforms) > 0:
-            if not any(isinstance(item, CreateSocialMediaChannelsButton) for item in self.children):
-                self.add_item(CreateSocialMediaChannelsButton(self.db, self.guild, self.selected_platforms))
-        
-        await interaction.response.edit_message(embed=embed, view=self)
+        await interaction.response.edit_message(embed=embed, view=self.view)
 
-
-class AddSocialMediaChannelButton(discord.ui.Button):
-    def __init__(self, db, guild):
-        super().__init__(label="➕ Kanal hinzufügen", style=discord.ButtonStyle.primary)
-        self.db = db
-        self.guild = guild
-    
-    async def callback(self, interaction: discord.Interaction):
-        modal = SocialMediaChannelModal(self.view)
-        await interaction.response.send_modal(modal)
-
-
-class CreateSocialMediaChannelsButton(discord.ui.Button):
-    def __init__(self, db, guild, selected_platforms):
+class CreateSocialMediaChannelsButtonSimple(discord.ui.Button):
+    def __init__(self, db, guild, parent_view):
         super().__init__(label="✅ Kanäle erstellen", style=discord.ButtonStyle.green)
         self.db = db
         self.guild = guild
-        self.selected_platforms = selected_platforms
+        self.parent_view = parent_view
     
     async def callback(self, interaction: discord.Interaction):
+        # Show modal for username input
+        modal = UsernameInputModal(self.db, self.guild, self.parent_view.selected_platforms)
+        await interaction.response.send_modal(modal)
+
+
+class UsernameInputModal(discord.ui.Modal):
+    def __init__(self, db, guild, selected_platforms):
+        super().__init__(title="Nutzernamen eingeben")
+        self.db = db
+        self.guild = guild
+        self.selected_platforms = selected_platforms
+        
+        # Add input fields for each selected platform
+        platform_names = {'twitch': 'Twitch', 'youtube': 'YouTube', 'tiktok': 'TikTok', 'instagram': 'Instagram', 'x': 'X (Twitter)'}
+        
+        for i, platform in enumerate(selected_platforms[:5]):  # Discord modal limit is 5 fields
+            field = discord.ui.TextInput(
+                label=f"{platform_names.get(platform, platform.title())} Nutzername",
+                placeholder=f"Gib den {platform_names.get(platform, platform.title())}-Nutzernamen ein...",
+                required=True,
+                max_length=50
+            )
+            setattr(self, f"input_{i}", field)
+            self.add_item(field)
+    
+    async def on_submit(self, interaction: discord.Interaction):
         await interaction.response.defer(ephemeral=True)
+        
+        # Get usernames from input fields
+        usernames = []
+        for i, platform in enumerate(self.selected_platforms[:5]):
+            input_field = getattr(self, f"input_{i}")
+            username = input_field.value.strip().replace('@', '')  # Remove @ if present
+            usernames.append((platform, username))
         
         created_channels = []
         errors = []
         
         try:
             # Import social media APIs from main module
-            from main import social_media_apis
+            from main import social_media_scraping_apis
             
-            for platform, username in self.selected_platforms:
+            for platform, username in usernames:
                 try:
-                    # Validate username exists first (using SCRAPING ONLY to save API limits)
+                    # Validate username exists first
                     logger.info(f"Validating {platform} username: {username}")
                     is_valid, error_type = await social_media_scraping_apis.validate_username_scraping_only(platform, username)
                     
@@ -2271,12 +2332,12 @@ class CreateSocialMediaChannelsButton(discord.ui.Button):
                         if error_type == "not_found":
                             errors.append(f"{platform.title()}: @{username} - Nutzer nicht gefunden")
                         elif error_type == "scraping_error":
-                            errors.append(f"{platform.title()}: @{username} - Temporärer Fehler (versuchen Sie es später erneut)")
+                            errors.append(f"{platform.title()}: @{username} - Temporärer Fehler")
                         else:
                             errors.append(f"{platform.title()}: @{username} - Unbekannter Fehler")
                         continue
                     
-                    # Get initial follower count (using SCRAPING ONLY to save API limits)
+                    # Get initial follower count
                     initial_count = await social_media_scraping_apis.get_follower_count_scraping_only(platform, username)
                     if initial_count is None:
                         initial_count = 0
@@ -2420,3 +2481,130 @@ class SocialMediaChannelModal(discord.ui.Modal):
         
         # Update the main view
         await self.setup_view.update_display(interaction)
+
+
+# ===== SOCIAL MEDIA DELETION VIEW =====
+
+class SocialMediaDeletionView(discord.ui.View):
+    def __init__(self, db, guild, channels):
+        super().__init__(timeout=300)
+        self.db = db
+        self.guild = guild
+        self.channels = channels
+        
+        # Add dropdown for channel selection
+        if channels:
+            self.add_item(ChannelDeletionDropdown(channels))
+            # Add delete button
+            self.delete_button = DeleteSelectedChannelsButton(db, guild, self)
+            self.delete_button.disabled = True
+            self.add_item(self.delete_button)
+    
+    def update_delete_button(self):
+        """Enable/disable delete button based on selection"""
+        self.delete_button.disabled = not hasattr(self, 'selected_channels') or len(self.selected_channels) == 0
+
+class ChannelDeletionDropdown(discord.ui.Select):
+    def __init__(self, channels):
+        options = []
+        emoji_map = {'instagram': '📷', 'x': '❌', 'twitter': '🐦', 'youtube': '📹', 'tiktok': '🎥', 'twitch': '🟣'}
+        
+        for channel_id, platform, username, count in channels[:25]:  # Discord limit
+            emoji = emoji_map.get(platform, '📱')
+            label = f"{platform.title()}: @{username}"
+            description = f"{count:,} Follower"
+            options.append(discord.SelectOption(
+                label=label, 
+                description=description, 
+                emoji=emoji, 
+                value=f"{channel_id}_{platform}_{username}"
+            ))
+        
+        super().__init__(placeholder="Wähle Channels zum Löschen aus...", min_values=1, max_values=len(options), options=options)
+    
+    async def callback(self, interaction: discord.Interaction):
+        self.view.selected_channels = self.values
+        self.view.update_delete_button()
+        
+        selected_names = []
+        for value in self.values:
+            _, platform, username = value.split('_', 2)
+            emoji_map = {'instagram': '📷', 'x': '❌', 'twitter': '🐦', 'youtube': '📹', 'tiktok': '🎥', 'twitch': '🟣'}
+            emoji = emoji_map.get(platform, '📱')
+            selected_names.append(f"{emoji} {platform.title()}: @{username}")
+        
+        embed = discord.Embed(
+            title="🗑️ Social Media Stats-Channels löschen",
+            description=f"**Ausgewählte Channels:**\n{chr(10).join(selected_names)}\n\n⚠️ Diese Aktion kann nicht rückgängig gemacht werden!",
+            color=discord.Color.red()
+        )
+        
+        await interaction.response.edit_message(embed=embed, view=self.view)
+
+class DeleteSelectedChannelsButton(discord.ui.Button):
+    def __init__(self, db, guild, parent_view):
+        super().__init__(label="🗑️ Löschen", style=discord.ButtonStyle.danger)
+        self.db = db
+        self.guild = guild
+        self.parent_view = parent_view
+    
+    async def callback(self, interaction: discord.Interaction):
+        await interaction.response.defer(ephemeral=True)
+        
+        deleted_channels = []
+        errors = []
+        
+        try:
+            for value in self.parent_view.selected_channels:
+                channel_id, platform, username = value.split('_', 2)
+                
+                try:
+                    # Delete the Discord channel
+                    channel = self.guild.get_channel(int(channel_id))
+                    if channel:
+                        await channel.delete(reason="Social Media Stats Channel gelöscht")
+                    
+                    # Remove from database
+                    conn = self.db.get_connection()
+                    cursor = conn.cursor()
+                    cursor.execute('DELETE FROM social_media_stats_channels WHERE channel_id = ?', (channel_id,))
+                    conn.commit()
+                    conn.close()
+                    
+                    deleted_channels.append(f"{platform.title()}: @{username}")
+                    logger.info(f"✅ Deleted social media channel for {platform}/{username}")
+                    
+                except Exception as e:
+                    logger.error(f"Error deleting channel {channel_id}: {e}")
+                    errors.append(f"{platform.title()}: @{username} - Fehler beim Löschen")
+            
+            # Send result message
+            embed = discord.Embed(
+                title="🗑️ Löschvorgang abgeschlossen",
+                color=discord.Color.green() if deleted_channels and not errors else discord.Color.yellow()
+            )
+            
+            if deleted_channels:
+                embed.add_field(
+                    name="✅ Erfolgreich gelöscht",
+                    value="\n".join(deleted_channels),
+                    inline=False
+                )
+            
+            if errors:
+                embed.add_field(
+                    name="❌ Fehler",
+                    value="\n".join(errors),
+                    inline=False
+                )
+            
+            await interaction.followup.send(embed=embed, ephemeral=True)
+            
+        except Exception as e:
+            logger.error(f"Error in social media channel deletion: {e}")
+            embed = discord.Embed(
+                title="❌ Fehler",
+                description="Ein unerwarteter Fehler ist aufgetreten.",
+                color=discord.Color.red()
+            )
+            await interaction.followup.send(embed=embed, ephemeral=True)
