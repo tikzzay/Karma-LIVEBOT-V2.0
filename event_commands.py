@@ -460,6 +460,7 @@ class ServerInfoView(discord.ui.View):
             discord.SelectOption(label="Server-Übersicht", value="server_overview", emoji="🌍"),
             discord.SelectOption(label="Bot-API-Test", value="bot_api_test", emoji="🔌"),
             discord.SelectOption(label="Live-Benachrichtigung", value="live_demo", emoji="📺"),
+            discord.SelectOption(label="Auto-Löschung Test", value="deletion_test", emoji="🗑️"),
             discord.SelectOption(label="Event-Test", value="event_test", emoji="🎮"),
             discord.SelectOption(label="Leave-Server", value="leave_server", emoji="🚪"),
             discord.SelectOption(label="Server-Unban", value="server_unban", emoji="🔓")
@@ -478,6 +479,9 @@ class ServerInfoView(discord.ui.View):
         elif option_type == "live_demo":
             logger.info(f"📺 Calling run_live_demo for user {interaction.user}")
             await self.run_live_demo(interaction)
+        elif option_type == "deletion_test":
+            logger.info(f"🗑️ Calling run_deletion_test for user {interaction.user}")
+            await self.run_deletion_test(interaction)
         elif option_type == "event_test":
             logger.info(f"🎮 Calling run_event_test for user {interaction.user}")
             await self.run_event_test(interaction)
@@ -911,6 +915,114 @@ class ServerInfoView(discord.ui.View):
         )
         
         await channel.send(embed=summary_embed)
+
+    async def run_deletion_test(self, interaction: discord.Interaction):
+        """Demo automatic message deletion functionality"""
+        await interaction.response.edit_message(content="🗑️ Teste automatische Nachrichtenlöschung...", embed=None, view=None)
+        
+        # Get the channel where interaction was sent
+        channel = interaction.channel
+        
+        # Send initial info
+        info_embed = discord.Embed(
+            title="🗑️ Auto-Löschung Test",
+            description="**Demonstration der automatischen Nachrichtenlöschung**\n\n"
+                       "📺 Schritt 1: Sende Test-Live-Benachrichtigung\n"
+                       "⏱️ Schritt 2: Warte 5 Sekunden\n"
+                       "🗑️ Schritt 3: Lösche Nachricht automatisch\n"
+                       "✅ Schritt 4: Bestätigung",
+            color=discord.Color.orange()
+        )
+        await channel.send(embed=info_embed)
+        
+        # Create a test live notification similar to the real ones
+        test_live_embed = discord.Embed(
+            description="🚨 Hey Cyber-Runner! 🚨\nTestUser ist jetzt LIVE auf Twitch: testchannel!\n**DIES IST EINE TEST-NACHRICHT DIE GLEICH GELÖSCHT WIRD**",
+            color=Config.COLORS['twitch']
+        )
+        test_live_embed.set_thumbnail(url="https://static-cdn.jtvnw.net/user-default-pictures-uv/de130ab0-def7-11e9-b668-784f43822e80-profile_image-300x300.png")
+        test_live_embed.add_field(name="👀 Zuschauer", value="1,337", inline=True)
+        test_live_embed.add_field(name="🎮 Spiel", value="Test Game", inline=True)
+        test_live_embed.add_field(name="💖 Follower", value="42,069", inline=True)
+        test_live_embed.add_field(name="🔥 Daily Streak", value="7 Tage", inline=True)
+        test_live_embed.set_footer(text="🟣 Twitch • Test-Nachricht (wird in 5s gelöscht)")
+        test_live_embed.timestamp = datetime.now()
+        
+        # Create test view with buttons
+        class TestNotificationView(discord.ui.View):
+            def __init__(self):
+                super().__init__(timeout=None)
+                self.add_item(discord.ui.Button(label="Anschauen", emoji="📺", url="https://twitch.tv/testchannel", style=discord.ButtonStyle.link, row=0))
+                self.add_item(discord.ui.Button(label="Folgen", emoji="❤️", url="https://twitch.tv/testchannel", style=discord.ButtonStyle.link, row=0))
+        
+        view = TestNotificationView()
+        
+        # Send the test notification and store the message
+        test_message = await channel.send("**🧪 TEST-LIVE-BENACHRICHTIGUNG**", embed=test_live_embed, view=view)
+        
+        # Send countdown status
+        countdown_embed = discord.Embed(
+            title="⏱️ Countdown läuft...",
+            description=f"**Test-Nachricht ID:** `{test_message.id}`\n"
+                       f"**Channel ID:** `{channel.id}`\n\n"
+                       "Die Nachricht wird in **5 Sekunden** automatisch gelöscht...",
+            color=discord.Color.yellow()
+        )
+        await channel.send(embed=countdown_embed)
+        
+        # Wait 5 seconds
+        await asyncio.sleep(5)
+        
+        # Delete the test message (demonstrating the auto-deletion feature)
+        try:
+            await test_message.delete()
+            
+            # Send success confirmation
+            success_embed = discord.Embed(
+                title="✅ Auto-Löschung erfolgreich!",
+                description="**Die Test-Live-Benachrichtigung wurde automatisch gelöscht!**\n\n"
+                           "🎯 **Das passiert jetzt automatisch:**\n"
+                           "• Wenn ein Stream startet → Live-Benachrichtigung wird gesendet\n"
+                           "• Message-ID wird in der Datenbank gespeichert\n"
+                           "• Wenn der Stream endet → Nachricht wird automatisch gelöscht\n"
+                           "• Keine alten Benachrichtigungen bleiben hängen!\n\n"
+                           "🛡️ **Robuste Implementierung:**\n"
+                           "• Bei Fehlern wird es später erneut versucht\n"
+                           "• Message-IDs werden nur bei erfolgreicher Löschung entfernt\n"
+                           "• Fallback zu fetch_channel() bei Cache-Problemen",
+                color=discord.Color.green()
+            )
+            success_embed.add_field(
+                name="🔧 Technische Details",
+                value=f"**Gelöschte Message-ID:** `{test_message.id}`\n"
+                     f"**Deletion-Zeit:** {datetime.now().strftime('%H:%M:%S')}\n"
+                     f"**Status:** Erfolgreich gelöscht",
+                inline=False
+            )
+            await channel.send(embed=success_embed)
+            
+        except discord.NotFound:
+            # Message was already deleted
+            already_deleted_embed = discord.Embed(
+                title="ℹ️ Nachricht bereits gelöscht",
+                description="Die Test-Nachricht war bereits gelöscht (vermutlich manuell).\n"
+                           "Dies wird auch korrekt von der Auto-Löschung behandelt.",
+                color=discord.Color.blue()
+            )
+            await channel.send(embed=already_deleted_embed)
+            
+        except Exception as e:
+            # Error occurred
+            error_embed = discord.Embed(
+                title="⚠️ Löschung fehlgeschlagen",
+                description=f"**Fehler:** {str(e)}\n\n"
+                           "In der echten Implementierung würde:\n"
+                           "• Die Message-ID gespeichert bleiben\n"
+                           "• Beim nächsten Offline-Check erneut versucht werden\n"
+                           "• Retry-Mechanismus aktiviert werden",
+                color=discord.Color.red()
+            )
+            await channel.send(embed=error_embed)
 
     async def run_event_test(self, interaction: discord.Interaction):
         """Demo event system"""

@@ -273,6 +273,16 @@ class DatabaseManager:
                     VALUES (?, ?, ?)
                 ''', (creator_id, 'tiktok', channel_id))
         
+        # Migration: Add message_id and notification_channel_id to live_status table for auto-deletion
+        cursor.execute("PRAGMA table_info(live_status)")
+        live_status_columns = [column[1] for column in cursor.fetchall()]
+        if 'message_id' not in live_status_columns:
+            cursor.execute('ALTER TABLE live_status ADD COLUMN message_id TEXT')
+            logger.info("Added message_id column to live_status table")
+        if 'notification_channel_id' not in live_status_columns:
+            cursor.execute('ALTER TABLE live_status ADD COLUMN notification_channel_id TEXT')
+            logger.info("Added notification_channel_id column to live_status table")
+        
         # Stats Channels table (für Voice Channel Statistiken)
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS stats_channels (
@@ -1537,10 +1547,60 @@ async def handle_stream_status(creator_id, discord_user_id, username, streamer_t
         else:
             # Update live status to offline
             if current_status and current_status[0]:  # Was live before
+                # Get message_id and notification_channel_id for deletion
                 cursor.execute(
-                    'UPDATE live_status SET is_live = FALSE WHERE creator_id = ? AND platform = ?',
+                    'SELECT message_id, notification_channel_id FROM live_status WHERE creator_id = ? AND platform = ?',
                     (creator_id, platform)
                 )
+                message_data = cursor.fetchone()
+                
+                # Delete live notification message if it exists
+                message_deleted = False
+                if message_data and message_data[0] and message_data[1]:
+                    message_id, notification_channel_id = message_data
+                    try:
+                        # Get the channel and delete the message
+                        notification_channel = bot.get_channel(int(notification_channel_id))
+                        if not notification_channel:
+                            # Try to fetch channel as fallback for cache misses
+                            try:
+                                notification_channel = await asyncio.wait_for(bot.fetch_channel(int(notification_channel_id)), timeout=10.0)
+                            except Exception:
+                                logger.warning(f"Could not fetch notification channel {notification_channel_id} for {username} on {platform}")
+                        
+                        if notification_channel:
+                            try:
+                                message_to_delete = await asyncio.wait_for(
+                                    notification_channel.fetch_message(int(message_id)), 
+                                    timeout=10.0
+                                )
+                                await asyncio.wait_for(message_to_delete.delete(), timeout=10.0)
+                                logger.info(f"🗑️ Deleted live notification for {username} on {platform} (Message ID: {message_id})")
+                                message_deleted = True
+                            except discord.NotFound:
+                                logger.info(f"Live notification message for {username} on {platform} was already deleted")
+                                message_deleted = True  # Message doesn't exist, so consider it "deleted"
+                            except asyncio.TimeoutError:
+                                logger.warning(f"Timeout while deleting live notification for {username} on {platform} - will retry later")
+                            except Exception as delete_error:
+                                logger.error(f"Failed to delete live notification for {username} on {platform}: {delete_error} - will retry later")
+                        else:
+                            logger.warning(f"Notification channel {notification_channel_id} not found for {username} on {platform} - will retry later")
+                    except Exception as e:
+                        logger.error(f"Error during message deletion for {username} on {platform}: {e} - will retry later")
+                
+                # Update database: set offline and clear message IDs only if deletion succeeded or message not found
+                if message_deleted:
+                    cursor.execute(
+                        'UPDATE live_status SET is_live = FALSE, message_id = NULL, notification_channel_id = NULL WHERE creator_id = ? AND platform = ?',
+                        (creator_id, platform)
+                    )
+                else:
+                    # Only set offline but keep message IDs for retry
+                    cursor.execute(
+                        'UPDATE live_status SET is_live = FALSE WHERE creator_id = ? AND platform = ?',
+                        (creator_id, platform)
+                    )
                 
                 logger.info(f"Updated {username} on {platform} to offline")
                 
@@ -1627,18 +1687,37 @@ async def send_live_notification(creator_id, discord_user_id, username, streamer
         embed = await create_live_embed(creator_id, discord_user_id, username, streamer_type, platform, platform_username, stream_info)
         
         # Send to notification channel with timeout (ChatGPT fix)
+        sent_message = None
         if isinstance(channel, (discord.TextChannel, discord.Thread, discord.DMChannel)):
             try:
-                await asyncio.wait_for(
+                sent_message = await asyncio.wait_for(
                     channel.send(embed=embed, view=LiveNotificationView(platform, platform_username)),
                     timeout=15.0
                 )
             except asyncio.TimeoutError:
                 logger.error(f"Channel send timed out for {username} on {platform}")
-                return
+                return None
         else:
             logger.error(f"Channel {channel_id} is not a text channel for {username} on {platform}")
-            return
+            return None
+        
+        # Store message_id and channel_id in database for later deletion
+        if sent_message:
+            try:
+                conn = db.get_connection()
+                cursor = conn.cursor()
+                cursor.execute('''
+                    UPDATE live_status 
+                    SET message_id = ?, notification_channel_id = ? 
+                    WHERE creator_id = ? AND platform = ?
+                ''', (str(sent_message.id), str(channel_id), creator_id, platform))
+                conn.commit()
+                conn.close()
+                logger.info(f"💾 Saved message ID {sent_message.id} for {username} on {platform}")
+            except Exception as e:
+                logger.error(f"Failed to save message ID for {username} on {platform}: {e}")
+                if conn:
+                    conn.close()
         
         # Send private notifications to subscribers
         await send_private_notifications(creator_id, username, platform, platform_username, stream_info)
