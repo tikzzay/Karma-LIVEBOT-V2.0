@@ -1623,7 +1623,7 @@ class ServerManagement(commands.Cog):
         
         embed.add_field(
             name="⚠️ Hinweise",
-            value=f"• Bereits verwendet: {existing_count}/30 Slots\n• Channels werden gesperrt (nur Anzeige)\n• Updates alle 5 Minuten",
+            value=f"• Bereits verwendet: {existing_count}/30 Slots\n• Channels werden gesperrt (nur Anzeige)\n• Updates alle 30 Minuten",
             inline=False
         )
         
@@ -1668,7 +1668,7 @@ class ServerManagement(commands.Cog):
         
         embed.add_field(
             name="⚠️ Hinweise",
-            value=f"• Verwendet: {existing_count}/20 Channels\n• Updates alle 5 Minuten\n• Username wird validiert",
+            value=f"• Verwendet: {existing_count}/20 Channels\n• Updates alle 30 Minuten\n• Username wird validiert",
             inline=False
         )
         
@@ -2044,7 +2044,7 @@ class ConfirmStatsButton(discord.ui.Button):
                 
                 embed.add_field(
                     name="🔄 Updates",
-                    value="Die Statistiken werden automatisch alle 5 Minuten aktualisiert.",
+                    value="Die Statistiken werden automatisch alle 30 Minuten aktualisiert.",
                     inline=False
                 )
                 
@@ -2361,18 +2361,41 @@ class UsernameInputModal(discord.ui.Modal):
                         reason="Social Media Stats Channel erstellt"
                     )
                     
-                    # Store in database
-                    conn = self.db.get_connection()
-                    cursor = conn.cursor()
-                    
-                    cursor.execute('''
-                        INSERT INTO social_media_stats_channels 
-                        (guild_id, channel_id, platform, username, last_follower_count)
-                        VALUES (?, ?, ?, ?, ?)
-                    ''', (str(self.guild.id), str(channel.id), platform, username, initial_count))
-                    
-                    conn.commit()
-                    conn.close()
+                    # Store in database with proper error handling
+                    try:
+                        conn = self.db.get_connection()
+                        cursor = conn.cursor()
+                        
+                        # Check if entry already exists to avoid UNIQUE constraint conflicts
+                        cursor.execute('''
+                            SELECT id FROM social_media_stats_channels 
+                            WHERE channel_id = ? OR (guild_id = ? AND platform = ? AND username = ?)
+                        ''', (str(channel.id), str(self.guild.id), platform, username))
+                        
+                        existing = cursor.fetchone()
+                        if existing:
+                            # Update existing entry instead of creating new one
+                            cursor.execute('''
+                                UPDATE social_media_stats_channels 
+                                SET channel_id = ?, last_follower_count = ?, last_update = CURRENT_TIMESTAMP
+                                WHERE guild_id = ? AND platform = ? AND username = ?
+                            ''', (str(channel.id), initial_count, str(self.guild.id), platform, username))
+                        else:
+                            # Insert new entry
+                            cursor.execute('''
+                                INSERT INTO social_media_stats_channels 
+                                (guild_id, channel_id, platform, username, last_follower_count)
+                                VALUES (?, ?, ?, ?, ?)
+                            ''', (str(self.guild.id), str(channel.id), platform, username, initial_count))
+                        
+                        conn.commit()
+                        conn.close()
+                    except sqlite3.Error as db_error:
+                        errors.append(f"{platform.title()}: @{username} - database is locked")
+                        logger.error(f"Database error for {platform}/{username}: {db_error}")
+                        if 'conn' in locals():
+                            conn.close()
+                        continue
                     
                     created_channels.append(f"✅ {platform.title()}: @{username} ({initial_count:,} Follower)")
                     logger.info(f"Created social media stats channel for {platform}/{username}")
@@ -2405,7 +2428,7 @@ class UsernameInputModal(discord.ui.Modal):
                 
                 embed.add_field(
                     name="🔄 Updates",
-                    value="Die Follower-Zahlen werden alle 5 Minuten automatisch aktualisiert.",
+                    value="Die Follower-Zahlen werden alle 30 Minuten automatisch aktualisiert.",
                     inline=False
                 )
             else:

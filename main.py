@@ -21,6 +21,17 @@ import aiohttp
 from aiohttp import web
 import requests
 from bs4 import BeautifulSoup
+import json
+
+# OpenAI for automatic scraping repair
+# the newest OpenAI model is "gpt-5" which was released August 7, 2025. 
+# do not change this unless explicitly requested by the user
+try:
+    from openai import OpenAI
+    OPENAI_AVAILABLE = True
+except ImportError:
+    OPENAI_AVAILABLE = False
+    # Note: logger will be defined later, so we don't log here
 
 # Logging Setup - Railway.com compatible
 import sys
@@ -92,6 +103,10 @@ class Config:
     TWITTER_BEARER_TOKEN = os.getenv('TWITTER_BEARER_TOKEN')
     INSTAGRAM_SESSION_ID = os.getenv('INSTAGRAM_SESSION_ID')
     
+    # OpenAI Auto-Repair System
+    OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
+    DEV_CHANNEL_ID = int(os.getenv('DEV_CHANNEL_ID')) if os.getenv('DEV_CHANNEL_ID') else None
+    
     # Platform Colors
     COLORS = {
         'twitch': 0x9146FF,    # Lila
@@ -105,7 +120,158 @@ class Config:
     # Check Intervals
     KARMA_CHECK_INTERVAL = 60    # 1 Minute
     REGULAR_CHECK_INTERVAL = 180 # 3 Minuten
-    SOCIAL_MEDIA_CHECK_INTERVAL = 300 # 5 Minuten
+    SOCIAL_MEDIA_CHECK_INTERVAL = 1800 # 30 Minuten
+
+# OpenAI Auto-Repair System
+class OpenAIAutoRepair:
+    """Automatisches Reparatur-System für Scraping-Fehler mit OpenAI-Unterstützung"""
+    
+    def __init__(self, bot):
+        self.bot = bot
+        self.openai_client = None
+        self.repair_attempts = {}  # Track repair attempts per platform/method
+        self.max_repairs_per_hour = 5  # Limit API calls
+        self.repair_cooldown = {}  # Cooldown between repairs
+        
+        if OPENAI_AVAILABLE and Config.OPENAI_API_KEY:
+            try:
+                self.openai_client = OpenAI(api_key=Config.OPENAI_API_KEY)
+                logger.info("🤖 OpenAI Auto-Repair System initialized successfully")
+            except Exception as e:
+                logger.error(f"🤖 Failed to initialize OpenAI client: {e}")
+                self.openai_client = None
+        else:
+            logger.warning("🤖 OpenAI Auto-Repair System disabled - missing API key or library")
+    
+    async def send_dev_notification(self, title: str, description: str, error_details: str = None, fix_applied: str = None, color: int = 0xFF6B6B):
+        """Sendet Entwickler-Benachrichtigung an DEV_CHANNEL_ID"""
+        if not Config.DEV_CHANNEL_ID:
+            logger.warning("🤖 DEV_CHANNEL_ID nicht konfiguriert - Benachrichtigung übersprungen")
+            return
+        
+        try:
+            channel = self.bot.get_channel(Config.DEV_CHANNEL_ID)
+            if not channel:
+                logger.error(f"🤖 DEV_CHANNEL_ID {Config.DEV_CHANNEL_ID} nicht gefunden")
+                return
+            
+            embed = discord.Embed(
+                title=f"🤖 {title}",
+                description=description,
+                color=color,
+                timestamp=datetime.utcnow()
+            )
+            
+            if error_details:
+                embed.add_field(
+                    name="❌ Fehler-Details",
+                    value=f"```\n{error_details[:1000]}\n```",
+                    inline=False
+                )
+            
+            if fix_applied:
+                embed.add_field(
+                    name="🔧 Angewandte Reparatur",
+                    value=f"```\n{fix_applied[:1000]}\n```",
+                    inline=False
+                )
+            
+            embed.set_footer(text="KARMA-LiveBOT Auto-Repair System")
+            
+            await channel.send(embed=embed)
+            logger.info(f"🤖 Dev-Benachrichtigung gesendet: {title}")
+            
+        except Exception as e:
+            logger.error(f"🤖 Fehler beim Senden der Dev-Benachrichtigung: {e}")
+    
+    async def attempt_repair(self, platform: str, method: str, error: str, html_content: str = None, url: str = None) -> dict:
+        """Versucht automatische Reparatur mit OpenAI"""
+        if not self.openai_client:
+            return {"success": False, "reason": "OpenAI nicht verfügbar"}
+        
+        repair_key = f"{platform}_{method}"
+        current_time = datetime.now()
+        
+        # Check cooldown (1 hour)
+        if repair_key in self.repair_cooldown:
+            if current_time - self.repair_cooldown[repair_key] < timedelta(hours=1):
+                return {"success": False, "reason": "Cooldown aktiv (1 Stunde)"}
+        
+        # Check hourly limit
+        if repair_key not in self.repair_attempts:
+            self.repair_attempts[repair_key] = []
+        
+        # Remove attempts older than 1 hour
+        self.repair_attempts[repair_key] = [
+            timestamp for timestamp in self.repair_attempts[repair_key]
+            if current_time - timestamp < timedelta(hours=1)
+        ]
+        
+        if len(self.repair_attempts[repair_key]) >= self.max_repairs_per_hour:
+            return {"success": False, "reason": f"Stündliches Limit erreicht ({self.max_repairs_per_hour})"}
+        
+        try:
+            # Prepare context for OpenAI
+            context = f"""
+Du bist ein Experte für Web-Scraping und sollst helfen, kaputte Scraping-Selektoren zu reparieren.
+
+PLATFORM: {platform}
+METHOD: {method}
+ERROR: {error}
+URL: {url or 'N/A'}
+
+CURRENT TASK:
+- Analysiere den Fehler und den HTML-Content
+- Schlage neue CSS-Selektoren oder BeautifulSoup-Pattern vor
+- Gib eine JSON-Antwort mit neuen Scraping-Parametern zurück
+
+EXPECTED JSON RESPONSE FORMAT:
+{{
+    "success": true,
+    "selectors": ["selector1", "selector2"],
+    "patterns": ["pattern1", "pattern2"],
+    "explanation": "Erklärung der Änderungen",
+    "confidence": 0.8
+}}
+
+HTML CONTENT (erste 2000 Zeichen):
+{html_content[:2000] if html_content else 'Nicht verfügbar'}
+"""
+            
+            # Call OpenAI
+            response = self.openai_client.chat.completions.create(
+                model="gpt-5",  # the newest OpenAI model is "gpt-5" which was released August 7, 2025
+                messages=[{"role": "user", "content": context}],
+                response_format={"type": "json_object"},
+                max_tokens=1000
+            )
+            
+            repair_suggestion = json.loads(response.choices[0].message.content)
+            
+            # Log attempt
+            self.repair_attempts[repair_key].append(current_time)
+            self.repair_cooldown[repair_key] = current_time
+            
+            # Send notification
+            await self.send_dev_notification(
+                title=f"Auto-Repair Versuch - {platform.title()}",
+                description=f"OpenAI-Reparatur für {method} durchgeführt",
+                error_details=f"Fehler: {error}\nURL: {url}",
+                fix_applied=json.dumps(repair_suggestion, indent=2),
+                color=0x57F287  # Green
+            )
+            
+            return repair_suggestion
+            
+        except Exception as e:
+            logger.error(f"🤖 OpenAI Auto-Repair Fehler: {e}")
+            await self.send_dev_notification(
+                title=f"Auto-Repair Fehler - {platform.title()}",
+                description=f"OpenAI-Reparatur fehlgeschlagen für {method}",
+                error_details=f"OpenAI Error: {str(e)}\nOriginal Error: {error}",
+                color=0xED4245  # Red
+            )
+            return {"success": False, "reason": f"OpenAI Fehler: {str(e)}"}
 
 # Database Manager with better concurrency handling
 class DatabaseManager:
@@ -638,6 +804,21 @@ class SocialMediaAPIs:
                 
         except Exception as e:
             logger.error(f"Instagram API error for {username}: {e}")
+            
+            # 🤖 TRIGGER AUTO-REPAIR SYSTEM FOR INSTAGRAM ERRORS
+            if auto_repair_system:
+                try:
+                    logger.info(f"🤖 Triggering auto-repair for Instagram scraping failure (@{username})")
+                    repair_result = await auto_repair_system.attempt_repair(
+                        platform="instagram",
+                        method="follower_scraping",
+                        error=f"Instagram scraping error: {str(e)}",
+                        url=f"https://www.instagram.com/{username}/"
+                    )
+                    logger.info(f"🤖 Auto-repair result for Instagram @{username}: {repair_result}")
+                except Exception as repair_error:
+                    logger.error(f"🤖 Auto-repair system error: {repair_error}")
+            
             return None
     
     async def _get_twitter_followers(self, username: str) -> Optional[int]:
@@ -1177,10 +1358,41 @@ class SocialMediaScrapingOnlyAPIs:
                         continue
                 
                 logger.warning(f"All TikTok scraping methods failed for {username}")
+                
+                # 🤖 TRIGGER AUTO-REPAIR SYSTEM
+                if auto_repair_system:
+                    try:
+                        logger.info(f"🤖 Triggering auto-repair for TikTok scraping failure (@{username})")
+                        repair_result = await auto_repair_system.attempt_repair(
+                            platform="tiktok",
+                            method="follower_scraping",
+                            error=f"All TikTok scraping methods failed for {username} - no followerCount found in HTML",
+                            html_content=text if 'text' in locals() else None,
+                            url=f"https://www.tiktok.com/@{username}"
+                        )
+                        logger.info(f"🤖 Auto-repair result for TikTok @{username}: {repair_result}")
+                    except Exception as repair_error:
+                        logger.error(f"🤖 Auto-repair system error: {repair_error}")
+                
                 return None
                 
         except Exception as e:
             logger.error(f"TikTok scraping error for {username}: {e}")
+            
+            # 🤖 TRIGGER AUTO-REPAIR SYSTEM FOR EXCEPTIONS
+            if auto_repair_system:
+                try:
+                    logger.info(f"🤖 Triggering auto-repair for TikTok exception (@{username})")
+                    repair_result = await auto_repair_system.attempt_repair(
+                        platform="tiktok",
+                        method="follower_scraping_exception",
+                        error=f"TikTok scraping exception: {str(e)}",
+                        url=f"https://www.tiktok.com/@{username}"
+                    )
+                    logger.info(f"🤖 Auto-repair result for TikTok exception @{username}: {repair_result}")
+                except Exception as repair_error:
+                    logger.error(f"🤖 Auto-repair system error: {repair_error}")
+            
             return None
     
     async def _scrape_twitch_followers(self, username: str) -> Optional[int]:
@@ -1232,6 +1444,9 @@ class SocialMediaScrapingOnlyAPIs:
 
 # Initialize Social Media Scraping-Only APIs
 social_media_scraping_apis = SocialMediaScrapingOnlyAPIs()
+
+# Initialize Auto-Repair System (will be set in on_ready)
+auto_repair_system = None
 
 # Platform API Managers
 class TwitchAPI:
@@ -3374,9 +3589,9 @@ async def stats_updater():
 
 
 # Social Media Stats Update Task
-@tasks.loop(minutes=5)
+@tasks.loop(seconds=Config.SOCIAL_MEDIA_CHECK_INTERVAL)
 async def social_media_stats_updater_task():
-    """Task loop for updating social media stats channels every 5 minutes"""
+    """Task loop for updating social media stats channels every 30 minutes"""
     await social_media_stats_updater()
 
 
@@ -3638,11 +3853,16 @@ async def on_ready():
     
     # Start social media stats updater task
     social_media_stats_updater_task.start()
-    logger.info("📱 Social Media stats updater started - updating social media channels every 5 minutes")
+    logger.info("📱 Social Media stats updater started - updating social media channels every 30 minutes")
     
     # Start TikTok recovery task
     tiktok_recovery_task.start()
     logger.info("🔧 TikTok recovery task started - checking TikTok connectivity every 30 minutes")
+    
+    # Initialize OpenAI Auto-Repair System
+    global auto_repair_system
+    auto_repair_system = OpenAIAutoRepair(bot)
+    logger.info("🤖 OpenAI Auto-Repair System ready for scraping failures")
     
     # Import and add command cogs (pass DatabaseManager class)
     import commands

@@ -16,3 +16,5 @@ PyNaCl
 python-dotenv
 requests
 tiktoklive
+openai
+openai
