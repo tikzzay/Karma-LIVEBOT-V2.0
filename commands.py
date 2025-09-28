@@ -1409,10 +1409,10 @@ class ServerManagement(commands.Cog):
         existing_count = cursor.fetchone()[0]
         conn.close()
         
-        if existing_count >= 16:
+        if existing_count >= 30:
             embed = discord.Embed(
                 title="❌ Limit erreicht",
-                description="Maximal 16 Stats-Channels sind erlaubt. Lösche zuerst bestehende Channels.",
+                description="Maximal 30 Stats-Channels sind erlaubt. Lösche zuerst bestehende Channels.",
                 color=discord.Color.red()
             )
             await interaction.response.send_message(embed=embed, ephemeral=True)
@@ -1441,7 +1441,77 @@ class ServerManagement(commands.Cog):
         
         embed.add_field(
             name="⚠️ Hinweise",
-            value=f"• Bereits verwendet: {existing_count}/16 Slots\n• Channels werden gesperrt (nur Anzeige)\n• Updates alle 30 Minuten",
+            value=f"• Bereits verwendet: {existing_count}/30 Slots\n• Channels werden gesperrt (nur Anzeige)\n• Updates alle 5 Minuten",
+            inline=False
+        )
+        
+        await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
+
+    @app_commands.command(name="managestatschannels", description="Bestehende Stats-Channels verwalten und löschen")
+    @app_commands.default_permissions(administrator=True)
+    @has_admin_role()
+    async def manage_stats_channels(self, interaction: discord.Interaction):
+        """Manage existing stats channels"""
+        conn = self.db.get_connection()
+        cursor = conn.cursor()
+        
+        # Get existing stats channels for this guild
+        cursor.execute('''
+            SELECT channel_id, counter_type, role_id, last_count 
+            FROM stats_channels 
+            WHERE guild_id = ?
+        ''', (str(interaction.guild.id),))
+        stats_channels = cursor.fetchall()
+        conn.close()
+        
+        if not stats_channels:
+            embed = discord.Embed(
+                title="📊 Keine Stats-Channels",
+                description="Keine Stats-Channels in diesem Server konfiguriert.\nVerwenden Sie `/setupstatschannel` um welche zu erstellen.",
+                color=discord.Color.orange()
+            )
+            await interaction.response.send_message(embed=embed, ephemeral=True)
+            return
+        
+        # Create management view
+        view = StatsChannelManagementView(self.db, interaction.guild, stats_channels)
+        
+        embed = discord.Embed(
+            title="📊 Stats-Channels Verwaltung",
+            description=f"Verwaltung von {len(stats_channels)} Stats-Channels:",
+            color=discord.Color.blue()
+        )
+        
+        # List all channels
+        channel_list = []
+        for channel_id, counter_type, role_id, last_count in stats_channels:
+            channel = interaction.guild.get_channel(int(channel_id))
+            if channel:
+                if counter_type == 'role_count' and role_id:
+                    role = interaction.guild.get_role(int(role_id))
+                    channel_name = f"{role.name if role else 'Unbekannte Rolle'}: {last_count}"
+                else:
+                    type_names = {
+                        'online': '🟢ONLINE MEMBER',
+                        'peak_online': '📈DAILY PEAK ONLINE',
+                        'members': '👥DISCORD MEMBER',
+                        'channels': '📝DISCORD CHANNEL',
+                        'roles': '👾DISCORD ROLES'
+                    }
+                    channel_name = f"{type_names.get(counter_type, counter_type)}: {last_count}"
+                channel_list.append(f"• {channel_name}")
+            else:
+                channel_list.append(f"• ❌ Gelöschter Channel (ID: {channel_id})")
+        
+        embed.add_field(
+            name="📋 Aktuelle Stats-Channels",
+            value="\n".join(channel_list) if channel_list else "Keine Channels gefunden",
+            inline=False
+        )
+        
+        embed.add_field(
+            name="🗑️ Aktionen",
+            value="Verwenden Sie die Buttons unten um Channels zu löschen oder alle zu entfernen.",
             inline=False
         )
         
@@ -1467,7 +1537,7 @@ class StatsChannelSetupView(discord.ui.View):
     async def update_message(self, interaction: discord.Interaction):
         """Update the message with current selections"""
         total_selected = len(self.selected_stats) + len(self.selected_roles)
-        remaining_slots = 16 - self.existing_count - total_selected
+        remaining_slots = 30 - self.existing_count - total_selected
         
         embed = discord.Embed(
             title="📊 Stats-Channels Setup",
@@ -1485,7 +1555,7 @@ class StatsChannelSetupView(discord.ui.View):
         
         embed.add_field(
             name="📊 Zusammenfassung",
-            value=f"Gewählt: {total_selected}\nVerfügbare Slots: {remaining_slots}/16",
+            value=f"Gewählt: {total_selected}\nVerfügbare Slots: {remaining_slots}/30",
             inline=False
         )
         
@@ -1567,11 +1637,11 @@ class ConfirmStatsButton(discord.ui.Button):
         
         # Map display names back to database values
         name_to_value = {
-            "Online-Mitglieder": "online",
-            "Peak Online-Mitglieder": "peak_online",
-            "Mitglieder insgesamt": "members", 
-            "Kanäle insgesamt": "channels",
-            "Rollen insgesamt": "roles"
+            "🟢ONLINE MEMBER": "online",
+            "📈DAILY PEAK ONLINE": "peak_online",
+            "👥DISCORD MEMBER": "members", 
+            "📝DISCORD CHANNEL": "channels",
+            "👾DISCORD ROLES": "roles"
         }
         
         created_channels = []
@@ -1582,7 +1652,25 @@ class ConfirmStatsButton(discord.ui.Button):
             for stat_name in self.view.selected_stats:
                 try:
                     counter_type = name_to_value[stat_name]
-                    channel_name = f"{stat_name}: 0"
+                    
+                    # Calculate current value immediately
+                    current_count = 0
+                    if counter_type == 'online':
+                        # Count members in voice channels as alternative to presences intent
+                        voice_members = set()
+                        for voice_channel in self.guild.voice_channels:
+                            voice_members.update(voice_channel.members)
+                        current_count = len(voice_members)
+                    elif counter_type == 'members':
+                        current_count = self.guild.member_count
+                    elif counter_type == 'channels':
+                        current_count = len(self.guild.channels)
+                    elif counter_type == 'roles':
+                        current_count = len(self.guild.roles) - 1  # Exclude @everyone
+                    elif counter_type == 'peak_online':
+                        current_count = 0  # Peak tracking starts at 0
+                    
+                    channel_name = f"{stat_name}: {current_count}"
                     
                     # Create locked voice channel
                     overwrites = {
@@ -1602,7 +1690,7 @@ class ConfirmStatsButton(discord.ui.Button):
                     cursor.execute('''
                         INSERT INTO stats_channels (guild_id, channel_id, counter_type, last_count)
                         VALUES (?, ?, ?, ?)
-                    ''', (str(self.guild.id), str(channel.id), counter_type, 0))
+                    ''', (str(self.guild.id), str(channel.id), counter_type, current_count))
                     conn.commit()
                     conn.close()
                     
@@ -1615,7 +1703,9 @@ class ConfirmStatsButton(discord.ui.Button):
             # Create role count channels
             for role in self.view.selected_roles:
                 try:
-                    channel_name = f"{role.name}: 0"
+                    # Get current role member count
+                    current_count = len(role.members)
+                    channel_name = f"{role.name}: {current_count}"
                     
                     # Create locked voice channel
                     overwrites = {
@@ -1635,7 +1725,7 @@ class ConfirmStatsButton(discord.ui.Button):
                     cursor.execute('''
                         INSERT INTO stats_channels (guild_id, channel_id, counter_type, role_id, last_count)
                         VALUES (?, ?, ?, ?, ?)
-                    ''', (str(self.guild.id), str(channel.id), "role_count", str(role.id), 0))
+                    ''', (str(self.guild.id), str(channel.id), "role_count", str(role.id), current_count))
                     conn.commit()
                     conn.close()
                     
@@ -1658,7 +1748,7 @@ class ConfirmStatsButton(discord.ui.Button):
                 
                 embed.add_field(
                     name="🔄 Updates",
-                    value="Die Statistiken werden automatisch alle 30 Minuten aktualisiert.",
+                    value="Die Statistiken werden automatisch alle 5 Minuten aktualisiert.",
                     inline=False
                 )
                 
@@ -1686,3 +1776,152 @@ class ConfirmStatsButton(discord.ui.Button):
                 color=discord.Color.red()
             )
             await interaction.edit_original_response(embed=embed, view=None)
+
+
+class StatsChannelManagementView(discord.ui.View):
+    def __init__(self, db, guild, stats_channels):
+        super().__init__(timeout=300)
+        self.db = db
+        self.guild = guild
+        self.stats_channels = stats_channels
+        
+        # Add select for individual channel deletion if there are channels
+        if stats_channels:
+            self.add_item(StatsChannelSelect(db, guild, stats_channels))
+            self.add_item(DeleteAllStatsButton(db, guild))
+        
+        # Add refresh button
+        self.add_item(RefreshStatsButton(db, guild))
+
+
+class StatsChannelSelect(discord.ui.Select):
+    def __init__(self, db, guild, stats_channels):
+        self.db = db
+        self.guild = guild
+        
+        options = []
+        for channel_id, counter_type, role_id, last_count in stats_channels[:25]:  # Discord limit
+            channel = guild.get_channel(int(channel_id))
+            if channel:
+                if counter_type == 'role_count' and role_id:
+                    role = guild.get_role(int(role_id))
+                    label = f"{role.name if role else 'Unbekannte Rolle'}"[:100]
+                else:
+                    type_names = {
+                        'online': '🟢ONLINE MEMBER',
+                        'peak_online': '📈DAILY PEAK ONLINE',
+                        'members': '👥DISCORD MEMBER', 
+                        'channels': '📝DISCORD CHANNEL',
+                        'roles': '👾DISCORD ROLES'
+                    }
+                    label = type_names.get(counter_type, counter_type)[:100]
+                
+                options.append(discord.SelectOption(
+                    label=label,
+                    value=channel_id,
+                    description=f"Aktueller Wert: {last_count}",
+                    emoji="🗑️"
+                ))
+        
+        if not options:
+            options = [discord.SelectOption(label="Keine Channels verfügbar", value="none", disabled=True)]
+        
+        super().__init__(
+            placeholder="Channel zum Löschen auswählen...",
+            options=options,
+            max_values=min(len(options), 25)
+        )
+
+    async def callback(self, interaction: discord.Interaction):
+        if "none" in self.values:
+            return
+        
+        await interaction.response.defer(ephemeral=True)
+        
+        deleted_channels = []
+        conn = self.db.get_connection()
+        cursor = conn.cursor()
+        
+        for channel_id in self.values:
+            try:
+                # Delete from database
+                cursor.execute('DELETE FROM stats_channels WHERE channel_id = ?', (channel_id,))
+                
+                # Try to delete the actual channel
+                channel = self.guild.get_channel(int(channel_id))
+                if channel:
+                    await channel.delete(reason="Stats-Channel entfernt")
+                    deleted_channels.append(channel.name)
+                    
+            except Exception as e:
+                logger.error(f"Error deleting stats channel {channel_id}: {e}")
+        
+        conn.commit()
+        conn.close()
+        
+        embed = discord.Embed(
+            title="✅ Channels gelöscht",
+            description=f"Erfolgreich {len(deleted_channels)} Stats-Channels entfernt.",
+            color=discord.Color.green()
+        )
+        await interaction.edit_original_response(embed=embed)
+
+
+class DeleteAllStatsButton(discord.ui.Button):
+    def __init__(self, db, guild):
+        super().__init__(label="🗑️ Alle löschen", style=discord.ButtonStyle.danger)
+        self.db = db
+        self.guild = guild
+
+    async def callback(self, interaction: discord.Interaction):
+        await interaction.response.defer(ephemeral=True)
+        
+        conn = self.db.get_connection()
+        cursor = conn.cursor()
+        
+        # Get and delete all stats channels
+        cursor.execute('SELECT channel_id FROM stats_channels WHERE guild_id = ?', (str(self.guild.id),))
+        channel_ids = [row[0] for row in cursor.fetchall()]
+        
+        deleted_count = 0
+        for channel_id in channel_ids:
+            try:
+                channel = self.guild.get_channel(int(channel_id))
+                if channel:
+                    await channel.delete(reason="Alle Stats-Channels entfernt")
+                    deleted_count += 1
+            except Exception as e:
+                logger.error(f"Error deleting channel {channel_id}: {e}")
+        
+        # Remove all from database
+        cursor.execute('DELETE FROM stats_channels WHERE guild_id = ?', (str(self.guild.id),))
+        conn.commit()
+        conn.close()
+        
+        embed = discord.Embed(
+            title="✅ Alle Stats-Channels gelöscht",
+            description=f"Erfolgreich {deleted_count} Channels entfernt.",
+            color=discord.Color.green()
+        )
+        await interaction.edit_original_response(embed=embed)
+
+
+class RefreshStatsButton(discord.ui.Button):
+    def __init__(self, db, guild):
+        super().__init__(label="🔄 Aktualisieren", style=discord.ButtonStyle.secondary)
+        self.db = db
+        self.guild = guild
+
+    async def callback(self, interaction: discord.Interaction):
+        await interaction.response.defer()
+        
+        # Trigger manual stats update for immediate results
+        from main import stats_updater
+        await stats_updater()
+        
+        embed = discord.Embed(
+            title="✅ Stats aktualisiert",
+            description="Alle Stats-Channels wurden manuell aktualisiert.",
+            color=discord.Color.green()
+        )
+        await interaction.edit_original_response(embed=embed)

@@ -2201,7 +2201,11 @@ async def stats_updater():
                         except discord.HTTPException as e:
                             logger.warning(f"📊 Failed to edit channel {channel.name}: {e}")
                     else:
-                        logger.warning(f"📊 Channel {channel_id} not found or not a voice channel")
+                        logger.warning(f"📊 Channel {channel_id} not found or not a voice channel - removing from database")
+                        # Remove deleted channel from database
+                        cursor.execute('DELETE FROM stats_channels WHERE channel_id = ?', (channel_id,))
+                        # Commit deletion immediately
+                        conn.commit()
                 
             except Exception as channel_error:
                 logger.error(f"📊 Error updating channel {channel_id}: {channel_error}")
