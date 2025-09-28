@@ -2095,7 +2095,7 @@ async def log_cleanup_task():
         logger.error(f"🚨 LOG-CLEANUP ERROR: {e}")
 
 # Stats Channels Update Task
-@tasks.loop(minutes=30)
+@tasks.loop(minutes=5)
 async def stats_updater():
     """Update all stats channels with current server statistics"""
     try:
@@ -2169,15 +2169,15 @@ async def stats_updater():
                     if channel and isinstance(channel, discord.VoiceChannel):
                         # Generate new channel name
                         if counter_type == 'online':
-                            new_name = f"Online: {current_count}"
+                            new_name = f"🟢ONLINE MEMBER: {current_count}"
                         elif counter_type == 'peak_online':
-                            new_name = f"Peak Online: {current_count}"
+                            new_name = f"📈DAILY PEAK ONLINE: {current_count}"
                         elif counter_type == 'members':
-                            new_name = f"Members: {current_count}"
+                            new_name = f"👥DISCORD MEMBER: {current_count}"
                         elif counter_type == 'channels':
-                            new_name = f"Channels: {current_count}"
+                            new_name = f"📝DISCORD CHANNEL: {current_count}"
                         elif counter_type == 'roles':
-                            new_name = f"Roles: {current_count}"
+                            new_name = f"👾DISCORD ROLES: {current_count}"
                         elif counter_type == 'role_count' and role_id:
                             role = guild.get_role(int(role_id))
                             if role:
@@ -2374,7 +2374,7 @@ async def on_ready():
     
     # Start stats updater task
     stats_updater.start()
-    logger.info("📊 Stats updater started - updating stats channels every 30 minutes")
+    logger.info("📊 Stats updater started - updating stats channels every 5 minutes")
     
     # Start TikTok recovery task
     tiktok_recovery_task.start()

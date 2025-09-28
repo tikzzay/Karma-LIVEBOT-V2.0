@@ -1409,10 +1409,10 @@ class ServerManagement(commands.Cog):
         existing_count = cursor.fetchone()[0]
         conn.close()
         
-        if existing_count >= 13:
+        if existing_count >= 16:
             embed = discord.Embed(
                 title="❌ Limit erreicht",
-                description="Maximal 13 Stats-Channels sind erlaubt. Lösche zuerst bestehende Channels.",
+                description="Maximal 16 Stats-Channels sind erlaubt. Lösche zuerst bestehende Channels.",
                 color=discord.Color.red()
             )
             await interaction.response.send_message(embed=embed, ephemeral=True)
@@ -1511,11 +1511,11 @@ class BaseStatsSelect(discord.ui.Select):
     async def callback(self, interaction: discord.Interaction):
         # Map values to display names
         value_to_name = {
-            "online": "Online-Mitglieder",
-            "peak_online": "Peak Online-Mitglieder", 
-            "members": "Mitglieder insgesamt",
-            "channels": "Kanäle insgesamt",
-            "roles": "Rollen insgesamt"
+            "online": "🟢ONLINE MEMBER",
+            "peak_online": "📈DAILY PEAK ONLINE", 
+            "members": "👥DISCORD MEMBER",
+            "channels": "📝DISCORD CHANNEL",
+            "roles": "👾DISCORD ROLES"
         }
         
         self.view.selected_stats = [value_to_name[val] for val in self.values]
