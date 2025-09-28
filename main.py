@@ -286,6 +286,13 @@ class DatabaseManager:
             cursor.execute('ALTER TABLE live_status ADD COLUMN notification_channel_id TEXT')
             logger.info("Added notification_channel_id column to live_status table")
         
+        # Migration: Add custom_message column to creators table for custom notifications
+        cursor.execute("PRAGMA table_info(creators)")
+        creators_columns = [column[1] for column in cursor.fetchall()]
+        if 'custom_message' not in creators_columns:
+            cursor.execute('ALTER TABLE creators ADD COLUMN custom_message TEXT DEFAULT NULL')
+            logger.info("Added custom_message column to creators table")
+        
         # Stats Channels table (für Voice Channel Statistiken)
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS stats_channels (
@@ -2019,21 +2026,35 @@ async def create_live_embed(creator_id, discord_user_id, username, streamer_type
     # Initialize description with default value
     description = f"👾 {username} ist LIVE! Schaut vorbei! 🎮"
     
-    # Get notification text based on streamer type and platform
-    if streamer_type == 'karma':
-        if platform == 'twitch':
-            description = f"🚨 Hey Twitch-Runner! 🚨\n{username} ist jetzt LIVE auf Twitch: {platform_username}!\nTaucht ein in die Twitch-Welten, seid aktiv im Chat und verteilt ein bisschen Liebe im Stream! 💜💻"
-        elif platform == 'youtube':
-            description = f"⚡ Attention, Net-Runners! ⚡\n{username} streamt jetzt LIVE auf YouTube: {platform_username}!\nCheckt die Action, seid Teil des Chats und boostet die Community! 🔴🤖"
-        elif platform == 'tiktok':
-            description = f"💥 Heads up, TikToker! 💥\n{username} ist jetzt LIVE auf TikTok: {platform_username}!\nScrollt nicht vorbei, droppt ein Like und lasst den Stream glühen! 🔵✨"
-    else:  # regular streamer
-        if platform == 'twitch':
-            description = f"👾 {username} ist LIVE auf Twitch: {platform_username}!\nKommt vorbei und schaut kurz rein! 💜"
-        elif platform == 'youtube':
-            description = f"👾 {username} streamt jetzt LIVE auf YouTube: {platform_username}!\nVorbeischauen lohnt sich! 🔴"
-        elif platform == 'tiktok':
-            description = f"👾 {username} ist LIVE auf TikTok: {platform_username}!\nLasst ein Like da! 🔵"
+    # Check for custom message first
+    conn = db.get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute('SELECT custom_message FROM creators WHERE id = ?', (creator_id,))
+        custom_result = cursor.fetchone()
+        
+        if custom_result and custom_result[0]:
+            # Use custom message if available
+            description = custom_result[0]
+            logger.info(f"Using custom message for {username} on {platform}")
+        else:
+            # Use standard notification text based on streamer type and platform
+            if streamer_type == 'karma':
+                if platform == 'twitch':
+                    description = f"🚨 Hey Twitch-Runner! 🚨\n{username} ist jetzt LIVE auf Twitch: {platform_username}!\nTaucht ein in die Twitch-Welten, seid aktiv im Chat und verteilt ein bisschen Liebe im Stream! 💜💻"
+                elif platform == 'youtube':
+                    description = f"⚡ Attention, Net-Runners! ⚡\n{username} streamt jetzt LIVE auf YouTube: {platform_username}!\nCheckt die Action, seid Teil des Chats und boostet die Community! 🔴🤖"
+                elif platform == 'tiktok':
+                    description = f"💥 Heads up, TikToker! 💥\n{username} ist jetzt LIVE auf TikTok: {platform_username}!\nScrollt nicht vorbei, droppt ein Like und lasst den Stream glühen! 🔵✨"
+            else:  # regular streamer
+                if platform == 'twitch':
+                    description = f"👾 {username} ist LIVE auf Twitch: {platform_username}!\nKommt vorbei und schaut kurz rein! 💜"
+                elif platform == 'youtube':
+                    description = f"👾 {username} streamt jetzt LIVE auf YouTube: {platform_username}!\nVorbeischauen lohnt sich! 🔴"
+                elif platform == 'tiktok':
+                    description = f"👾 {username} ist LIVE auf TikTok: {platform_username}!\nLasst ein Like da! 🔵"
+    finally:
+        conn.close()
     
     embed = discord.Embed(
         description=description,

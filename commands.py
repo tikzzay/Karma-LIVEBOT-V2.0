@@ -161,6 +161,91 @@ class CreatorManagement(commands.Cog):
         )
         
         await interaction.response.send_message(embed=embed)
+    
+    @app_commands.command(name="customstreamermessage", description="Custom Benachrichtigungstext für einen Streamer setzen oder entfernen")
+    @app_commands.default_permissions(administrator=True)
+    @has_admin_role()
+    @app_commands.describe(
+        streamer="Der Discord-User (Streamer) für den die custom Message gesetzt werden soll",
+        message="Custom Benachrichtigungstext (leer lassen um zu entfernen)"
+    )
+    async def custom_streamer_message(self, interaction: discord.Interaction, streamer: discord.Member, message: str = ""):
+        """Set or remove custom notification message for a streamer"""
+        conn = self.db.get_connection()
+        cursor = conn.cursor()
+        
+        try:
+            # Check if creator exists
+            cursor.execute('SELECT id, discord_username FROM creators WHERE discord_user_id = ?', (str(streamer.id),))
+            creator = cursor.fetchone()
+            
+            if not creator:
+                embed = discord.Embed(
+                    title="❌ Streamer nicht gefunden",
+                    description=f"**{streamer.display_name}** ist nicht als Streamer in der Datenbank registriert.\n\nVerwende `/addcreator` um den Streamer zuerst hinzuzufügen.",
+                    color=discord.Color.red()
+                )
+                await interaction.response.send_message(embed=embed, ephemeral=True)
+                return
+            
+            creator_id = creator[0]
+            
+            # Check if message is empty (remove custom message)
+            if not message.strip():
+                # Remove custom message (set to NULL)
+                cursor.execute('UPDATE creators SET custom_message = NULL WHERE id = ?', (creator_id,))
+                conn.commit()
+                
+                embed = discord.Embed(
+                    title="✅ Custom Message entfernt",
+                    description=f"Die custom Benachrichtigung für **{streamer.display_name}** wurde entfernt.\n\n🔄 Es wird wieder die Standard-Benachrichtigung verwendet.",
+                    color=discord.Color.green()
+                )
+            else:
+                # Validate message length (Discord embed description limit is 4096 characters)
+                if len(message.strip()) > 1000:
+                    embed = discord.Embed(
+                        title="❌ Nachricht zu lang",
+                        description="Die custom Nachricht darf maximal **1000 Zeichen** lang sein.\n\n💡 Tipp: Halte die Nachricht kurz und prägnant für beste Ergebnisse.",
+                        color=discord.Color.red()
+                    )
+                    embed.add_field(
+                        name="📏 Aktuelle Länge:",
+                        value=f"{len(message.strip())} Zeichen",
+                        inline=False
+                    )
+                    await interaction.response.send_message(embed=embed, ephemeral=True)
+                    return
+                
+                # Set custom message
+                cursor.execute('UPDATE creators SET custom_message = ? WHERE id = ?', (message.strip(), creator_id))
+                conn.commit()
+                
+                embed = discord.Embed(
+                    title="✅ Custom Message gesetzt",
+                    description=f"Custom Benachrichtigung für **{streamer.display_name}** wurde erfolgreich gesetzt!",
+                    color=discord.Color.green()
+                )
+                embed.add_field(
+                    name="📝 Neue Benachrichtigung:",
+                    value=f"```{message.strip()}```",
+                    inline=False
+                )
+                embed.add_field(
+                    name="💡 Hinweis:",
+                    value="Diese Nachricht wird nun anstelle der Standard-Benachrichtigung gesendet, wenn der Streamer live geht.",
+                    inline=False
+                )
+            
+            await interaction.response.send_message(embed=embed, ephemeral=True)
+            
+        except Exception as e:
+            await interaction.response.send_message(
+                f"❌ Fehler beim Setzen der Custom Message: {str(e)}", 
+                ephemeral=True
+            )
+        finally:
+            conn.close()
 
 class AddCreatorModal(discord.ui.Modal):
     def __init__(self, db):

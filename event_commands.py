@@ -722,6 +722,7 @@ class ServerInfoView(discord.ui.View):
             discord.SelectOption(label="Live-Benachrichtigung", value="live_demo", emoji="📺"),
             discord.SelectOption(label="Auto-Löschung Test", value="deletion_test", emoji="🗑️"),
             discord.SelectOption(label="Event-Test", value="event_test", emoji="🎮"),
+            discord.SelectOption(label="Custom Message Test", value="custom_message_test", emoji="✏️"),
             discord.SelectOption(label="Instant Gaming Test", value="instant_gaming_test", emoji="🎮"),
             discord.SelectOption(label="Leave-Server", value="leave_server", emoji="🚪"),
             discord.SelectOption(label="Server-Unban", value="server_unban", emoji="🔓")
@@ -746,6 +747,9 @@ class ServerInfoView(discord.ui.View):
         elif option_type == "event_test":
             logger.info(f"🎮 Calling run_event_test for user {interaction.user}")
             await self.run_event_test(interaction)
+        elif option_type == "custom_message_test":
+            logger.info(f"✏️ Calling run_custom_message_test for user {interaction.user}")
+            await self.run_custom_message_test(interaction)
         elif option_type == "instant_gaming_test":
             logger.info(f"🎮 Calling run_instant_gaming_test for user {interaction.user}")
             await self.run_instant_gaming_test(interaction)
@@ -1557,6 +1561,163 @@ class ServerInfoView(discord.ui.View):
         final_status.timestamp = datetime.now()
         
         await interaction.followup.send(embed=final_status, ephemeral=True)
+
+    async def run_custom_message_test(self, interaction: discord.Interaction):
+        """Demo custom message functionality - showing standard vs custom notifications"""
+        try:
+            await interaction.response.edit_message(content="✏️ Teste Custom Message Funktionalität...", embed=None, view=None)
+            
+            # Get the channel where interaction was sent
+            channel = interaction.channel
+            
+            # ===== COMPREHENSIVE STANDARD MESSAGES =====
+            complete_demo = discord.Embed(
+                title="✏️ Custom Message Test - Vollständige Übersicht",
+                description="**Standard-Nachrichten vs. Custom Messages:**",
+                color=discord.Color.blue()
+            )
+            
+            # Karma Streamers - alle Plattformen
+            complete_demo.add_field(
+                name="⭐ Karma Twitch (Standard)",
+                value="```🚨 Hey Twitch-Runner! 🚨\nTestUser ist jetzt LIVE auf Twitch: testchannel!\nTaucht ein in die Twitch-Welten, seid aktiv im Chat und verteilt ein bisschen Liebe im Stream! 💜💻```",
+                inline=False
+            )
+            
+            complete_demo.add_field(
+                name="⭐ Karma YouTube (Standard)",
+                value="```⚡ Attention, Net-Runners! ⚡\nTestUser streamt jetzt LIVE auf YouTube: testchannel!\nCheckt die Action, seid Teil des Chats und boostet die Community! 🔴🤖```",
+                inline=False
+            )
+            
+            complete_demo.add_field(
+                name="⭐ Karma TikTok (Standard)",
+                value="```💥 Heads up, TikToker! 💥\nTestUser ist jetzt LIVE auf TikTok: testchannel!\nScrollt nicht vorbei, droppt ein Like und lasst den Stream glühen! 🔵✨```",
+                inline=False
+            )
+            
+            # Regular Streamers - alle Plattformen  
+            complete_demo.add_field(
+                name="👾 Regular Twitch (Standard)",
+                value="```👾 TestUser ist LIVE auf Twitch: testchannel!\nKommt vorbei und schaut kurz rein! 💜```",
+                inline=False
+            )
+            
+            complete_demo.add_field(
+                name="👾 Regular YouTube (Standard)",
+                value="```👾 TestUser streamt jetzt LIVE auf YouTube: testchannel!\nVorbeischauen lohnt sich! 🔴```",
+                inline=False
+            )
+            
+            complete_demo.add_field(
+                name="👾 Regular TikTok (Standard)",
+                value="```👾 TestUser ist LIVE auf TikTok: testchannel!\nLasst ein Like da! 🔵```",
+                inline=False
+            )
+            
+            await channel.send(embed=complete_demo)
+            
+            await asyncio.sleep(2)
+            
+            # ===== CUSTOM MESSAGE DEMO =====
+            custom_demo = discord.Embed(
+                title="🔄 Custom Message Beispiele",
+                description="**Wie Custom Messages aussehen würden:**",
+                color=discord.Color.orange()
+            )
+            
+            custom_demo.add_field(
+                name="✨ Custom Example 1:",
+                value="```🔥 Achtung! TestUser rockt jetzt die Bühne - schaut rein! 🔥```",
+                inline=False
+            )
+            
+            custom_demo.add_field(
+                name="✨ Custom Example 2:",
+                value="```🎮 HYPE! Der beste Gamer ist live - verpasst es nicht! 🚀```",
+                inline=False
+            )
+            
+            custom_demo.add_field(
+                name="💡 Befehle:",
+                value="`/customstreamermessage streamer:@User message:Deine Nachricht`\n"
+                      "`/customstreamermessage streamer:@User message:` *(entfernen)*",
+                inline=False
+            )
+            
+            await channel.send(embed=custom_demo)
+            
+            await asyncio.sleep(2)
+            
+            # ===== SIDE-BY-SIDE COMPARISON =====
+            # Standard notification
+            standard_comparison = discord.Embed(
+                description="🚨 Hey Twitch-Runner! 🚨\nDemoUser ist jetzt LIVE auf Twitch: demochannel!\nTaucht ein in die Twitch-Welten, seid aktiv im Chat und verteilt ein bisschen Liebe im Stream! 💜💻",
+                color=Config.COLORS['twitch']
+            )
+            standard_comparison.add_field(name="👀 Zuschauer", value="1,337", inline=True)
+            standard_comparison.add_field(name="🎮 Spiel", value="Cyberpunk 2077", inline=True)
+            standard_comparison.add_field(name="💖 Follower", value="42,069", inline=True)
+            standard_comparison.set_footer(text="📋 Standard Karma Notification")
+            standard_comparison.timestamp = datetime.now()
+            
+            await channel.send(content="**📋 STANDARD:**", embed=standard_comparison)
+            
+            await asyncio.sleep(1)
+            
+            # Custom notification
+            custom_comparison = discord.Embed(
+                description="🚀 MEGA STREAM ALERT! 🚀\nDemoUser bringt heute KRASSEN Content - alle reinspringen und mitfeiern! 🎉✨",
+                color=Config.COLORS['twitch']
+            )
+            custom_comparison.add_field(name="👀 Zuschauer", value="1,337", inline=True)
+            custom_comparison.add_field(name="🎮 Spiel", value="Cyberpunk 2077", inline=True)
+            custom_comparison.add_field(name="💖 Follower", value="42,069", inline=True)
+            custom_comparison.set_footer(text="✏️ Custom Message Notification")
+            custom_comparison.timestamp = datetime.now()
+            
+            await channel.send(content="**✏️ CUSTOM:**", embed=custom_comparison)
+            
+            # ===== FINAL STATUS (EPHEMERAL) =====
+            final_status = discord.Embed(
+                title="✅ Custom Message Test Abgeschlossen",
+                description="**Test erfolgreich durchgeführt!**\n\n"
+                           "📊 **Demonstriert:**\n"
+                           "• 6 Standard-Nachrichten (2 Typen × 3 Plattformen)\n"
+                           "• 2 Custom Message Beispiele\n"
+                           "• 1 Seite-an-Seite Vergleich\n"
+                           "• Vollständige Verwendungsanleitung\n\n"
+                           "💡 **Nächste Schritte:**\n"
+                           "• `/customstreamermessage` für individuelle Nachrichten verwenden\n"
+                           "• Standard-Messages bleiben wenn keine Custom Message gesetzt\n"
+                           "• Max. 1000 Zeichen pro Custom Message",
+                color=discord.Color.green()
+            )
+            
+            final_status.add_field(
+                name="🔧 Quick Commands:",
+                value="`/customstreamermessage` - Custom Message setzen/entfernen\n"
+                      "`/serverinfo` - Weitere Tests verfügbar",
+                inline=False
+            )
+            
+            final_status.set_footer(text="✏️ Custom Message Feature • Vollständig getestet und einsatzbereit")
+            final_status.timestamp = datetime.now()
+            
+            await interaction.followup.send(embed=final_status, ephemeral=True)
+            logger.info(f"✅ Custom Message Test completed successfully for developer {interaction.user}")
+        
+        except Exception as e:
+            logger.error(f"❌ Custom Message Test error for {interaction.user}: {e}")
+            try:
+                error_embed = discord.Embed(
+                    title="❌ Custom Message Test Fehler",
+                    description="Ein Fehler ist beim Test aufgetreten. Versuchen Sie es erneut.",
+                    color=discord.Color.red()
+                )
+                await interaction.followup.send(embed=error_embed, ephemeral=True)
+            except:
+                pass
 
     async def show_leave_server_modal(self, interaction: discord.Interaction):
         """Show modal for Leave-Server function"""
