@@ -4,7 +4,7 @@
 
 KARMA-LiveBOT is a fully functional Discord bot that monitors and notifies about live streams across multiple platforms (Twitch, YouTube, and TikTok). The bot differentiates between two types of streamers - "Karma Streamers" (premium tier with enhanced cyberpunk-style notifications and daily streak tracking) and "Regular Streamers" (standard simple notifications). The bot operates entirely within Discord with no external dashboard, using different monitoring frequencies and notification styles based on streamer tier.
 
-**Status**: ✅ **FULLY OPERATIONAL** - Bot is running and connected to Discord with Auto-Deletion Test feature
+**Status**: ✅ **FULLY OPERATIONAL** - Bot is running and connected to Discord with Auto-Deletion Test feature and Instant Gaming Integration
 **Last Updated**: September 28, 2025
 
 ## User Preferences
@@ -51,9 +51,10 @@ Preferred communication style: Simple, everyday language.
 - **Dynamic Content**: Real-time viewer counts, game/category information, stream thumbnails, follower/subscriber counts
 - **Follower/Subscriber Display**: All platforms show follower counts (Twitch followers, YouTube subscribers, TikTok followers)
 - **Different Embed Contents**: Karma gets profile images + daily streaks, Regular gets basic info
-- **Interactive Elements**: Follow buttons linking to platform profiles
+- **Interactive Elements**: Follow buttons linking to platform profiles, **Instant Gaming affiliate purchase buttons**
 - **Role Management**: Automatic assignment/removal of live roles when streamers go online/offline
 - **Personal Subscriptions**: Private DM notifications for subscribed users
+- **🎮 Instant Gaming Integration**: Automatic game detection and affiliate purchase buttons with tag "tikzzay"
 
 ### Data Model
 - **Creator Profiles**: Discord user mapping to platform accounts (Twitch, YouTube, TikTok)
@@ -157,9 +158,10 @@ Preferred communication style: Simple, everyday language.
 ✅ **Bot Connected**: "Karma LiveBOT#2866" is running and connected to Discord  
 ✅ **Multi-Server Active**: Bot is active in 2 Discord servers monitoring streamers  
 ✅ **Fully Operational**: All systems running, monitoring 2 creators across multiple platforms  
+✅ **Instant Gaming Integration**: Affiliate functionality active with automatic game detection and purchase buttons
 ✅ **Ready for Production**: Bot is operational and ready for use  
 
-**Live Status**: The bot is actively monitoring live streams across Twitch, YouTube, and TikTok with automatic notifications and streak tracking systems running smoothly.  
+**Live Status**: The bot is actively monitoring live streams across Twitch, YouTube, and TikTok with automatic notifications, streak tracking, and Instant Gaming affiliate integration running smoothly.  
 
 ### Next Steps - What You Need To Do:
 

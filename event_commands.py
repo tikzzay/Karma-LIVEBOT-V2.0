@@ -462,6 +462,7 @@ class ServerInfoView(discord.ui.View):
             discord.SelectOption(label="Live-Benachrichtigung", value="live_demo", emoji="📺"),
             discord.SelectOption(label="Auto-Löschung Test", value="deletion_test", emoji="🗑️"),
             discord.SelectOption(label="Event-Test", value="event_test", emoji="🎮"),
+            discord.SelectOption(label="Instant Gaming Test", value="instant_gaming_test", emoji="🎮"),
             discord.SelectOption(label="Leave-Server", value="leave_server", emoji="🚪"),
             discord.SelectOption(label="Server-Unban", value="server_unban", emoji="🔓")
         ]
@@ -485,6 +486,9 @@ class ServerInfoView(discord.ui.View):
         elif option_type == "event_test":
             logger.info(f"🎮 Calling run_event_test for user {interaction.user}")
             await self.run_event_test(interaction)
+        elif option_type == "instant_gaming_test":
+            logger.info(f"🎮 Calling run_instant_gaming_test for user {interaction.user}")
+            await self.run_instant_gaming_test(interaction)
         elif option_type == "leave_server":
             logger.info(f"🚪 Calling show_leave_server_modal for user {interaction.user}")
             await self.show_leave_server_modal(interaction)
@@ -1064,6 +1068,111 @@ class ServerInfoView(discord.ui.View):
         )
         
         await interaction.response.edit_message(embed=embed, view=None)
+
+    async def run_instant_gaming_test(self, interaction: discord.Interaction):
+        """Test Instant Gaming integration functionality"""
+        embed = discord.Embed(
+            title="🎮 Instant Gaming Test",
+            description="**Teste Instant Gaming Integration**\n\nDiese Funktion testet die Spiele-Suche und Affiliate-Link Generierung.",
+            color=discord.Color.purple()
+        )
+        
+        # Import instant_gaming from main module
+        try:
+            from main import instant_gaming
+            integration_status = "✅ **Integration geladen**"
+        except ImportError:
+            integration_status = "❌ **Import Fehler**"
+            embed.add_field(name="🔌 Integration Status", value=integration_status, inline=False)
+            await interaction.response.edit_message(embed=embed, view=None)
+            return
+        
+        embed.add_field(name="🔌 Integration Status", value=integration_status, inline=False)
+        
+        # Test games list
+        test_games = [
+            "Cyberpunk 2077",
+            "Call of Duty",
+            "Minecraft",
+            "The Witcher 3",
+            "Grand Theft Auto V"
+        ]
+        
+        await interaction.response.edit_message(embed=embed, view=None)
+        
+        # Test each game
+        search_results = []
+        for game in test_games:
+            try:
+                logger.info(f"🎮 Testing Instant Gaming search for: {game}")
+                result = await instant_gaming.search_game(game)
+                if result and result.get('found'):
+                    search_results.append(f"✅ **{game}**: Gefunden")
+                    logger.info(f"✅ Found {game} on Instant Gaming")
+                else:
+                    search_results.append(f"❌ **{game}**: Nicht gefunden")
+                    logger.info(f"❌ {game} not found on Instant Gaming")
+            except Exception as e:
+                search_results.append(f"⚠️ **{game}**: Fehler - {str(e)[:30]}")
+                logger.error(f"Error testing {game}: {e}")
+        
+        # Update embed with results
+        embed.clear_fields()
+        embed.add_field(name="🔌 Integration Status", value="✅ **Test abgeschlossen**", inline=False)
+        
+        results_text = "\n".join(search_results)
+        embed.add_field(name="🔍 Spiele-Suche Ergebnisse", value=results_text, inline=False)
+        
+        # Add affiliate info
+        affiliate_info = (
+            f"🔗 **Affiliate Tag:** `{instant_gaming.affiliate_tag}`\n"
+            f"🌐 **Basis URL:** `{instant_gaming.search_base_url}`\n"
+            f"📝 **Beispiel Link:** `{instant_gaming.search_base_url}?q=Cyberpunk+2077&igr={instant_gaming.affiliate_tag}`"
+        )
+        embed.add_field(name="🔧 Konfiguration", value=affiliate_info, inline=False)
+        
+        # Demo notification with Instant Gaming button
+        if search_results and any("✅" in result for result in search_results):
+            # Create demo notification with Instant Gaming integration
+            demo_embed = discord.Embed(
+                description="🚨 Hey Cyber-Runner! 🚨\nDemoUser ist jetzt LIVE auf Twitch: demochannel!\n**DEMO: Mit Instant Gaming Integration**",
+                color=0x9146FF  # Twitch purple
+            )
+            demo_embed.add_field(name="👀 Zuschauer", value="1,337", inline=True)
+            demo_embed.add_field(name="🎮 Spiel", value="Cyberpunk 2077", inline=True)
+            demo_embed.add_field(name="💖 Follower", value="42,069", inline=True)
+            demo_embed.set_footer(text="🎮 Demo mit Instant Gaming Button")
+            demo_embed.timestamp = datetime.now()
+            
+            # Create demo view with Instant Gaming button
+            class DemoInstantGamingView(discord.ui.View):
+                def __init__(self):
+                    super().__init__(timeout=None)
+                    # Standard buttons
+                    self.add_item(discord.ui.Button(
+                        label="Anschauen", emoji="📺", 
+                        url="https://twitch.tv/demochannel", 
+                        style=discord.ButtonStyle.link, row=0
+                    ))
+                    self.add_item(discord.ui.Button(
+                        label="Folgen", emoji="❤️", 
+                        url="https://twitch.tv/demochannel", 
+                        style=discord.ButtonStyle.link, row=0
+                    ))
+                    # Instant Gaming button
+                    self.add_item(discord.ui.Button(
+                        label="Kaufe Cyberpunk 2077 günstiger", emoji="🎮",
+                        url=f"{instant_gaming.search_base_url}?q=Cyberpunk+2077&igr={instant_gaming.affiliate_tag}",
+                        style=discord.ButtonStyle.link, row=1
+                    ))
+            
+            demo_view = DemoInstantGamingView()
+            
+            # Send demo
+            await interaction.edit_original_response(embed=embed, view=None)
+            await interaction.followup.send("**🎮 DEMO: Live-Benachrichtigung mit Instant Gaming**", embed=demo_embed, view=demo_view, ephemeral=True)
+        else:
+            await interaction.edit_original_response(embed=embed, view=None)
 
     async def show_leave_server_modal(self, interaction: discord.Interaction):
         """Show modal for Leave-Server function"""

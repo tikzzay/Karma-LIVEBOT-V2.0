@@ -313,6 +313,98 @@ intents.members = True
 bot = commands.Bot(command_prefix='!', intents=intents)
 db = DatabaseManager()
 
+# Instant Gaming Integration
+class InstantGamingAPI:
+    """Integration for Instant Gaming game searches and affiliate links"""
+    
+    def __init__(self):
+        self.affiliate_tag = "tikzzay"  # Affiliate tag for commission
+        self.search_base_url = "https://www.instant-gaming.com/en/search/"
+        self.cache = {}  # Cache search results to avoid repeated requests
+        self.cache_duration = 1800  # 30 minutes cache
+    
+    async def search_game(self, game_name: str) -> Optional[Dict]:
+        """Search for a game on Instant Gaming and return the first result with affiliate link"""
+        if not game_name or not game_name.strip():
+            return None
+        
+        # Normalize game name for cache key
+        cache_key = f"instant_gaming_{game_name.lower().strip()}"
+        current_time = time.time()
+        
+        # Check cache first
+        if cache_key in self.cache:
+            cached_data = self.cache[cache_key]
+            if current_time - cached_data['timestamp'] < self.cache_duration:
+                logger.info(f"Using cached Instant Gaming data for {game_name}")
+                return cached_data['data']
+        
+        try:
+            # Prepare search URL
+            search_url = f"{self.search_base_url}?query={game_name.replace(' ', '+')}"
+            affiliate_url = f"{search_url}&igr={self.affiliate_tag}"
+            
+            logger.info(f"Searching Instant Gaming for: {game_name}")
+            
+            # Perform web scraping to check if game exists
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                'Accept-Language': 'de-DE,de;q=0.9,en;q=0.8',
+                'Connection': 'keep-alive',
+            }
+            
+            timeout = aiohttp.ClientTimeout(total=10)
+            
+            async with aiohttp.ClientSession() as session:
+                async with session.get(search_url, headers=headers, timeout=timeout) as response:
+                    if response.status == 200:
+                        html = await response.text()
+                        
+                        # Check if there are search results (look for game cards or products)
+                        game_found = any([
+                            'data-product-id' in html,
+                            'product-card' in html,
+                            'game-card' in html,
+                            'search-result' in html,
+                            'item-cover' in html
+                        ])
+                        
+                        if game_found:
+                            result = {
+                                'found': True,
+                                'game_name': game_name,
+                                'search_url': search_url,
+                                'affiliate_url': affiliate_url
+                            }
+                            
+                            # Cache the result
+                            self.cache[cache_key] = {
+                                'data': result,
+                                'timestamp': current_time
+                            }
+                            
+                            logger.info(f"✅ Found game '{game_name}' on Instant Gaming")
+                            return result
+                        else:
+                            logger.info(f"❌ Game '{game_name}' not found on Instant Gaming")
+                            # Cache negative result to avoid repeated searches
+                            self.cache[cache_key] = {
+                                'data': None,
+                                'timestamp': current_time
+                            }
+                            return None
+                    else:
+                        logger.warning(f"Instant Gaming search failed with status {response.status} for {game_name}")
+                        return None
+        
+        except Exception as e:
+            logger.error(f"Error searching Instant Gaming for {game_name}: {e}")
+            return None
+
+# Initialize Instant Gaming API
+instant_gaming = InstantGamingAPI()
+
 # Platform API Managers
 class TwitchAPI:
     def __init__(self):
@@ -1686,12 +1778,25 @@ async def send_live_notification(creator_id, discord_user_id, username, streamer
         # Create embed based on streamer type and platform
         embed = await create_live_embed(creator_id, discord_user_id, username, streamer_type, platform, platform_username, stream_info)
         
+        # Search for game on Instant Gaming if game_name is available
+        instant_gaming_data = None
+        game_name = stream_info.get('game_name')
+        if game_name and game_name.strip() and platform in ['twitch', 'youtube']:  # Only for Twitch and YouTube
+            try:
+                instant_gaming_data = await instant_gaming.search_game(game_name)
+                if instant_gaming_data:
+                    logger.info(f"🎮 Found Instant Gaming link for '{game_name}' - {username} on {platform}")
+                else:
+                    logger.info(f"🎮 No Instant Gaming results for '{game_name}' - {username} on {platform}")
+            except Exception as e:
+                logger.error(f"Error searching Instant Gaming for '{game_name}': {e}")
+        
         # Send to notification channel with timeout (ChatGPT fix)
         sent_message = None
         if isinstance(channel, (discord.TextChannel, discord.Thread, discord.DMChannel)):
             try:
                 sent_message = await asyncio.wait_for(
-                    channel.send(embed=embed, view=LiveNotificationView(platform, platform_username)),
+                    channel.send(embed=embed, view=LiveNotificationView(platform, platform_username, instant_gaming_data)),
                     timeout=15.0
                 )
             except asyncio.TimeoutError:
@@ -1787,10 +1892,11 @@ async def create_live_embed(creator_id, discord_user_id, username, streamer_type
     return embed
 
 class LiveNotificationView(discord.ui.View):
-    def __init__(self, platform: str, username: str):
+    def __init__(self, platform: str, username: str, instant_gaming_data: Optional[Dict] = None):
         super().__init__(timeout=None)
         self.platform = platform
         self.username = username
+        self.instant_gaming_data = instant_gaming_data
         
         # Platform URLs
         if platform == 'twitch':
@@ -1823,6 +1929,22 @@ class LiveNotificationView(discord.ui.View):
             style=discord.ButtonStyle.link,
             row=0
         ))
+        
+        # Add Instant Gaming button if game found
+        if instant_gaming_data and instant_gaming_data.get('found'):
+            game_name = instant_gaming_data.get('game_name', 'Game')
+            affiliate_url = instant_gaming_data.get('affiliate_url')
+            
+            # Truncate game name if too long for button
+            display_name = game_name if len(game_name) <= 20 else f"{game_name[:17]}..."
+            
+            self.add_item(discord.ui.Button(
+                label=f"Kaufe {display_name} günstiger",
+                emoji="🎮",
+                url=affiliate_url,
+                style=discord.ButtonStyle.link,
+                row=1  # Put on second row
+            ))
 
 async def send_private_notifications(creator_id, username, platform, platform_username, stream_info):
     """Send private notifications to platform-specific subscribers (CRASH-RESISTANT)"""
