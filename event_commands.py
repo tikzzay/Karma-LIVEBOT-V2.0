@@ -1108,7 +1108,7 @@ class ServerInfoView(discord.ui.View):
         await interaction.response.edit_message(embed=status_embed, view=None)
         
         # Test Spiele für direkte Produktlinks mit Error Handling
-        test_games = ["Cyberpunk 2077", "Call of Duty"]
+        test_games = ["Cyberpunk 2077", "Call of Duty Black Ops 6"]
         
         try:
             logger.info(f"🎮 Testing Instant Gaming search for: {test_games[0]}")
@@ -1138,7 +1138,7 @@ class ServerInfoView(discord.ui.View):
             color=Config.COLORS['twitch']
         )
         
-        # Twitch Profilbild und Stream-Vorschau (echte URLs)
+        # Twitch Profilbild und Stream-Vorschau (generische funktionierende URLs)
         twitch_demo.set_author(
             name="TikZ aka. Zay", 
             icon_url="https://static-cdn.jtvnw.net/user-default-pictures-uv/13e5fa74-defa-11e9-8543-784f43822e80-profile_image-300x300.png"
@@ -1156,20 +1156,20 @@ class ServerInfoView(discord.ui.View):
         
         # Erstelle YOUTUBE Live-Demo Embed
         youtube_demo = discord.Embed(
-            description="🚨 Hey Cyber-Runner! 🚨\n**Sturmpelz** ist jetzt LIVE auf YouTube!\n**Spielt gerade: Call of Duty** 🎮",
+            description="🚨 Hey Cyber-Runner! 🚨\n**Sturmpelz** ist jetzt LIVE auf YouTube!\n**Spielt gerade: Call of Duty Black Ops 6** 🎮",
             color=Config.COLORS['youtube']
         )
         
-        # YouTube Profilbild und Stream-Vorschau (echte URLs)
+        # YouTube Profilbild und Stream-Vorschau (generische funktionierende URLs)
         youtube_demo.set_author(
             name="✨Sturmpelz✨", 
-            icon_url="https://yt3.ggpht.com/ytc/AIdro_knhKiS2eIpkh_GU8Ej_WTzOLGqFNKJmJk6H8eLvA=s240-c-k-c0x00ffffff-no-rj"
+            icon_url="https://yt3.ggpht.com/a/default-user=s240-c-k-c0x00ffffff-no-rj"
         )
         youtube_demo.set_image(url="https://i.ytimg.com/vi/dQw4w9WgXcQ/maxresdefault.jpg")  # Call of Duty gameplay thumbnail
         
         # Stream Details (ohne unwanted text)
         youtube_demo.add_field(name="👀 Zuschauer", value="892", inline=True)
-        youtube_demo.add_field(name="🎮 Spiel", value="Call of Duty", inline=True)
+        youtube_demo.add_field(name="🎮 Spiel", value="Call of Duty Black Ops 6", inline=True)
         youtube_demo.add_field(name="📺 Abonnenten", value="2,184", inline=True)
         youtube_demo.add_field(name="🔥 Daily Streak", value="4 Tage", inline=True)
         
@@ -1217,7 +1217,7 @@ class ServerInfoView(discord.ui.View):
                 # Instant Gaming Button mit direktem Produktlink
                 if cod_link:
                     self.add_item(discord.ui.Button(
-                        label="🎮 Call of Duty kaufen (-50%)", emoji="💰",
+                        label="🎮 COD Black Ops 6 kaufen (-50%)", emoji="💰",
                         url=cod_link,
                         style=discord.ButtonStyle.link, row=1
                     ))

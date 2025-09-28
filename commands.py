@@ -1656,11 +1656,27 @@ class ConfirmStatsButton(discord.ui.Button):
                     # Calculate current value immediately
                     current_count = 0
                     if counter_type == 'online':
-                        # Count members in voice channels as alternative to presences intent
-                        voice_members = set()
-                        for voice_channel in self.guild.voice_channels:
-                            voice_members.update(voice_channel.members)
-                        current_count = len(voice_members)
+                        # Check if we have presences intent for accurate online counting
+                        if hasattr(self.guild.me, 'guild_permissions') and self.guild.me.guild_permissions.view_audit_log:
+                            # Try to count actual online members using member.status
+                            online_members = 0
+                            for member in self.guild.members:
+                                if hasattr(member, 'status') and member.status != discord.Status.offline:
+                                    online_members += 1
+                            # Fallback to voice channel count if status-based count is 0 (indicating missing presences intent)
+                            if online_members == 0:
+                                voice_members = set()
+                                for voice_channel in self.guild.voice_channels:
+                                    voice_members.update(voice_channel.members)
+                                current_count = len(voice_members)
+                            else:
+                                current_count = online_members
+                        else:
+                            # Fallback to voice channel members as alternative to presences intent
+                            voice_members = set()
+                            for voice_channel in self.guild.voice_channels:
+                                voice_members.update(voice_channel.members)
+                            current_count = len(voice_members)
                     elif counter_type == 'members':
                         current_count = self.guild.member_count
                     elif counter_type == 'channels':

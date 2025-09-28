@@ -68,6 +68,8 @@ logging.getLogger('urllib3').setLevel(logging.WARNING)
 logging.getLogger('discord.http').setLevel(logging.WARNING)
 logging.getLogger('discord.gateway').setLevel(logging.WARNING)
 logging.getLogger('discord.client').setLevel(logging.WARNING)
+logging.getLogger('discord.webhook').setLevel(logging.WARNING)  # Reduce webhook debug spam
+logging.getLogger('discord.webhook.async_').setLevel(logging.WARNING)  # Reduce webhook debug spam
 logging.getLogger('aiohttp.access').setLevel(logging.WARNING)
 
 logger = logging.getLogger('KARMA-LiveBOT')
@@ -309,7 +311,8 @@ class DatabaseManager:
 intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True
-# Note: presences intent required for accurate online counting, must be enabled in Discord Developer Portal
+intents.presences = True  # Required for accurate online member counting
+# Note: presences intent must also be enabled in Discord Developer Portal
 
 bot = commands.Bot(command_prefix='!', intents=intents)
 db = DatabaseManager()
@@ -332,9 +335,29 @@ class InstantGamingAPI:
     def normalize_game_name(self, game: str) -> str:
         """Normalize game name for better matching on Instant Gaming"""
         game = game.lower()
+        
+        # Handle special cases for better matching
+        special_cases = {
+            "call of duty": "call of duty black ops 6",  # Default to latest popular version
+            "cod": "call of duty black ops 6",
+            "warzone": "call of duty warzone",
+            "fortnite": "fortnite",
+            "minecraft": "minecraft java edition",
+            "gta": "grand theft auto v",
+            "gta 5": "grand theft auto v",
+            "gta v": "grand theft auto v"
+        }
+        
+        # Check for special cases first
+        for key, replacement in special_cases.items():
+            if game.strip() == key:
+                game = replacement
+                break
+        
         # Remove edition keywords that can interfere with search
         for bad in ["edition", "deluxe", "ultimate", "season", "beta", "early access", "definitive", "complete", "goty", "remastered"]:
             game = game.replace(bad, "")
+        
         # Clean up punctuation and extra spaces
         game = game.replace(":", "").replace("-", " ").replace("_", " ")
         return " ".join(game.split())  # Remove extra whitespace
@@ -1089,6 +1112,111 @@ class TikTokLiveChecker:
             logger.error(f"TikTok {username}: All mobile APIs failed: {e}")
             return 'API_ERROR', '', 0
     
+    async def _get_tiktok_profile_data(self, username: str) -> Optional[Dict]:
+        """Get TikTok profile data including profile image and follower count - works for offline users too"""
+        try:
+            import aiohttp
+            import re
+            
+            # Try both regular profile page and live page for better data extraction
+            urls_to_try = [
+                f'https://www.tiktok.com/@{username}',  # Regular profile page
+                f'https://www.tiktok.com/@{username}/live'  # Live page (if available)
+            ]
+            
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                'Accept-Language': 'en-US,en;q=0.9,de;q=0.8',
+                'Accept-Encoding': 'gzip, deflate, br',
+                'Connection': 'keep-alive',
+                'Upgrade-Insecure-Requests': '1',
+                'Cache-Control': 'no-cache'
+            }
+            
+            timeout = aiohttp.ClientTimeout(total=15)
+            
+            if not hasattr(self, 'session') or not self.session:
+                self.session = aiohttp.ClientSession(timeout=timeout)
+            
+            for url in urls_to_try:
+                try:
+                    async with self.session.get(url, headers=headers, timeout=timeout) as response:
+                        if response.status == 200:
+                            html = await response.text()
+                            
+                            # Extract profile image with improved patterns
+                            profile_image_url = ''
+                            avatar_patterns = [
+                                r'"avatarLarger":"([^"]+)"',
+                                r'"avatarMedium":"([^"]+)"', 
+                                r'"avatarThumb":"([^"]+)"',
+                                r'"avatar_300x300":\{"uri":"([^"]+)"',
+                                r'"avatar_168x168":\{"uri":"([^"]+)"',
+                                r'"avatar_larger":\{"uri":"([^"]+)"',
+                                r'"avatar_medium":\{"uri":"([^"]+)"',
+                                r'avatarLarger.*?"([^"]*\\.jpg[^"]*)"',
+                                r'avatarMedium.*?"([^"]*\\.jpg[^"]*)"',
+                                r'profile_pic_url_hd":"([^"]+)"'
+                            ]
+                            
+                            for pattern in avatar_patterns:
+                                matches = re.findall(pattern, html)
+                                if matches:
+                                    profile_image_url = matches[0]
+                                    # Clean up URL format
+                                    if profile_image_url.startswith('//'):
+                                        profile_image_url = f"https:{profile_image_url}"
+                                    elif not profile_image_url.startswith('http'):
+                                        profile_image_url = f"https:{profile_image_url}"
+                                    
+                                    # Validate URL format
+                                    if '.jpg' in profile_image_url or '.png' in profile_image_url or '.webp' in profile_image_url:
+                                        break
+                            
+                            # Extract follower count with improved patterns
+                            follower_count = 0
+                            follower_patterns = [
+                                r'"followerCount":(\d+)',
+                                r'"followingCount":(\d+)',
+                                r'data-e2e="followers-count">([^<]+)',
+                                r'"stats":\{"followerCount":(\d+)',
+                                r'"userInfo":\{[^}]*"stats":\{[^}]*"followerCount":(\d+)',
+                                r'followersCount.*?(\d+)',
+                                r'"follower_count":(\d+)'
+                            ]
+                            
+                            for pattern in follower_patterns:
+                                matches = re.findall(pattern, html)
+                                if matches:
+                                    try:
+                                        # Get first numeric value
+                                        follower_str = re.sub(r'[^\d]', '', str(matches[0]))
+                                        if follower_str:
+                                            follower_count = int(follower_str)
+                                            break
+                                    except (ValueError, IndexError):
+                                        continue
+                            
+                            if profile_image_url or follower_count > 0:
+                                logger.info(f"TikTok {username}: Profile data extracted from {url} - Image: {'Yes' if profile_image_url else 'No'}, Followers: {follower_count}")
+                                return {
+                                    'profile_image_url': profile_image_url,
+                                    'follower_count': follower_count
+                                }
+                
+                except Exception as url_error:
+                    logger.warning(f"TikTok {username}: Failed to fetch {url}: {url_error}")
+                    continue
+            
+            # If all URLs failed, return None
+            logger.warning(f"TikTok {username}: All profile extraction methods failed")
+            return None
+            
+        except Exception as e:
+            logger.error(f"TikTok {username}: Profile data extraction error: {e}")
+            return None
+
     async def _extract_sigi_state(self, html: str, username: str) -> Optional[Dict]:
         """Extract and parse SIGI_STATE JSON for robust live detection"""
         import re
@@ -1111,23 +1239,43 @@ class TikTokLiveChecker:
                     # Navigate SIGI structure for live room data
                     user_detail = sigi_data.get('UserDetail', {})
                     live_room = sigi_data.get('LiveRoom', {})
+                    user_page = sigi_data.get('UserPage', {})
                     
-                    # Check multiple paths for live status
+                    # Check multiple paths for live status - but be more specific about broadcaster vs viewer
                     live_indicators = []
                     
-                    if live_room:
-                        for room_id, room_data in live_room.items():
-                            if isinstance(room_data, dict):
-                                status = room_data.get('status', 0)
-                                if status == 2:  # Live status
-                                    live_indicators.append(f"LiveRoom_{room_id}_status_2")
+                    # Check if this specific user is the broadcaster (not just viewing someone else's stream)
+                    target_user_found = False
                     
                     if user_detail:
                         for user_id, user_data in user_detail.items():
                             if isinstance(user_data, dict):
-                                live_status = user_data.get('liveStatus', 0)
-                                if live_status == 1:
-                                    live_indicators.append(f"UserDetail_{user_id}_liveStatus_1")
+                                # Check if this is the target user's data
+                                user_unique_id = user_data.get('uniqueId', '').lower()
+                                if user_unique_id == username.lower():
+                                    target_user_found = True
+                                    live_status = user_data.get('liveStatus', 0)
+                                    if live_status == 1:
+                                        live_indicators.append(f"UserDetail_{user_id}_liveStatus_1_BROADCASTER")
+                    
+                    # Only check LiveRoom if we confirmed this is the target user
+                    if target_user_found and live_room:
+                        for room_id, room_data in live_room.items():
+                            if isinstance(room_data, dict):
+                                status = room_data.get('status', 0)
+                                owner_id = room_data.get('owner', {}).get('id', '')
+                                if status == 2 and owner_id:  # Live status with owner verification
+                                    live_indicators.append(f"LiveRoom_{room_id}_status_2_OWNER")
+                    
+                    # Additional check: UserPage for current user's live status
+                    if user_page:
+                        for page_id, page_data in user_page.items():
+                            if isinstance(page_data, dict):
+                                page_unique_id = page_data.get('uniqueId', '').lower()
+                                if page_unique_id == username.lower():
+                                    live_status = page_data.get('liveStatus', 0)
+                                    if live_status == 1:
+                                        live_indicators.append(f"UserPage_{page_id}_liveStatus_1_CONFIRMED")
                     
                     logger.info(f"TikTok {username}: SIGI_STATE live indicators: {live_indicators}")
                     
@@ -1166,10 +1314,21 @@ class TikTokLiveChecker:
                 
                 async def quick_connect_test():
                     await client.start()
-                    return True
+                    # Check if this user is actually the broadcaster (not just a viewer)
+                    room_info = getattr(client, 'room_info', None)
+                    if room_info:
+                        # If we can get room_info, the user is likely live as broadcaster
+                        return True
+                    else:
+                        # If no room_info, this might just be a viewer connection
+                        return False
                 
                 import asyncio
                 result = await asyncio.wait_for(quick_connect_test(), timeout=5.0)
+                
+                if not result:
+                    logger.info(f"TikTok {username}: TikTokLive library confirmed - user offline")
+                    raise UserOfflineError("User is not broadcasting")
                 
                 logger.info(f"TikTok {username}: TikTokLive library confirmed - USER IS LIVE!")
                 
@@ -1181,61 +1340,18 @@ class TikTokLiveChecker:
                 except:
                     pass
                 
-                # Get profile image and follower count via web scraping even after TikTokLive success
+                # Get profile image and follower count via enhanced scraping
                 profile_image_url = ''
                 follower_count = 0
                 
                 try:
-                    import aiohttp
-                    url = f'https://www.tiktok.com/@{username}/live'
-                    headers = {
-                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-                    }
-                    timeout = aiohttp.ClientTimeout(total=10)
-                    
-                    if not hasattr(self, 'session') or not self.session:
-                        self.session = aiohttp.ClientSession(timeout=timeout)
-                    
-                    async with self.session.get(url, headers=headers, timeout=aiohttp.ClientTimeout(total=10)) as response:
-                        if response.status == 200:
-                            html = await response.text()
-                            
-                            # Extract profile image
-                            import re
-                            avatar_patterns = [
-                                r'"avatarLarger":"([^"]+)"',
-                                r'"avatarMedium":"([^"]+)"',
-                                r'"avatar_300x300":\{"uri":"([^"]+)"',
-                                r'"avatar_168x168":\{"uri":"([^"]+)"'
-                            ]
-                            
-                            for pattern in avatar_patterns:
-                                matches = re.findall(pattern, html)
-                                if matches:
-                                    profile_image_url = matches[0]
-                                    if profile_image_url.startswith('http'):
-                                        break
-                                    elif profile_image_url:
-                                        profile_image_url = f"https:{profile_image_url}"
-                                        break
-                            
-                            # Extract follower count
-                            follower_patterns = [
-                                r'"followerCount":(\d+)',
-                                r'"followingCount":(\d+)',
-                                r'data-e2e="followers-count">([^<]+)',
-                            ]
-                            
-                            for pattern in follower_patterns:
-                                matches = re.findall(pattern, html)
-                                if matches:
-                                    try:
-                                        follower_count = int(matches[0])
-                                        break
-                                    except ValueError:
-                                        continue
-                            
-                            logger.info(f"TikTok {username}: Enhanced data - Profile: {'Yes' if profile_image_url else 'No'}, Followers: {follower_count}")
+                    profile_data = await self._get_tiktok_profile_data(username)
+                    if profile_data:
+                        profile_image_url = profile_data.get('profile_image_url', '')
+                        follower_count = profile_data.get('follower_count', 0)
+                        logger.info(f"TikTok {username}: Enhanced data - Profile: {'Yes' if profile_image_url else 'No'}, Followers: {follower_count}")
+                    else:
+                        logger.warning(f"TikTok {username}: Failed to get profile data")
                 
                 except Exception as profile_error:
                     logger.warning(f"TikTok {username}: Failed to get profile data: {profile_error}")
@@ -2207,9 +2323,8 @@ async def keep_alive_ping():
                 external_url = f"https://{external_url}"
             ping_url = f"{external_url}/health"
         else:
-            # Fallback to local - use same PORT as server
-            port = os.getenv('PORT', '10000')
-            ping_url = f"http://localhost:{port}/health"
+            # Fallback to local - use same PORT as HTTP server (8080)
+            ping_url = f"http://localhost:8080/health"
         
         # Ping health endpoint
         timeout = aiohttp.ClientTimeout(total=30)
@@ -2223,7 +2338,8 @@ async def keep_alive_ping():
     except asyncio.TimeoutError:
         logger.warning("⚠️ Keep-alive ping timed out")
     except Exception as e:
-        logger.warning(f"⚠️ Keep-alive ping failed: {e}")
+        # Don't spam warnings for normal cloud deployment behavior
+        logger.debug(f"Keep-alive ping failed (normal for cloud platforms): {e}")
 
 # Status rotation task
 @tasks.loop(minutes=3)
@@ -2390,14 +2506,23 @@ async def stats_updater():
                 
                 # Collect guild data if not already done
                 if guild_id not in guilds_data:
-                    # Count active members (those in voice channels as alternative to presences intent)
-                    voice_members = set()
-                    for voice_channel in guild.voice_channels:
-                        voice_members.update(voice_channel.members)
+                    # Count online members with fallback for missing presences intent
+                    online_members = 0
+                    for member in guild.members:
+                        # Try to count using status, but fallback if presences intent not available
+                        if hasattr(member, 'status') and member.status != discord.Status.offline:
+                            online_members += 1
+                    
+                    # If we got 0 online members, likely missing presences intent - fallback to voice channels
+                    if online_members == 0:
+                        voice_members = set()
+                        for voice_channel in guild.voice_channels:
+                            voice_members.update(voice_channel.members)
+                        online_members = len(voice_members)
                     
                     guilds_data[guild_id] = {
                         'guild': guild,
-                        'online_count': len(voice_members),  # Alternative: voice channel members
+                        'online_count': online_members,  # Real online members based on status
                         'member_count': guild.member_count,
                         'channel_count': len(guild.channels),
                         'role_count': len(guild.roles) - 1,  # Exclude @everyone
