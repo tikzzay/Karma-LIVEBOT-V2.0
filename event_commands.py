@@ -494,9 +494,23 @@ class ServerInfoView(discord.ui.View):
         """Show detailed server overview with specified format - ALL servers"""
         logger.info(f"🌍 STARTING show_server_overview for user {interaction.user}")
         
-        # Defer to get more time for invite operations
-        await interaction.response.defer()
-        logger.info(f"✅ Deferred interaction for show_server_overview")
+        try:
+            # Defer to get more time for invite operations
+            await interaction.response.defer()
+            logger.info(f"✅ Deferred interaction for show_server_overview")
+        except Exception as defer_error:
+            logger.error(f"❌ Failed to defer interaction: {defer_error}")
+            # Try to respond directly if defer failed
+            try:
+                embed = discord.Embed(
+                    title="❌ Server-Übersicht Fehler",
+                    description="⚠️ Server-Info konnte nicht geladen werden. Versuchen Sie es erneut.",
+                    color=discord.Color.red()
+                )
+                await interaction.response.send_message(embed=embed, ephemeral=True)
+                return
+            except:
+                return
         
         embed = discord.Embed(
             title="🌍 Server-Übersicht (Alle Server)",
@@ -538,75 +552,50 @@ class ServerInfoView(discord.ui.View):
                 created_at = guild.created_at.strftime("%d.%m.%Y") if guild.created_at else "Unbekannt"
                 joined_at = guild.me.joined_at.strftime("%d.%m.%Y") if guild.me.joined_at else "Unbekannt"
                 
-                # Delete old permanent invites and create new one
+                # Create fresh single-use invite (delete old bot invites first)
                 invite_link = "Keine Berechtigung"
                 try:
-                    logger.info(f"Processing invites for guild: {guild.name}")
-                    
-                    # Check permissions first
-                    if not guild.me.guild_permissions.manage_guild:
-                        logger.warning(f"No manage_guild permission in {guild.name}")
-                        # Try to create simple invite without managing
-                        for channel in guild.text_channels:
-                            if channel.permissions_for(guild.me).create_instant_invite:
-                                invite = await channel.create_invite(
-                                    max_age=0, max_uses=0, unique=False,
-                                    reason="Server overview - simple invite"
-                                )
-                                invite_link = invite.url
-                                logger.info(f"Created simple invite for {guild.name}: {invite_link}")
-                                break
-                        if invite_link == "Keine Berechtigung":
-                            invite_link = "Kann keinen Invite erstellen"
-                    else:
-                        # We have manage_guild permission - delete old and create new
-                        logger.info(f"Has manage_guild permission in {guild.name}, managing invites")
-                        
-                        # Get all current invites
-                        invites = await guild.invites()
-                        logger.info(f"Found {len(invites)} existing invites in {guild.name}")
-                        
-                        # Delete only BOT-CREATED permanent invites (max_age=0 and max_uses=0)
-                        deleted_count = 0
-                        skipped_count = 0
-                        for invite in invites:
-                            if invite.max_age == 0 and invite.max_uses == 0:
+                    # Step 1: Delete old bot-created invites if we have permission
+                    if guild.me.guild_permissions.manage_guild:
+                        try:
+                            invites = await guild.invites()
+                            deleted_count = 0
+                            for invite in invites:
                                 # Only delete invites created by THIS BOT
                                 if invite.inviter and invite.inviter.id == self.bot.user.id:
                                     try:
-                                        await invite.delete(reason="Server overview - cleanup bot's old permanent invites")
+                                        await invite.delete(reason="ServerInfo - replacing with new invite")
                                         deleted_count += 1
-                                        logger.info(f"Deleted bot's old permanent invite: {invite.url}")
-                                    except Exception as e:
-                                        logger.warning(f"Failed to delete bot invite {invite.url}: {e}")
-                                else:
-                                    skipped_count += 1
-                                    inviter_name = invite.inviter.display_name if invite.inviter else "Unknown"
-                                    logger.info(f"Skipped user/admin permanent invite: {invite.url} (created by {inviter_name})")
-                        
-                        logger.info(f"Deleted {deleted_count} bot invites, skipped {skipped_count} user/admin invites from {guild.name}")
-                        
-                        # Create new permanent invite
-                        best_channel = None
-                        for channel in guild.text_channels:
-                            if channel.permissions_for(guild.me).create_instant_invite:
-                                best_channel = channel
+                                        logger.info(f"Deleted old bot invite: {invite.url}")
+                                    except Exception as delete_error:
+                                        logger.warning(f"Failed to delete bot invite {invite.url}: {delete_error}")
+                            
+                            if deleted_count > 0:
+                                logger.info(f"Deleted {deleted_count} old bot invites from {guild.name}")
+                        except Exception as cleanup_error:
+                            logger.warning(f"Failed to cleanup old invites in {guild.name}: {cleanup_error}")
+                    
+                    # Step 2: Create new single-use invite
+                    for channel in guild.text_channels:
+                        if channel.permissions_for(guild.me).create_instant_invite:
+                            try:
+                                invite = await channel.create_invite(
+                                    max_age=3600, max_uses=1, unique=True,
+                                    reason="ServerInfo - fresh single-use invite"
+                                )
+                                invite_link = invite.url
+                                logger.info(f"Created fresh single-use invite for {guild.name}: {invite_link}")
                                 break
-                        
-                        if best_channel:
-                            invite = await best_channel.create_invite(
-                                max_age=0, max_uses=0, unique=True,
-                                reason="Server overview - new permanent invite"
-                            )
-                            invite_link = invite.url
-                            logger.info(f"Created new permanent invite for {guild.name}: {invite_link}")
-                        else:
-                            invite_link = "Kann keinen Invite erstellen"
-                            logger.warning(f"No suitable channel found for invite creation in {guild.name}")
+                            except Exception as invite_error:
+                                logger.warning(f"Failed to create invite in {channel.name}: {invite_error}")
+                                continue
+                    
+                    if invite_link == "Keine Berechtigung":
+                        invite_link = "Kann keinen Invite erstellen"
                         
                 except Exception as e:
-                    invite_link = f"Fehler: {str(e)[:50]}"
-                    logger.error(f"Error processing invites for {guild.name}: {e}")
+                    invite_link = f"Fehler: {str(e)[:30]}"
+                    logger.error(f"Error managing invites for {guild.name}: {e}")
                 
                 # Build server info according to specification
                 server_info = (
@@ -749,15 +738,17 @@ class ServerInfoView(discord.ui.View):
                     live_role_tests.append(f"{guild.name[:20]}: ❌ Nicht gefunden")
             
             if role_found_count > 0:
-                live_role_status = f"✅ **Gefunden:** {role_found_count}/{len(self.bot.guilds)} Server\\n"
-                live_role_status += f"🔧 **Role ID:** {live_role_id}\\n"
+                live_role_status = f"✅ **Status:** {role_found_count}/{len(self.bot.guilds)} Server gefunden"
+                live_role_status += f"\n🔧 **Role ID:** {live_role_id}"
                 # Show details for first 3 servers
                 if live_role_tests[:3]:
-                    live_role_status += "\\n".join(live_role_tests[:3])
+                    live_role_status += "\n\n**Server-Status:**"
+                    for test in live_role_tests[:3]:
+                        live_role_status += f"\n{test}"
                     if len(live_role_tests) > 3:
-                        live_role_status += f"\\n...und {len(live_role_tests) - 3} weitere"
+                        live_role_status += f"\n...und {len(live_role_tests) - 3} weitere"
             else:
-                live_role_status = f"❌ **Live-Rolle nicht gefunden**\\nRole ID: {live_role_id}"
+                live_role_status = f"❌ **Live-Rolle nicht gefunden**\n🔧 **Role ID:** {live_role_id}"
                 
         except Exception as e:
             live_role_status = f"❌ **Fehler:** {str(e)[:50]}"
@@ -1002,13 +993,24 @@ class LeaveServerModal(discord.ui.Modal):
             
             embed = discord.Embed(
                 title="⚠️ Server verlassen - Bestätigung",
-                description=f"**Sind Sie sicher, dass der Bot folgenden Server verlassen soll?**\\n\\n"
-                           f"🔹 **Server-Name:** {guild.name}\\n"
-                           f"🆔 **Server-ID:** {guild.id}\\n"
-                           f"👥 **Mitglieder:** {guild.member_count:,}\\n"
-                           f"👑 **Besitzer:** {guild.owner.display_name if guild.owner else 'Unbekannt'}\\n\\n"
-                           f"⚠️ **Diese Aktion kann nicht rückgängig gemacht werden!**",
+                description="**Sind Sie sicher, dass der Bot folgenden Server verlassen soll?**",
                 color=discord.Color.orange()
+            )
+            
+            # Server-Informationen als separate Felder für bessere Übersichtlichkeit
+            embed.add_field(
+                name="📋 Server-Details",
+                value=f"🔹 **Name:** {guild.name}\n"
+                     f"🆔 **ID:** {guild.id}\n"
+                     f"👥 **Mitglieder:** {guild.member_count:,}\n"
+                     f"👑 **Besitzer:** {guild.owner.display_name if guild.owner else 'Unbekannt'}",
+                inline=False
+            )
+            
+            embed.add_field(
+                name="⚠️ Warnung",
+                value="**Diese Aktion kann nicht rückgängig gemacht werden!**",
+                inline=False
             )
             
             await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
@@ -1116,10 +1118,21 @@ class ServerUnbanModal(discord.ui.Modal):
                 
                 embed = discord.Embed(
                     title="✅ Erfolgreich entbannt",
-                    description=f"**User:** {user_name}\\n"
-                               f"**Server:** {guild.name} (ID: {guild.id})\\n\\n"
-                               f"User wurde erfolgreich entbannt.",
+                    description="User wurde erfolgreich entbannt.",
                     color=discord.Color.green()
+                )
+                
+                # Details als separate Felder für bessere Übersichtlichkeit
+                embed.add_field(
+                    name="👤 User-Details",
+                    value=f"**Name:** {user_name}",
+                    inline=False
+                )
+                
+                embed.add_field(
+                    name="🏠 Server-Details",
+                    value=f"**Name:** {guild.name}\n**ID:** {guild.id}",
+                    inline=False
                 )
                 
                 await interaction.response.send_message(embed=embed, ephemeral=True)
