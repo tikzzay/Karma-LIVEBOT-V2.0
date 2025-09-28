@@ -22,6 +22,8 @@ from aiohttp import web
 import requests
 from bs4 import BeautifulSoup
 import json
+import zipfile
+import io
 
 # OpenAI for automatic scraping repair
 # the newest OpenAI model is "gpt-5" which was released August 7, 2025. 
@@ -106,6 +108,9 @@ class Config:
     # OpenAI Auto-Repair System
     OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
     DEV_CHANNEL_ID = int(os.getenv('DEV_CHANNEL_ID')) if os.getenv('DEV_CHANNEL_ID') else None
+    
+    # Developer/Main Server Configuration
+    MAIN_SERVER_ID = int(os.getenv('MAIN_SERVER_ID', '0'))  # Main server where dev logs should be posted
     
     # Platform Colors
     COLORS = {
@@ -3386,6 +3391,145 @@ async def auto_restart_task():
     except Exception as e:
         logger.error(f"🚨 AUTO-RESTART ERROR: {e}")
 
+async def post_logs_to_dev_channel(log_files_to_delete):
+    """Post log files to dev channel before deletion (only on main server)"""
+    try:
+        # Check if dev channel and main server are configured
+        if not Config.DEV_CHANNEL_ID or not Config.MAIN_SERVER_ID:
+            logger.info("📁 LOG-BACKUP: Dev channel or main server not configured - skipping log backup")
+            return
+        
+        # Get the main server
+        main_guild = bot.get_guild(Config.MAIN_SERVER_ID)
+        if not main_guild:
+            logger.warning(f"📁 LOG-BACKUP: Main server {Config.MAIN_SERVER_ID} not found")
+            return
+        
+        # Get the dev channel
+        dev_channel = main_guild.get_channel(Config.DEV_CHANNEL_ID)
+        if not dev_channel:
+            logger.warning(f"📁 LOG-BACKUP: Dev channel {Config.DEV_CHANNEL_ID} not found in main server")
+            return
+        
+        if not log_files_to_delete:
+            logger.info("📁 LOG-BACKUP: No log files to backup")
+            return
+        
+        logger.info(f"📁 LOG-BACKUP: Backing up {len(log_files_to_delete)} log files to dev channel...")
+        
+        # Create embed for the log backup
+        embed = discord.Embed(
+            title="🗑️ Log Cleanup - Archive",
+            description=f"Automatische Sicherung von {len(log_files_to_delete)} Log-Dateien vor der 6h-Bereinigung",
+            color=0xFFA500,  # Orange
+            timestamp=datetime.now().replace(tzinfo=datetime.now().astimezone().tzinfo)
+        )
+        
+        # If there are many files, create a ZIP archive
+        if len(log_files_to_delete) > 3:
+            # Create ZIP archive in memory
+            zip_buffer = io.BytesIO()
+            total_size = 0
+            files_added = 0
+            
+            with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+                for file_path, _ in log_files_to_delete:
+                    if os.path.exists(file_path):
+                        try:
+                            file_size = os.path.getsize(file_path)
+                            # Skip individual files larger than 50MB to prevent ZIP issues
+                            if file_size > 50 * 1024 * 1024:
+                                logger.warning(f"📁 LOG-BACKUP: File {file_path} too large ({file_size} bytes) - skipping from ZIP")
+                                continue
+                            
+                            # Use only filename for ZIP entry
+                            arcname = os.path.basename(file_path)
+                            zip_file.write(file_path, arcname)
+                            total_size += file_size
+                            files_added += 1
+                            logger.debug(f"📁 Added {arcname} to ZIP ({file_size} bytes)")
+                        except Exception as e:
+                            logger.warning(f"📁 Could not add {file_path} to ZIP: {e}")
+            
+            zip_buffer.seek(0)
+            zip_size = len(zip_buffer.getvalue())
+            zip_filename = f"karma_bot_logs_backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}.zip"
+            
+            # Check if ZIP is within Discord limits (8MB default)  
+            size_limit = 8 * 1024 * 1024  # Use standard 8MB limit for safety
+            if zip_size > size_limit:
+                logger.warning(f"📁 LOG-BACKUP: ZIP too large ({zip_size} bytes) - fallback to individual files")
+                # Fallback to individual file sending
+                await dev_channel.send(embed=discord.Embed(
+                    title="🗑️ Log Cleanup - Archive (Fallback)",
+                    description=f"ZIP zu groß ({zip_size//1024//1024}MB) - sende Dateien einzeln",
+                    color=0xFFA500
+                ))
+                # Send files individually as fallback
+                for file_path, _ in log_files_to_delete:
+                    if os.path.exists(file_path):
+                        try:
+                            file_size = os.path.getsize(file_path)
+                            if file_size <= 8 * 1024 * 1024:  # 8MB limit for individual files
+                                filename = os.path.basename(file_path)
+                                file = discord.File(file_path, filename=filename)
+                                await dev_channel.send(file=file)
+                                logger.info(f"📁 LOG-BACKUP: Fallback - File {filename} sent individually")
+                        except Exception as e:
+                            logger.warning(f"📁 Fallback upload failed for {file_path}: {e}")
+            else:
+                embed.add_field(
+                    name="📦 Archive Details", 
+                    value=f"**Format:** ZIP-Archiv\n**Dateien:** {files_added}/{len(log_files_to_delete)}\n**Größe:** {zip_size//1024}KB\n**Filename:** `{zip_filename}`", 
+                    inline=False
+                )
+                
+                # Send ZIP file
+                file = discord.File(zip_buffer, filename=zip_filename)
+                await dev_channel.send(embed=embed, file=file)
+                logger.info(f"📁 LOG-BACKUP: ZIP archive with {files_added} files ({zip_size//1024}KB) sent to dev channel")
+            
+        else:
+            # Send individual files (≤3 files)
+            total_size = sum(os.path.getsize(fp) for fp, _ in log_files_to_delete if os.path.exists(fp))
+            
+            embed.add_field(
+                name="📄 File Details", 
+                value=f"**Format:** Einzelne Dateien\n**Anzahl:** {len(log_files_to_delete)}\n**Gesamtgröße:** {total_size//1024}KB", 
+                inline=False
+            )
+            
+            await dev_channel.send(embed=embed)
+            
+            files_sent = 0
+            for file_path, _ in log_files_to_delete:
+                if os.path.exists(file_path):
+                    try:
+                        file_size = os.path.getsize(file_path)
+                        # Discord file size limit is 8MB (8 * 1024 * 1024 bytes)
+                        if file_size > 8 * 1024 * 1024:
+                            logger.warning(f"📁 LOG-BACKUP: File {file_path} too large ({file_size//1024//1024}MB) - skipping")
+                            continue
+                        
+                        filename = os.path.basename(file_path)
+                        file = discord.File(file_path, filename=filename)
+                        await dev_channel.send(file=file)
+                        files_sent += 1
+                        logger.info(f"📁 LOG-BACKUP: File {filename} sent to dev channel ({file_size//1024}KB)")
+                    except FileNotFoundError:
+                        logger.warning(f"📁 File {file_path} not found during upload")
+                    except discord.HTTPException as e:
+                        logger.warning(f"📁 Discord upload failed for {file_path}: {e}")
+                    except Exception as e:
+                        logger.warning(f"📁 Could not upload {file_path}: {e}")
+            
+            logger.info(f"📁 LOG-BACKUP: Sent {files_sent}/{len(log_files_to_delete)} individual files")
+        
+        logger.info("📁 LOG-BACKUP: Log backup to dev channel completed")
+        
+    except Exception as e:
+        logger.error(f"🚨 LOG-BACKUP ERROR: {e}")
+
 # Log Cleanup Task
 @tasks.loop(hours=6)
 async def log_cleanup_task():
@@ -3423,6 +3567,13 @@ async def log_cleanup_task():
                 # Keep only 10 newest, delete the rest
                 if len(log_files) > 10:
                     files_to_delete = log_files[10:]
+                    
+                    # Post logs to dev channel before deletion (only on first path to avoid duplicates)
+                    if log_path == '/tmp/logs/' and files_to_delete:
+                        logger.info(f"🗑️ LOG-CLEANUP: Backing up {len(files_to_delete)} files before deletion...")
+                        await post_logs_to_dev_channel(files_to_delete)
+                        logger.info("🗑️ LOG-CLEANUP: Backup completed, proceeding with deletion...")
+                    
                     deleted_count = 0
                     
                     for file_path, _ in files_to_delete:
