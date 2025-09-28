@@ -323,6 +323,11 @@ class InstantGamingAPI:
         self.cache = {}  # Cache search results to avoid repeated requests
         self.cache_duration = 1800  # 30 minutes cache
     
+    def clear_cache(self):
+        """Clear the search cache to force fresh requests"""
+        self.cache.clear()
+        logger.info("Instant Gaming cache cleared")
+    
     async def search_game(self, game_name: str) -> Optional[Dict]:
         """Search for a game on Instant Gaming and return the first result with affiliate link"""
         if not game_name or not game_name.strip():
@@ -340,35 +345,52 @@ class InstantGamingAPI:
                 return cached_data['data']
         
         try:
-            # Prepare search URL
-            search_url = f"{self.search_base_url}?query={game_name.replace(' ', '+')}"
+            # Prepare search URL - FIX: Use 'q' parameter instead of 'query'
+            search_url = f"{self.search_base_url}?q={game_name.replace(' ', '+')}"
             affiliate_url = f"{search_url}&igr={self.affiliate_tag}"
             
             logger.info(f"Searching Instant Gaming for: {game_name}")
+            logger.info(f"Using URL: {search_url}")
             
             # Perform web scraping to check if game exists
             headers = {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
                 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-                'Accept-Language': 'de-DE,de;q=0.9,en;q=0.8',
+                'Accept-Language': 'en-US,en;q=0.9,de;q=0.8',
                 'Connection': 'keep-alive',
+                'Cache-Control': 'no-cache',
+                'Pragma': 'no-cache'
             }
             
-            timeout = aiohttp.ClientTimeout(total=10)
+            timeout = aiohttp.ClientTimeout(total=15)
             
             async with aiohttp.ClientSession() as session:
                 async with session.get(search_url, headers=headers, timeout=timeout) as response:
                     if response.status == 200:
                         html = await response.text()
                         
-                        # Check if there are search results (look for game cards or products)
-                        game_found = any([
+                        # Debug: Log part of the HTML to see what we're getting
+                        logger.info(f"Response length: {len(html)} characters")
+                        
+                        # More comprehensive check for game results
+                        game_indicators = [
                             'data-product-id' in html,
                             'product-card' in html,
                             'game-card' in html,
                             'search-result' in html,
-                            'item-cover' in html
-                        ])
+                            'item-cover' in html,
+                            'productCard' in html,
+                            'game-item' in html,
+                            'product-item' in html,
+                            'data-gtm-product-name' in html,
+                            'class="price"' in html,
+                            'class="title"' in html and 'class="cover"' in html
+                        ]
+                        
+                        found_indicators = [i for i, indicator in enumerate(game_indicators) if indicator]
+                        logger.info(f"Found indicators: {found_indicators} out of {len(game_indicators)}")
+                        
+                        game_found = any(game_indicators)
                         
                         if game_found:
                             result = {

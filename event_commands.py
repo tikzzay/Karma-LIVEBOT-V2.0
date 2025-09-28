@@ -939,25 +939,36 @@ class ServerInfoView(discord.ui.View):
         )
         await channel.send(embed=info_embed)
         
-        # Create a test live notification similar to the real ones
+        # Create a realistic test live notification
         test_live_embed = discord.Embed(
-            description="🚨 Hey Cyber-Runner! 🚨\nTestUser ist jetzt LIVE auf Twitch: testchannel!\n**DIES IST EINE TEST-NACHRICHT DIE GLEICH GELÖSCHT WIRD**",
+            description="🚨 Hey Cyber-Runner! 🚨\nTikZ aka. Zay ist jetzt LIVE auf Twitch: tikzzay!\n**Spielt gerade: Among Us** 🎮\n\n**⚠️ DIES IST EINE TEST-NACHRICHT DIE GLEICH GELÖSCHT WIRD ⚠️**",
             color=Config.COLORS['twitch']
         )
-        test_live_embed.set_thumbnail(url="https://static-cdn.jtvnw.net/user-default-pictures-uv/de130ab0-def7-11e9-b668-784f43822e80-profile_image-300x300.png")
-        test_live_embed.add_field(name="👀 Zuschauer", value="1,337", inline=True)
-        test_live_embed.add_field(name="🎮 Spiel", value="Test Game", inline=True)
-        test_live_embed.add_field(name="💖 Follower", value="42,069", inline=True)
+        
+        # Add realistic streamer branding and thumbnail
+        test_live_embed.set_thumbnail(url="https://static-cdn.jtvnw.net/previews-ttv/live_user_tikzzay-320x180.jpg")
+        test_live_embed.set_author(
+            name="TikZ aka. Zay", 
+            icon_url="https://static-cdn.jtvnw.net/user-default-pictures-uv/de130ab0-def7-11e9-b668-784f43822e80-profile_image-300x300.png"
+        )
+        
+        # Enhanced live stream data
+        test_live_embed.add_field(name="👀 Zuschauer", value="892", inline=True)
+        test_live_embed.add_field(name="🎮 Spiel", value="Among Us", inline=True)
+        test_live_embed.add_field(name="💖 Follower", value="3,156", inline=True)
         test_live_embed.add_field(name="🔥 Daily Streak", value="7 Tage", inline=True)
-        test_live_embed.set_footer(text="🟣 Twitch • Test-Nachricht (wird in 5s gelöscht)")
+        test_live_embed.add_field(name="⭐ Karma Streamer", value="Premium", inline=True)
+        test_live_embed.add_field(name="🕐 Live seit", value="< 1 Min", inline=True)
+        
+        test_live_embed.set_footer(text="🟣 Twitch • 🧪 TEST: Auto-Löschung (wird in 5s gelöscht)")
         test_live_embed.timestamp = datetime.now()
         
-        # Create test view with buttons
+        # Create test view with realistic buttons
         class TestNotificationView(discord.ui.View):
             def __init__(self):
                 super().__init__(timeout=None)
-                self.add_item(discord.ui.Button(label="Anschauen", emoji="📺", url="https://twitch.tv/testchannel", style=discord.ButtonStyle.link, row=0))
-                self.add_item(discord.ui.Button(label="Folgen", emoji="❤️", url="https://twitch.tv/testchannel", style=discord.ButtonStyle.link, row=0))
+                self.add_item(discord.ui.Button(label="Anschauen", emoji="📺", url="https://twitch.tv/tikzzay", style=discord.ButtonStyle.link, row=0))
+                self.add_item(discord.ui.Button(label="Folgen", emoji="❤️", url="https://twitch.tv/tikzzay", style=discord.ButtonStyle.link, row=0))
         
         view = TestNotificationView()
         
@@ -1072,9 +1083,19 @@ class ServerInfoView(discord.ui.View):
     async def run_instant_gaming_test(self, interaction: discord.Interaction):
         """Test Instant Gaming integration functionality"""
         embed = discord.Embed(
-            title="🎮 Instant Gaming Test",
-            description="**Teste Instant Gaming Integration**\n\nDiese Funktion testet die Spiele-Suche und Affiliate-Link Generierung.",
+            title="🎮 Instant Gaming Integration Test",
+            description="**Live-Demonstration der Spiele-Suche und Affiliate-Link Generierung**\n\n"
+                       "🔍 Suche nach beliebten Spielen auf Instant Gaming\n"
+                       "🔗 Generiere Affiliate-Links mit Provision\n"
+                       "💰 Teste Preis-Verfügbarkeit und Rabatte",
             color=discord.Color.purple()
+        )
+        
+        # Add Instant Gaming branding
+        embed.set_thumbnail(url="https://www.instant-gaming.com/images/ig-logo-200.png")
+        embed.set_author(
+            name="Instant Gaming Integration", 
+            icon_url="https://www.instant-gaming.com/favicon.ico"
         )
         
         # Import instant_gaming from main module
@@ -1116,61 +1137,88 @@ class ServerInfoView(discord.ui.View):
                 search_results.append(f"⚠️ **{game}**: Fehler - {str(e)[:30]}")
                 logger.error(f"Error testing {game}: {e}")
         
-        # Update embed with results
+        # Enhanced results display
         embed.clear_fields()
-        embed.add_field(name="🔌 Integration Status", value="✅ **Test abgeschlossen**", inline=False)
+        
+        # Status with visual indicator
+        success_count = sum(1 for result in search_results if "✅" in result)
+        total_count = len(search_results)
+        status_value = f"✅ **Test abgeschlossen** - {success_count}/{total_count} Spiele gefunden"
+        embed.add_field(name="📊 Test-Status", value=status_value, inline=False)
         
         results_text = "\n".join(search_results)
         embed.add_field(name="🔍 Spiele-Suche Ergebnisse", value=results_text, inline=False)
         
-        # Add affiliate info
+        # Enhanced affiliate info
         affiliate_info = (
             f"🔗 **Affiliate Tag:** `{instant_gaming.affiliate_tag}`\n"
             f"🌐 **Basis URL:** `{instant_gaming.search_base_url}`\n"
-            f"📝 **Beispiel Link:** `{instant_gaming.search_base_url}?q=Cyberpunk+2077&igr={instant_gaming.affiliate_tag}`"
+            f"📊 **Erfolgsrate:** {success_count}/{total_count} ({(success_count/total_count)*100:.0f}%)"
         )
         embed.add_field(name="🔧 Konfiguration", value=affiliate_info, inline=False)
         
-        # Demo notification with Instant Gaming button
+        # Add timestamp and enhanced footer
+        embed.timestamp = datetime.now()
+        embed.set_footer(text="🎮 Instant Gaming Integration • Live-Test abgeschlossen")
+        
+        # Enhanced demo notification with realistic data
         if search_results and any("✅" in result for result in search_results):
-            # Create demo notification with Instant Gaming integration
+            # Create realistic demo notification
             demo_embed = discord.Embed(
-                description="🚨 Hey Cyber-Runner! 🚨\nDemoUser ist jetzt LIVE auf Twitch: demochannel!\n**DEMO: Mit Instant Gaming Integration**",
-                color=0x9146FF  # Twitch purple
+                description="🚨 Hey Cyber-Runner! 🚨\nTikZ aka. Zay ist jetzt LIVE auf Twitch: tikzzay!\n**Spielt gerade: Cyberpunk 2077** 🎮",
+                color=Config.COLORS['twitch']
             )
-            demo_embed.add_field(name="👀 Zuschauer", value="1,337", inline=True)
+            
+            # Add realistic streamer branding
+            demo_embed.set_thumbnail(url="https://static-cdn.jtvnw.net/previews-ttv/live_user_tikzzay-320x180.jpg")
+            demo_embed.set_author(
+                name="TikZ aka. Zay", 
+                icon_url="https://static-cdn.jtvnw.net/user-default-pictures-uv/de130ab0-def7-11e9-b668-784f43822e80-profile_image-300x300.png"
+            )
+            
+            # Enhanced stream data
+            demo_embed.add_field(name="👀 Zuschauer", value="1,247", inline=True)
             demo_embed.add_field(name="🎮 Spiel", value="Cyberpunk 2077", inline=True)
-            demo_embed.add_field(name="💖 Follower", value="42,069", inline=True)
-            demo_embed.set_footer(text="🎮 Demo mit Instant Gaming Button")
+            demo_embed.add_field(name="💖 Follower", value="3,156", inline=True)
+            demo_embed.add_field(name="🔥 Daily Streak", value="5 Tage", inline=True)
+            demo_embed.add_field(name="⭐ Karma Streamer", value="Premium", inline=True)
+            demo_embed.add_field(name="🕐 Live seit", value="2 Min", inline=True)
+            
+            demo_embed.set_footer(text="🟣 Twitch • DEMO: Mit Instant Gaming Integration")
             demo_embed.timestamp = datetime.now()
             
-            # Create demo view with Instant Gaming button
+            # Create enhanced demo view with realistic buttons
             class DemoInstantGamingView(discord.ui.View):
                 def __init__(self):
                     super().__init__(timeout=None)
-                    # Standard buttons
+                    # Standard live stream buttons
                     self.add_item(discord.ui.Button(
                         label="Anschauen", emoji="📺", 
-                        url="https://twitch.tv/demochannel", 
+                        url="https://twitch.tv/tikzzay", 
                         style=discord.ButtonStyle.link, row=0
                     ))
                     self.add_item(discord.ui.Button(
                         label="Folgen", emoji="❤️", 
-                        url="https://twitch.tv/demochannel", 
+                        url="https://twitch.tv/tikzzay", 
                         style=discord.ButtonStyle.link, row=0
                     ))
-                    # Instant Gaming button
+                    # Enhanced Instant Gaming button with realistic pricing
                     self.add_item(discord.ui.Button(
-                        label="Kaufe Cyberpunk 2077 günstiger", emoji="🎮",
+                        label="🎮 Cyberpunk 2077 (-70%)", emoji="💰",
                         url=f"{instant_gaming.search_base_url}?q=Cyberpunk+2077&igr={instant_gaming.affiliate_tag}",
                         style=discord.ButtonStyle.link, row=1
                     ))
             
             demo_view = DemoInstantGamingView()
             
-            # Send demo
+            # Send enhanced demo with realistic header
             await interaction.edit_original_response(embed=embed, view=None)
-            await interaction.followup.send("**🎮 DEMO: Live-Benachrichtigung mit Instant Gaming**", embed=demo_embed, view=demo_view, ephemeral=True)
+            demo_header = (
+                "**💰 LIVE-DEMO: Instant Gaming Integration**\n"
+                "*So würde eine echte Live-Benachrichtigung mit Game-Button aussehen:*\n"
+                "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+            )
+            await interaction.followup.send(content=demo_header, embed=demo_embed, view=demo_view, ephemeral=True)
         else:
             await interaction.edit_original_response(embed=embed, view=None)
 
