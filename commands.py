@@ -2263,16 +2263,21 @@ class CreateSocialMediaChannelsButton(discord.ui.Button):
             
             for platform, username in self.selected_platforms:
                 try:
-                    # Validate username exists first
+                    # Validate username exists first (using SCRAPING ONLY to save API limits)
                     logger.info(f"Validating {platform} username: {username}")
-                    is_valid = await social_media_apis.validate_username(platform, username)
+                    is_valid, error_type = await social_media_scraping_apis.validate_username_scraping_only(platform, username)
                     
                     if not is_valid:
-                        errors.append(f"{platform.title()}: @{username} - Nutzer nicht gefunden")
+                        if error_type == "not_found":
+                            errors.append(f"{platform.title()}: @{username} - Nutzer nicht gefunden")
+                        elif error_type == "scraping_error":
+                            errors.append(f"{platform.title()}: @{username} - Temporärer Fehler (versuchen Sie es später erneut)")
+                        else:
+                            errors.append(f"{platform.title()}: @{username} - Unbekannter Fehler")
                         continue
                     
-                    # Get initial follower count
-                    initial_count = await social_media_apis.get_follower_count(platform, username)
+                    # Get initial follower count (using SCRAPING ONLY to save API limits)
+                    initial_count = await social_media_scraping_apis.get_follower_count_scraping_only(platform, username)
                     if initial_count is None:
                         initial_count = 0
                     

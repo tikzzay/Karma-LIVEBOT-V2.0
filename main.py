@@ -581,19 +581,61 @@ class SocialMediaAPIs:
         """Get Instagram follower count via web scraping"""
         try:
             headers = {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                'Accept-Language': 'en-US,en;q=0.5',
+                'Accept-Encoding': 'gzip, deflate, br',
+                'DNT': '1',
+                'Connection': 'keep-alive',
+                'Upgrade-Insecure-Requests': '1',
+                'sec-ch-ua': '"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"',
+                'sec-ch-ua-mobile': '?0',
+                'sec-ch-ua-platform': '"Windows"'
             }
             
-            async with aiohttp.ClientSession() as session:
-                url = f"https://www.instagram.com/api/v1/users/web_profile_info/?username={username}"
-                async with session.get(url, headers=headers) as response:
-                    if response.status == 200:
-                        data = await response.json()
-                        followers = data.get('data', {}).get('user', {}).get('edge_followed_by', {}).get('count')
-                        return followers
-                    else:
-                        logger.warning(f"Instagram API returned status {response.status} for {username}")
-                        return None
+            async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=15)) as session:
+                # Try multiple Instagram endpoints
+                urls = [
+                    f"https://www.instagram.com/api/v1/users/web_profile_info/?username={username}",
+                    f"https://www.instagram.com/{username}/",
+                    f"https://i.instagram.com/api/v1/users/web_profile_info/?username={username}"
+                ]
+                
+                for url in urls:
+                    try:
+                        async with session.get(url, headers=headers) as response:
+                            if response.status == 200:
+                                if 'api/v1/users/web_profile_info' in url:
+                                    data = await response.json()
+                                    # Safe navigation through nested data
+                                    if data and isinstance(data, dict):
+                                        data_section = data.get('data')
+                                        if data_section and isinstance(data_section, dict):
+                                            user = data_section.get('user')
+                                            if user and isinstance(user, dict):
+                                                edge_followed_by = user.get('edge_followed_by')
+                                                if edge_followed_by and isinstance(edge_followed_by, dict):
+                                                    count = edge_followed_by.get('count')
+                                                    if count is not None:
+                                                        return int(count)
+                                else:
+                                    # HTML scraping fallback
+                                    text = await response.text()
+                                    if 'edge_followed_by' in text:
+                                        import re
+                                        # Look for follower count in HTML/JS
+                                        match = re.search(r'"edge_followed_by":{"count":(\d+)', text)
+                                        if match:
+                                            return int(match.group(1))
+                            else:
+                                logger.debug(f"Instagram URL {url} returned status {response.status}")
+                    except Exception as e:
+                        logger.debug(f"Instagram URL {url} failed: {e}")
+                        continue
+                
+                logger.warning(f"All Instagram methods failed for {username}")
+                return None
+                
         except Exception as e:
             logger.error(f"Instagram API error for {username}: {e}")
             return None
@@ -625,33 +667,100 @@ class SocialMediaAPIs:
             return None
     
     async def _get_youtube_subscribers(self, username: str) -> Optional[int]:
-        """Get YouTube subscriber count via official API"""
-        if not self.youtube_api_key:
-            logger.warning("YouTube API Key not configured")
-            return None
-            
+        """Get YouTube subscriber count via official API and fallback methods"""
         try:
-            async with aiohttp.ClientSession() as session:
-                # Try by username first
-                url = f"https://www.googleapis.com/youtube/v3/channels?part=statistics&forUsername={username}&key={self.youtube_api_key}"
-                async with session.get(url) as response:
-                    if response.status == 200:
-                        data = await response.json()
-                        if data.get('items'):
-                            subscribers = data['items'][0].get('statistics', {}).get('subscriberCount')
-                            return int(subscribers) if subscribers else None
-                        else:
-                            # Try by channel ID if username doesn't work
-                            url = f"https://www.googleapis.com/youtube/v3/channels?part=statistics&id={username}&key={self.youtube_api_key}"
+            # If API key is available, use official API
+            if self.youtube_api_key:
+                async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10)) as session:
+                    # Try multiple methods with API key
+                    methods = [
+                        f"https://www.googleapis.com/youtube/v3/channels?part=statistics&forUsername={username}&key={self.youtube_api_key}",
+                        f"https://www.googleapis.com/youtube/v3/channels?part=statistics&id={username}&key={self.youtube_api_key}",
+                        f"https://www.googleapis.com/youtube/v3/search?part=snippet&q={username}&type=channel&key={self.youtube_api_key}"
+                    ]
+                    
+                    for i, url in enumerate(methods):
+                        try:
                             async with session.get(url) as response:
                                 if response.status == 200:
                                     data = await response.json()
-                                    if data.get('items'):
-                                        subscribers = data['items'][0].get('statistics', {}).get('subscriberCount')
-                                        return int(subscribers) if subscribers else None
-                    else:
-                        logger.warning(f"YouTube API returned status {response.status} for {username}")
-                        return None
+                                    if data and data.get('items'):
+                                        if i == 2:  # Search API result
+                                            # Get channel ID from search and fetch statistics
+                                            channel_id = data['items'][0]['snippet']['channelId']
+                                            stats_url = f"https://www.googleapis.com/youtube/v3/channels?part=statistics&id={channel_id}&key={self.youtube_api_key}"
+                                            async with session.get(stats_url) as stats_response:
+                                                if stats_response.status == 200:
+                                                    stats_data = await stats_response.json()
+                                                    if stats_data and stats_data.get('items'):
+                                                        subscribers = stats_data['items'][0].get('statistics', {}).get('subscriberCount')
+                                                        if subscribers:
+                                                            return int(subscribers)
+                                        else:
+                                            # Direct statistics result
+                                            subscribers = data['items'][0].get('statistics', {}).get('subscriberCount')
+                                            if subscribers:
+                                                return int(subscribers)
+                                else:
+                                    logger.debug(f"YouTube API method {i+1} returned status {response.status}")
+                        except Exception as e:
+                            logger.debug(f"YouTube API method {i+1} failed: {e}")
+                            continue
+            
+            # Fallback: web scraping method
+            logger.info(f"Using web scraping fallback for YouTube user: {username}")
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+            }
+            
+            async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=15)) as session:
+                # Try different YouTube URL formats
+                urls = [
+                    f"https://www.youtube.com/@{username}/about",
+                    f"https://www.youtube.com/c/{username}/about",
+                    f"https://www.youtube.com/user/{username}/about",
+                    f"https://www.youtube.com/channel/{username}/about"
+                ]
+                
+                for url in urls:
+                    try:
+                        async with session.get(url, headers=headers) as response:
+                            if response.status == 200:
+                                text = await response.text()
+                                # Look for subscriber count in HTML
+                                import re
+                                patterns = [
+                                    r'"subscriberCountText":{"accessibility":{"accessibilityData":{"label":"([\d,\.]+)\s+subscriber',
+                                    r'"subscriberCountText":{"simpleText":"([\d,\.]+)\s+subscriber',
+                                    r'([\d,\.]+)\s+subscriber',
+                                    r'"subscriberCount":"(\d+)"'
+                                ]
+                                
+                                for pattern in patterns:
+                                    match = re.search(pattern, text, re.IGNORECASE)
+                                    if match:
+                                        subscriber_str = match.group(1).replace(',', '').replace('.', '')
+                                        # Handle K/M/B suffixes
+                                        if 'K' in subscriber_str.upper():
+                                            subscriber_str = subscriber_str.upper().replace('K', '')
+                                            return int(float(subscriber_str) * 1000)
+                                        elif 'M' in subscriber_str.upper():
+                                            subscriber_str = subscriber_str.upper().replace('M', '')
+                                            return int(float(subscriber_str) * 1000000)
+                                        elif 'B' in subscriber_str.upper():
+                                            subscriber_str = subscriber_str.upper().replace('B', '')
+                                            return int(float(subscriber_str) * 1000000000)
+                                        else:
+                                            return int(subscriber_str)
+                            else:
+                                logger.debug(f"YouTube URL {url} returned status {response.status}")
+                    except Exception as e:
+                        logger.debug(f"YouTube URL {url} failed: {e}")
+                        continue
+            
+            logger.warning(f"All YouTube methods failed for {username}")
+            return None
+                
         except Exception as e:
             logger.error(f"YouTube API error for {username}: {e}")
             return None
@@ -660,19 +769,54 @@ class SocialMediaAPIs:
         """Get TikTok follower count via web scraping"""
         try:
             headers = {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept': 'application/json, text/plain, */*',
+                'Accept-Language': 'en-US,en;q=0.9',
+                'Referer': 'https://www.tiktok.com/',
+                'sec-ch-ua': '"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"',
+                'sec-ch-ua-mobile': '?0',
+                'sec-ch-ua-platform': '"Windows"'
             }
             
-            async with aiohttp.ClientSession() as session:
-                url = f"https://www.tiktok.com/api/user/detail/?uniqueId={username}"
-                async with session.get(url, headers=headers) as response:
-                    if response.status == 200:
-                        data = await response.json()
-                        followers = data.get('userInfo', {}).get('stats', {}).get('followerCount')
-                        return followers
-                    else:
-                        logger.warning(f"TikTok API returned status {response.status} for {username}")
-                        return None
+            async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10)) as session:
+                # Try multiple TikTok endpoints
+                urls = [
+                    f"https://www.tiktok.com/api/user/detail/?uniqueId={username}",
+                    f"https://www.tiktok.com/@{username}"
+                ]
+                
+                for url in urls:
+                    try:
+                        async with session.get(url, headers=headers) as response:
+                            if response.status == 200:
+                                if 'api/user/detail' in url:
+                                    data = await response.json()
+                                    # Safe navigation through nested data
+                                    user_info = data.get('userInfo') if data else None
+                                    if user_info and isinstance(user_info, dict):
+                                        stats = user_info.get('stats')
+                                        if stats and isinstance(stats, dict):
+                                            followers = stats.get('followerCount')
+                                            if followers is not None:
+                                                return int(followers)
+                                else:
+                                    # HTML scraping fallback
+                                    text = await response.text()
+                                    if 'followerCount' in text:
+                                        import re
+                                        # Look for follower count in HTML/JS
+                                        match = re.search(r'"followerCount":(\d+)', text)
+                                        if match:
+                                            return int(match.group(1))
+                            else:
+                                logger.debug(f"TikTok URL {url} returned status {response.status}")
+                    except Exception as e:
+                        logger.debug(f"TikTok URL {url} failed: {e}")
+                        continue
+                
+                logger.warning(f"All TikTok methods failed for {username}")
+                return None
+                
         except Exception as e:
             logger.error(f"TikTok API error for {username}: {e}")
             return None
@@ -724,6 +868,370 @@ class SocialMediaAPIs:
 
 # Initialize Social Media APIs
 social_media_apis = SocialMediaAPIs()
+
+# Web-Scraping Only APIs for Social Media Stats (no API limits)
+class SocialMediaScrapingOnlyAPIs:
+    """Social Media APIs that ONLY use web scraping to avoid API limits"""
+    
+    def __init__(self):
+        self.cache = {}  # Cache for follower counts
+        self.cache_duration = 300  # 5 minutes cache
+    
+    async def get_follower_count_scraping_only(self, platform: str, username: str) -> Optional[int]:
+        """Get follower count using ONLY web scraping methods (no API calls)"""
+        cache_key = f"scraping_{platform}_{username}"
+        current_time = time.time()
+        
+        # Check cache first
+        if cache_key in self.cache:
+            cached_data = self.cache[cache_key]
+            if current_time - cached_data['timestamp'] < self.cache_duration:
+                logger.info(f"Using cached scraping follower count for {platform}/{username}: {cached_data['count']:,}")
+                return cached_data['count']
+        
+        try:
+            if platform == 'instagram':
+                count = await self._scrape_instagram_followers(username)
+            elif platform in ['x', 'twitter']:
+                count = await self._scrape_twitter_followers(username)
+            elif platform == 'youtube':
+                count = await self._scrape_youtube_subscribers(username)
+            elif platform == 'tiktok':
+                count = await self._scrape_tiktok_followers(username)
+            elif platform == 'twitch':
+                count = await self._scrape_twitch_followers(username)
+            else:
+                logger.error(f"Unsupported platform for scraping: {platform}")
+                return None
+            
+            if count is not None:
+                # Cache the result
+                self.cache[cache_key] = {
+                    'count': count,
+                    'timestamp': current_time
+                }
+                logger.info(f"🕷️ Scraped {platform} followers for {username}: {count:,}")
+                return count
+            else:
+                logger.warning(f"❌ Failed to scrape {platform} followers for {username}")
+                return None
+                
+        except Exception as e:
+            logger.error(f"Error scraping {platform} followers for {username}: {e}")
+            return None
+    
+    async def validate_username_scraping_only(self, platform: str, username: str) -> tuple[bool, str]:
+        """Validate if username exists on platform using ONLY scraping
+        
+        Returns:
+            tuple[bool, str]: (is_valid, error_message)
+            - (True, ""): User exists
+            - (False, "not_found"): User definitely does not exist
+            - (False, "scraping_error"): Temporary scraping issue
+        """
+        try:
+            count = await self.get_follower_count_scraping_only(platform, username)
+            if count is not None:
+                return True, ""
+            else:
+                # Check if this was a scraping error vs user not found
+                # Try a simple connection test
+                try:
+                    test_result = await self._test_platform_connectivity(platform)
+                    if not test_result:
+                        return False, "scraping_error"  # Platform issues
+                    else:
+                        return False, "not_found"  # User likely doesn't exist
+                except:
+                    return False, "scraping_error"  # Connectivity issues
+        except Exception as e:
+            logger.error(f"Validation error for {platform}/{username}: {e}")
+            return False, "scraping_error"
+    
+    async def _test_platform_connectivity(self, platform: str) -> bool:
+        """Test if we can reach the platform (simple connectivity check)"""
+        try:
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+            }
+            
+            test_urls = {
+                'instagram': 'https://www.instagram.com/',
+                'youtube': 'https://www.youtube.com/',
+                'tiktok': 'https://www.tiktok.com/',
+                'twitter': 'https://twitter.com/',
+                'x': 'https://x.com/',
+                'twitch': 'https://www.twitch.tv/'
+            }
+            
+            url = test_urls.get(platform)
+            if not url:
+                return False
+            
+            async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=5)) as session:
+                async with session.get(url, headers=headers) as response:
+                    return response.status < 500  # Accept 4xx but not 5xx
+        except:
+            return False
+    
+    async def _scrape_instagram_followers(self, username: str) -> Optional[int]:
+        """Instagram follower scraping - web only, no API"""
+        try:
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                'Accept-Language': 'en-US,en;q=0.5',
+                'Accept-Encoding': 'gzip, deflate, br',
+                'DNT': '1',
+                'Connection': 'keep-alive',
+                'Upgrade-Insecure-Requests': '1'
+            }
+            
+            async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=15)) as session:
+                # Only use web scraping methods for Instagram
+                urls = [
+                    f"https://www.instagram.com/{username}/",
+                    f"https://www.instagram.com/api/v1/users/web_profile_info/?username={username}"
+                ]
+                
+                for url in urls:
+                    try:
+                        async with session.get(url, headers=headers) as response:
+                            if response.status == 200:
+                                if 'api/v1/users/web_profile_info' in url:
+                                    data = await response.json()
+                                    if data and isinstance(data, dict):
+                                        data_section = data.get('data')
+                                        if data_section and isinstance(data_section, dict):
+                                            user = data_section.get('user')
+                                            if user and isinstance(user, dict):
+                                                edge_followed_by = user.get('edge_followed_by')
+                                                if edge_followed_by and isinstance(edge_followed_by, dict):
+                                                    count = edge_followed_by.get('count')
+                                                    if count is not None:
+                                                        return int(count)
+                                else:
+                                    # HTML scraping
+                                    text = await response.text()
+                                    if 'edge_followed_by' in text:
+                                        import re
+                                        match = re.search(r'"edge_followed_by":{"count":(\d+)', text)
+                                        if match:
+                                            return int(match.group(1))
+                            else:
+                                logger.debug(f"Instagram scraping URL {url} returned status {response.status}")
+                    except Exception as e:
+                        logger.debug(f"Instagram scraping URL {url} failed: {e}")
+                        continue
+                
+                logger.warning(f"All Instagram scraping methods failed for {username}")
+                return None
+                
+        except Exception as e:
+            logger.error(f"Instagram scraping error for {username}: {e}")
+            return None
+    
+    async def _scrape_twitter_followers(self, username: str) -> Optional[int]:
+        """Twitter/X follower scraping - web only, no API"""
+        try:
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+            }
+            
+            async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=15)) as session:
+                # Twitter/X scraping is difficult due to API restrictions
+                # We'll try basic methods but this is the least reliable
+                urls = [
+                    f"https://nitter.net/{username}",  # Nitter alternative frontend
+                    f"https://twitter.com/{username}"
+                ]
+                
+                for url in urls:
+                    try:
+                        async with session.get(url, headers=headers) as response:
+                            if response.status == 200:
+                                text = await response.text()
+                                import re
+                                # Look for follower patterns
+                                patterns = [
+                                    r'([\d,\.]+)\s+[Ff]ollower',
+                                    r'"followers_count":(\d+)',
+                                    r'follower.*?([\d,\.]+)'
+                                ]
+                                
+                                for pattern in patterns:
+                                    match = re.search(pattern, text, re.IGNORECASE)
+                                    if match:
+                                        follower_str = match.group(1).replace(',', '').replace('.', '')
+                                        # Handle K/M/B suffixes
+                                        if 'K' in follower_str.upper():
+                                            follower_str = follower_str.upper().replace('K', '')
+                                            return int(float(follower_str) * 1000)
+                                        elif 'M' in follower_str.upper():
+                                            follower_str = follower_str.upper().replace('M', '')
+                                            return int(float(follower_str) * 1000000)
+                                        else:
+                                            return int(follower_str)
+                            else:
+                                logger.debug(f"Twitter scraping URL {url} returned status {response.status}")
+                    except Exception as e:
+                        logger.debug(f"Twitter scraping URL {url} failed: {e}")
+                        continue
+                
+                logger.warning(f"All Twitter scraping methods failed for {username}")
+                return None
+                
+        except Exception as e:
+            logger.error(f"Twitter scraping error for {username}: {e}")
+            return None
+    
+    async def _scrape_youtube_subscribers(self, username: str) -> Optional[int]:
+        """YouTube subscriber scraping - web only, no API"""
+        try:
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+            }
+            
+            async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=15)) as session:
+                # Try different YouTube URL formats
+                urls = [
+                    f"https://www.youtube.com/@{username}/about",
+                    f"https://www.youtube.com/c/{username}/about",
+                    f"https://www.youtube.com/user/{username}/about",
+                    f"https://www.youtube.com/channel/{username}/about"
+                ]
+                
+                for url in urls:
+                    try:
+                        async with session.get(url, headers=headers) as response:
+                            if response.status == 200:
+                                text = await response.text()
+                                import re
+                                patterns = [
+                                    r'"subscriberCountText":{"accessibility":{"accessibilityData":{"label":"([\d,\.]+)\s+subscriber',
+                                    r'"subscriberCountText":{"simpleText":"([\d,\.]+)\s+subscriber',
+                                    r'([\d,\.]+)\s+subscriber',
+                                    r'"subscriberCount":"(\d+)"'
+                                ]
+                                
+                                for pattern in patterns:
+                                    match = re.search(pattern, text, re.IGNORECASE)
+                                    if match:
+                                        subscriber_str = match.group(1).replace(',', '').replace('.', '')
+                                        # Handle K/M/B suffixes
+                                        if 'K' in subscriber_str.upper():
+                                            subscriber_str = subscriber_str.upper().replace('K', '')
+                                            return int(float(subscriber_str) * 1000)
+                                        elif 'M' in subscriber_str.upper():
+                                            subscriber_str = subscriber_str.upper().replace('M', '')
+                                            return int(float(subscriber_str) * 1000000)
+                                        elif 'B' in subscriber_str.upper():
+                                            subscriber_str = subscriber_str.upper().replace('B', '')
+                                            return int(float(subscriber_str) * 1000000000)
+                                        else:
+                                            return int(subscriber_str)
+                            else:
+                                logger.debug(f"YouTube scraping URL {url} returned status {response.status}")
+                    except Exception as e:
+                        logger.debug(f"YouTube scraping URL {url} failed: {e}")
+                        continue
+                
+                logger.warning(f"All YouTube scraping methods failed for {username}")
+                return None
+                
+        except Exception as e:
+            logger.error(f"YouTube scraping error for {username}: {e}")
+            return None
+    
+    async def _scrape_tiktok_followers(self, username: str) -> Optional[int]:
+        """TikTok follower scraping - web only, no API"""
+        try:
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept': 'application/json, text/plain, */*',
+                'Accept-Language': 'en-US,en;q=0.9',
+                'Referer': 'https://www.tiktok.com/'
+            }
+            
+            async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10)) as session:
+                # Try TikTok web methods
+                urls = [
+                    f"https://www.tiktok.com/@{username}"
+                ]
+                
+                for url in urls:
+                    try:
+                        async with session.get(url, headers=headers) as response:
+                            if response.status == 200:
+                                text = await response.text()
+                                if 'followerCount' in text:
+                                    import re
+                                    # Look for follower count in HTML/JS
+                                    match = re.search(r'"followerCount":(\d+)', text)
+                                    if match:
+                                        return int(match.group(1))
+                            else:
+                                logger.debug(f"TikTok scraping URL {url} returned status {response.status}")
+                    except Exception as e:
+                        logger.debug(f"TikTok scraping URL {url} failed: {e}")
+                        continue
+                
+                logger.warning(f"All TikTok scraping methods failed for {username}")
+                return None
+                
+        except Exception as e:
+            logger.error(f"TikTok scraping error for {username}: {e}")
+            return None
+    
+    async def _scrape_twitch_followers(self, username: str) -> Optional[int]:
+        """Twitch follower scraping - web only, no API"""
+        try:
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+            }
+            
+            async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=15)) as session:
+                url = f"https://www.twitch.tv/{username}"
+                
+                try:
+                    async with session.get(url, headers=headers) as response:
+                        if response.status == 200:
+                            text = await response.text()
+                            import re
+                            # Look for follower patterns in Twitch HTML
+                            patterns = [
+                                r'([\d,\.]+)\s+[Ff]ollower',
+                                r'"followers":(\d+)',
+                                r'follower.*?([\d,\.]+)'
+                            ]
+                            
+                            for pattern in patterns:
+                                match = re.search(pattern, text, re.IGNORECASE)
+                                if match:
+                                    follower_str = match.group(1).replace(',', '').replace('.', '')
+                                    # Handle K/M suffixes
+                                    if 'K' in follower_str.upper():
+                                        follower_str = follower_str.upper().replace('K', '')
+                                        return int(float(follower_str) * 1000)
+                                    elif 'M' in follower_str.upper():
+                                        follower_str = follower_str.upper().replace('M', '')
+                                        return int(float(follower_str) * 1000000)
+                                    else:
+                                        return int(follower_str)
+                        else:
+                            logger.debug(f"Twitch scraping returned status {response.status}")
+                except Exception as e:
+                    logger.debug(f"Twitch scraping failed: {e}")
+                
+                logger.warning(f"Twitch scraping failed for {username}")
+                return None
+                
+        except Exception as e:
+            logger.error(f"Twitch scraping error for {username}: {e}")
+            return None
+
+# Initialize Social Media Scraping-Only APIs
+social_media_scraping_apis = SocialMediaScrapingOnlyAPIs()
 
 # Platform API Managers
 class TwitchAPI:
@@ -2906,13 +3414,13 @@ async def social_media_stats_updater():
                     cursor.execute('DELETE FROM social_media_stats_channels WHERE channel_id = ?', (channel_id,))
                     continue
                 
-                # Get current follower count
-                current_count = await social_media_apis.get_follower_count(platform, username)
+                # Get current follower count (using SCRAPING ONLY to save API limits)
+                current_count = await social_media_scraping_apis.get_follower_count_scraping_only(platform, username)
                 
                 if current_count is None:
                     # If we can't get the count, try one more time after a brief delay
                     await asyncio.sleep(2)
-                    current_count = await social_media_apis.get_follower_count(platform, username)
+                    current_count = await social_media_scraping_apis.get_follower_count_scraping_only(platform, username)
                     
                     if current_count is None:
                         logger.warning(f"📱 Failed to get {platform} follower count for @{username}")
