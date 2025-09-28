@@ -273,6 +273,20 @@ class DatabaseManager:
                     VALUES (?, ?, ?)
                 ''', (creator_id, 'tiktok', channel_id))
         
+        # Stats Channels table (für Voice Channel Statistiken)
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS stats_channels (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                guild_id TEXT NOT NULL,
+                channel_id TEXT NOT NULL,
+                counter_type TEXT NOT NULL CHECK (counter_type IN ('online', 'peak_online', 'members', 'channels', 'roles', 'role_count')),
+                role_id TEXT,
+                last_count INTEGER DEFAULT 0,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(channel_id)
+            )
+        ''')
+        
         # Initialize event status if not exists
         cursor.execute('INSERT OR IGNORE INTO event_status (id, is_active) VALUES (1, FALSE)')
         
@@ -284,6 +298,7 @@ class DatabaseManager:
 intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True
+# Note: presences intent required for accurate online counting, must be enabled in Discord Developer Portal
 
 bot = commands.Bot(command_prefix='!', intents=intents)
 db = DatabaseManager()
@@ -2079,6 +2094,132 @@ async def log_cleanup_task():
     except Exception as e:
         logger.error(f"🚨 LOG-CLEANUP ERROR: {e}")
 
+# Stats Channels Update Task
+@tasks.loop(minutes=30)
+async def stats_updater():
+    """Update all stats channels with current server statistics"""
+    try:
+        logger.info("📊 STATS-UPDATE: Starting stats channels update...")
+        
+        conn = db.get_connection()
+        cursor = conn.cursor()
+        
+        # Get all stats channels
+        cursor.execute('SELECT guild_id, channel_id, counter_type, role_id, last_count FROM stats_channels')
+        stats_channels = cursor.fetchall()
+        
+        if not stats_channels:
+            logger.info("📊 STATS-UPDATE: No stats channels configured")
+            conn.close()
+            return
+        
+        # Group by guild to avoid repeated API calls
+        guilds_data = {}
+        
+        for guild_id, channel_id, counter_type, role_id, last_count in stats_channels:
+            try:
+                guild = bot.get_guild(int(guild_id))
+                if not guild:
+                    logger.warning(f"📊 Guild {guild_id} not found for channel {channel_id}")
+                    continue
+                
+                # Collect guild data if not already done
+                if guild_id not in guilds_data:
+                    # Count active members (those in voice channels as alternative to presences intent)
+                    voice_members = set()
+                    for voice_channel in guild.voice_channels:
+                        voice_members.update(voice_channel.members)
+                    
+                    guilds_data[guild_id] = {
+                        'guild': guild,
+                        'online_count': len(voice_members),  # Alternative: voice channel members
+                        'member_count': guild.member_count,
+                        'channel_count': len(guild.channels),
+                        'role_count': len(guild.roles) - 1,  # Exclude @everyone
+                        'peak_online': 0  # This would need to be tracked separately
+                    }
+                
+                guild_data = guilds_data[guild_id]
+                current_count = 0
+                
+                # Calculate current count based on counter type
+                if counter_type == 'online':
+                    current_count = guild_data['online_count']
+                elif counter_type == 'members':
+                    current_count = guild_data['member_count']
+                elif counter_type == 'channels':
+                    current_count = guild_data['channel_count']
+                elif counter_type == 'roles':
+                    current_count = guild_data['role_count']
+                elif counter_type == 'peak_online':
+                    # For peak online, keep the higher value
+                    current_count = max(last_count, guild_data['online_count'])
+                elif counter_type == 'role_count' and role_id:
+                    # Count members with specific role
+                    role = guild.get_role(int(role_id))
+                    if role:
+                        current_count = len(role.members)
+                    else:
+                        logger.warning(f"📊 Role {role_id} not found in guild {guild_id}")
+                        continue
+                
+                # Update channel name if count changed
+                if current_count != last_count:
+                    channel = guild.get_channel(int(channel_id))
+                    if channel and isinstance(channel, discord.VoiceChannel):
+                        # Generate new channel name
+                        if counter_type == 'online':
+                            new_name = f"Online: {current_count}"
+                        elif counter_type == 'peak_online':
+                            new_name = f"Peak Online: {current_count}"
+                        elif counter_type == 'members':
+                            new_name = f"Members: {current_count}"
+                        elif counter_type == 'channels':
+                            new_name = f"Channels: {current_count}"
+                        elif counter_type == 'roles':
+                            new_name = f"Roles: {current_count}"
+                        elif counter_type == 'role_count' and role_id:
+                            role = guild.get_role(int(role_id))
+                            if role:
+                                new_name = f"{role.name}: {current_count}"
+                            else:
+                                continue
+                        
+                        # Update channel name
+                        try:
+                            await channel.edit(name=new_name)
+                            logger.info(f"📊 Updated {guild.name}: {new_name} (was {last_count})")
+                            
+                            # Update database with new count
+                            cursor.execute(
+                                'UPDATE stats_channels SET last_count = ? WHERE channel_id = ?',
+                                (current_count, channel_id)
+                            )
+                            
+                        except discord.Forbidden:
+                            logger.warning(f"📊 No permission to edit channel {channel.name} in {guild.name}")
+                        except discord.HTTPException as e:
+                            logger.warning(f"📊 Failed to edit channel {channel.name}: {e}")
+                    else:
+                        logger.warning(f"📊 Channel {channel_id} not found or not a voice channel")
+                
+            except Exception as channel_error:
+                logger.error(f"📊 Error updating channel {channel_id}: {channel_error}")
+        
+        conn.commit()
+        conn.close()
+        
+        updated_count = sum(1 for guild_data in guilds_data.values())
+        logger.info(f"📊 STATS-UPDATE: Completed - processed {len(stats_channels)} channels across {updated_count} guilds")
+        
+    except Exception as e:
+        logger.error(f"📊 STATS-UPDATE ERROR: {e}")
+        if 'conn' in locals():
+            try:
+                conn.close()
+            except:
+                pass
+
 # TikTok Task Recovery
 @tasks.loop(minutes=30)
 async def tiktok_recovery_task():
@@ -2231,6 +2372,10 @@ async def on_ready():
     log_cleanup_task.start()
     logger.info("🗑️ Log cleanup task started - cleaning logs every 6 hours (keep 10 newest)")
     
+    # Start stats updater task
+    stats_updater.start()
+    logger.info("📊 Stats updater started - updating stats channels every 30 minutes")
+    
     # Start TikTok recovery task
     tiktok_recovery_task.start()
     logger.info("🔧 TikTok recovery task started - checking TikTok connectivity every 30 minutes")
@@ -2243,7 +2388,7 @@ async def on_ready():
     commands.DatabaseManager = DatabaseManager
     event_commands.DatabaseManager = DatabaseManager
     
-    from commands import CreatorManagement, UserCommands
+    from commands import CreatorManagement, UserCommands, ServerManagement
     from event_commands import EventCommands, UtilityCommands
     
     # Add cogs with debug logging
@@ -2251,6 +2396,8 @@ async def on_ready():
     await bot.add_cog(CreatorManagement(bot, db))
     logger.info("Adding UserCommands cog...")
     await bot.add_cog(UserCommands(bot, db))
+    logger.info("Adding ServerManagement cog...")
+    await bot.add_cog(ServerManagement(bot, db))
     logger.info("Adding EventCommands cog...")
     await bot.add_cog(EventCommands(bot, db))
     logger.info("Adding UtilityCommands cog...")

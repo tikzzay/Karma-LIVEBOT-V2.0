@@ -1389,3 +1389,300 @@ class CreatorUnsubscribeSelect(discord.ui.Select):
         )
         
         await interaction.response.edit_message(embed=embed, view=None)
+
+
+class ServerManagement(commands.Cog):
+    def __init__(self, bot: commands.Bot, db):
+        self.bot = bot
+        self.db = db
+
+    @app_commands.command(name="setupstatschannel", description="Stats-Channels erstellen für Server-Statistiken")
+    @app_commands.default_permissions(administrator=True)
+    @has_admin_role()
+    async def setup_stats_channels(self, interaction: discord.Interaction):
+        """Setup stats channels command"""
+        # Check how many stats channels already exist
+        conn = self.db.get_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute('SELECT COUNT(*) FROM stats_channels WHERE guild_id = ?', (str(interaction.guild.id),))
+        existing_count = cursor.fetchone()[0]
+        conn.close()
+        
+        if existing_count >= 13:
+            embed = discord.Embed(
+                title="❌ Limit erreicht",
+                description="Maximal 13 Stats-Channels sind erlaubt. Lösche zuerst bestehende Channels.",
+                color=discord.Color.red()
+            )
+            await interaction.response.send_message(embed=embed, ephemeral=True)
+            return
+        
+        # Create setup view
+        view = StatsChannelSetupView(self.db, interaction.guild, existing_count)
+        
+        embed = discord.Embed(
+            title="📊 Stats-Channels Setup",
+            description="Wählen Sie die gewünschten Statistiken aus, die als Voice Channels angezeigt werden sollen:",
+            color=discord.Color.blue()
+        )
+        
+        embed.add_field(
+            name="📋 Verfügbare Basis-Statistiken",
+            value="• Online-Mitglieder\n• Peak Online-Mitglieder\n• Mitglieder insgesamt\n• Kanäle insgesamt\n• Rollen insgesamt",
+            inline=False
+        )
+        
+        embed.add_field(
+            name="🏷️ Rollen-Zähler",
+            value="Optional: Bis zu 8 Rollen für individuelle Zähler auswählen",
+            inline=False
+        )
+        
+        embed.add_field(
+            name="⚠️ Hinweise",
+            value=f"• Bereits verwendet: {existing_count}/16 Slots\n• Channels werden gesperrt (nur Anzeige)\n• Updates alle 30 Minuten",
+            inline=False
+        )
+        
+        await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
+
+
+class StatsChannelSetupView(discord.ui.View):
+    def __init__(self, db, guild, existing_count):
+        super().__init__(timeout=300)
+        self.db = db
+        self.guild = guild
+        self.existing_count = existing_count
+        self.selected_stats = []
+        self.selected_roles = []
+        
+        # Add base stats select
+        self.add_item(BaseStatsSelect())
+        # Add role select
+        self.add_item(RoleSelect(guild))
+        # Add confirm button
+        self.add_item(ConfirmStatsButton(db, guild))
+
+    async def update_message(self, interaction: discord.Interaction):
+        """Update the message with current selections"""
+        total_selected = len(self.selected_stats) + len(self.selected_roles)
+        remaining_slots = 16 - self.existing_count - total_selected
+        
+        embed = discord.Embed(
+            title="📊 Stats-Channels Setup",
+            description="Ihre aktuelle Auswahl:",
+            color=discord.Color.blue()
+        )
+        
+        if self.selected_stats:
+            stats_text = "\n".join(f"• {stat}" for stat in self.selected_stats)
+            embed.add_field(name="📋 Basis-Statistiken", value=stats_text, inline=False)
+        
+        if self.selected_roles:
+            roles_text = "\n".join(f"• {role.name}" for role in self.selected_roles)
+            embed.add_field(name="🏷️ Rollen-Zähler", value=roles_text, inline=False)
+        
+        embed.add_field(
+            name="📊 Zusammenfassung",
+            value=f"Gewählt: {total_selected}\nVerfügbare Slots: {remaining_slots}/16",
+            inline=False
+        )
+        
+        # Enable/disable confirm button based on selection
+        for item in self.children:
+            if isinstance(item, ConfirmStatsButton):
+                item.disabled = total_selected == 0 or remaining_slots < 0
+        
+        await interaction.response.edit_message(embed=embed, view=self)
+
+
+class BaseStatsSelect(discord.ui.Select):
+    def __init__(self):
+        options = [
+            discord.SelectOption(label="Online-Mitglieder", value="online", emoji="🟢"),
+            discord.SelectOption(label="Peak Online-Mitglieder", value="peak_online", emoji="📈"),
+            discord.SelectOption(label="Mitglieder insgesamt", value="members", emoji="👥"),
+            discord.SelectOption(label="Kanäle insgesamt", value="channels", emoji="📝"),
+            discord.SelectOption(label="Rollen insgesamt", value="roles", emoji="👾"),
+        ]
+        super().__init__(placeholder="Basis-Statistiken auswählen...", options=options, max_values=5)
+
+    async def callback(self, interaction: discord.Interaction):
+        # Map values to display names
+        value_to_name = {
+            "online": "Online-Mitglieder",
+            "peak_online": "Peak Online-Mitglieder", 
+            "members": "Mitglieder insgesamt",
+            "channels": "Kanäle insgesamt",
+            "roles": "Rollen insgesamt"
+        }
+        
+        self.view.selected_stats = [value_to_name[val] for val in self.values]
+        await self.view.update_message(interaction)
+
+
+class RoleSelect(discord.ui.Select):
+    def __init__(self, guild):
+        # Get roles (exclude @everyone and bot roles)
+        roles = [role for role in guild.roles if not role.is_bot_managed() and role != guild.default_role]
+        roles = sorted(roles, key=lambda r: r.position, reverse=True)[:20]  # Top 20 roles by position
+        
+        options = [
+            discord.SelectOption(
+                label=role.name[:100],  # Discord limit
+                value=str(role.id),
+                emoji="🎭"
+            )
+            for role in roles
+        ]
+        
+        if not options:
+            options = [discord.SelectOption(label="Keine Rollen verfügbar", value="none", disabled=True)]
+        
+        super().__init__(placeholder="Optional: Rollen für Zähler auswählen...", options=options, max_values=min(8, len(options)))
+
+    async def callback(self, interaction: discord.Interaction):
+        if "none" in self.values:
+            self.view.selected_roles = []
+        else:
+            # Get role objects
+            self.view.selected_roles = [
+                interaction.guild.get_role(int(role_id)) 
+                for role_id in self.values 
+                if interaction.guild.get_role(int(role_id))
+            ]
+        
+        await self.view.update_message(interaction)
+
+
+class ConfirmStatsButton(discord.ui.Button):
+    def __init__(self, db, guild):
+        super().__init__(label="✅ Stats-Channels erstellen", style=discord.ButtonStyle.green)
+        self.db = db
+        self.guild = guild
+
+    async def callback(self, interaction: discord.Interaction):
+        await interaction.response.defer(ephemeral=True)
+        
+        # Map display names back to database values
+        name_to_value = {
+            "Online-Mitglieder": "online",
+            "Peak Online-Mitglieder": "peak_online",
+            "Mitglieder insgesamt": "members", 
+            "Kanäle insgesamt": "channels",
+            "Rollen insgesamt": "roles"
+        }
+        
+        created_channels = []
+        errors = []
+        
+        try:
+            # Create base stats channels
+            for stat_name in self.view.selected_stats:
+                try:
+                    counter_type = name_to_value[stat_name]
+                    channel_name = f"{stat_name}: 0"
+                    
+                    # Create locked voice channel
+                    overwrites = {
+                        self.guild.default_role: discord.PermissionOverwrite(connect=False),
+                        self.guild.me: discord.PermissionOverwrite(view_channel=True, manage_channels=True)
+                    }
+                    
+                    channel = await self.guild.create_voice_channel(
+                        name=channel_name,
+                        overwrites=overwrites,
+                        reason="Stats-Channel Setup"
+                    )
+                    
+                    # Save to database
+                    conn = self.db.get_connection()
+                    cursor = conn.cursor()
+                    cursor.execute('''
+                        INSERT INTO stats_channels (guild_id, channel_id, counter_type, last_count)
+                        VALUES (?, ?, ?, ?)
+                    ''', (str(self.guild.id), str(channel.id), counter_type, 0))
+                    conn.commit()
+                    conn.close()
+                    
+                    created_channels.append(channel.name)
+                    
+                except Exception as e:
+                    logger.error(f"Error creating stats channel for {stat_name}: {e}")
+                    errors.append(f"{stat_name}: {str(e)}")
+            
+            # Create role count channels
+            for role in self.view.selected_roles:
+                try:
+                    channel_name = f"{role.name}: 0"
+                    
+                    # Create locked voice channel
+                    overwrites = {
+                        self.guild.default_role: discord.PermissionOverwrite(connect=False),
+                        self.guild.me: discord.PermissionOverwrite(view_channel=True, manage_channels=True)
+                    }
+                    
+                    channel = await self.guild.create_voice_channel(
+                        name=channel_name,
+                        overwrites=overwrites,
+                        reason="Stats-Channel Setup"
+                    )
+                    
+                    # Save to database
+                    conn = self.db.get_connection()
+                    cursor = conn.cursor()
+                    cursor.execute('''
+                        INSERT INTO stats_channels (guild_id, channel_id, counter_type, role_id, last_count)
+                        VALUES (?, ?, ?, ?, ?)
+                    ''', (str(self.guild.id), str(channel.id), "role_count", str(role.id), 0))
+                    conn.commit()
+                    conn.close()
+                    
+                    created_channels.append(channel.name)
+                    
+                except Exception as e:
+                    logger.error(f"Error creating role stats channel for {role.name}: {e}")
+                    errors.append(f"{role.name}: {str(e)}")
+            
+            # Create result embed
+            if created_channels:
+                embed = discord.Embed(
+                    title="✅ Stats-Channels erstellt",
+                    description=f"Erfolgreich {len(created_channels)} Stats-Channels erstellt:",
+                    color=discord.Color.green()
+                )
+                
+                channels_text = "\n".join(f"• {name}" for name in created_channels)
+                embed.add_field(name="📊 Erstellte Channels", value=channels_text, inline=False)
+                
+                embed.add_field(
+                    name="🔄 Updates",
+                    value="Die Statistiken werden automatisch alle 30 Minuten aktualisiert.",
+                    inline=False
+                )
+                
+                if errors:
+                    errors_text = "\n".join(f"• {error}" for error in errors)
+                    embed.add_field(name="⚠️ Fehler", value=errors_text, inline=False)
+            else:
+                embed = discord.Embed(
+                    title="❌ Fehler beim Erstellen",
+                    description="Es konnten keine Stats-Channels erstellt werden.",
+                    color=discord.Color.red()
+                )
+                
+                if errors:
+                    errors_text = "\n".join(f"• {error}" for error in errors)
+                    embed.add_field(name="🚫 Fehler", value=errors_text, inline=False)
+            
+            await interaction.edit_original_response(embed=embed, view=None)
+            
+        except Exception as e:
+            logger.error(f"Error in stats channel creation: {e}")
+            embed = discord.Embed(
+                title="❌ Unerwarteter Fehler",
+                description=f"Ein unerwarteter Fehler ist aufgetreten: {str(e)}",
+                color=discord.Color.red()
+            )
+            await interaction.edit_original_response(embed=embed, view=None)
