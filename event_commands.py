@@ -1563,145 +1563,223 @@ class ServerInfoView(discord.ui.View):
         await interaction.followup.send(embed=final_status, ephemeral=True)
 
     async def run_custom_message_test(self, interaction: discord.Interaction):
-        """Demo custom message functionality - showing standard vs custom notifications"""
+        """Demo custom message functionality with live previews - showing standard vs custom notifications"""
         try:
-            await interaction.response.edit_message(content="✏️ Teste Custom Message Funktionalität...", embed=None, view=None)
+            await interaction.response.edit_message(content="✏️ Teste Custom Message Funktionalität mit Live-Vorschauen...", embed=None, view=None)
             
             # Get the channel where interaction was sent
             channel = interaction.channel
             
-            # ===== COMPREHENSIVE STANDARD MESSAGES =====
-            complete_demo = discord.Embed(
-                title="✏️ Custom Message Test - Vollständige Übersicht",
-                description="**Standard-Nachrichten vs. Custom Messages:**",
+            # ===== INTRODUCTION EMBED =====
+            intro_embed = discord.Embed(
+                title="✏️ Custom Message Test - Live-Vorschau Demo",
+                description="**Demonstriert Standard vs. Custom Nachrichten mit echten Embeds, Profilbildern und Live-Vorschauen:**",
                 color=discord.Color.blue()
             )
-            
-            # Karma Streamers - alle Plattformen
-            complete_demo.add_field(
-                name="⭐ Karma Twitch (Standard)",
-                value="```🚨 Hey Twitch-Runner! 🚨\nTestUser ist jetzt LIVE auf Twitch: testchannel!\nTaucht ein in die Twitch-Welten, seid aktiv im Chat und verteilt ein bisschen Liebe im Stream! 💜💻```",
+            intro_embed.add_field(
+                name="📋 Was wird getestet:",
+                value="• 6 Standard-Nachrichten (alle Plattformen & Typen)\n• 2 Custom Message Beispiele\n• Live-Stream-Vorschauen\n• Profilbilder\n• Interaktive Buttons",
                 inline=False
             )
             
-            complete_demo.add_field(
-                name="⭐ Karma YouTube (Standard)",
-                value="```⚡ Attention, Net-Runners! ⚡\nTestUser streamt jetzt LIVE auf YouTube: testchannel!\nCheckt die Action, seid Teil des Chats und boostet die Community! 🔴🤖```",
-                inline=False
-            )
-            
-            complete_demo.add_field(
-                name="⭐ Karma TikTok (Standard)",
-                value="```💥 Heads up, TikToker! 💥\nTestUser ist jetzt LIVE auf TikTok: testchannel!\nScrollt nicht vorbei, droppt ein Like und lasst den Stream glühen! 🔵✨```",
-                inline=False
-            )
-            
-            # Regular Streamers - alle Plattformen  
-            complete_demo.add_field(
-                name="👾 Regular Twitch (Standard)",
-                value="```👾 TestUser ist LIVE auf Twitch: testchannel!\nKommt vorbei und schaut kurz rein! 💜```",
-                inline=False
-            )
-            
-            complete_demo.add_field(
-                name="👾 Regular YouTube (Standard)",
-                value="```👾 TestUser streamt jetzt LIVE auf YouTube: testchannel!\nVorbeischauen lohnt sich! 🔴```",
-                inline=False
-            )
-            
-            complete_demo.add_field(
-                name="👾 Regular TikTok (Standard)",
-                value="```👾 TestUser ist LIVE auf TikTok: testchannel!\nLasst ein Like da! 🔵```",
-                inline=False
-            )
-            
-            await channel.send(embed=complete_demo)
-            
+            await channel.send(embed=intro_embed)
             await asyncio.sleep(2)
             
-            # ===== CUSTOM MESSAGE DEMO =====
-            custom_demo = discord.Embed(
-                title="🔄 Custom Message Beispiele",
-                description="**Wie Custom Messages aussehen würden:**",
-                color=discord.Color.orange()
-            )
+            # ===== KARMA STREAMER STANDARD MESSAGES WITH LIVE PREVIEW =====
             
-            custom_demo.add_field(
-                name="✨ Custom Example 1:",
-                value="```🔥 Achtung! TestUser rockt jetzt die Bühne - schaut rein! 🔥```",
-                inline=False
-            )
-            
-            custom_demo.add_field(
-                name="✨ Custom Example 2:",
-                value="```🎮 HYPE! Der beste Gamer ist live - verpasst es nicht! 🚀```",
-                inline=False
-            )
-            
-            custom_demo.add_field(
-                name="💡 Befehle:",
-                value="`/customstreamermessage streamer:@User message:Deine Nachricht`\n"
-                      "`/customstreamermessage streamer:@User message:` *(entfernen)*",
-                inline=False
-            )
-            
-            await channel.send(embed=custom_demo)
-            
-            await asyncio.sleep(2)
-            
-            # ===== SIDE-BY-SIDE COMPARISON =====
-            # Standard notification
-            standard_comparison = discord.Embed(
-                description="🚨 Hey Twitch-Runner! 🚨\nDemoUser ist jetzt LIVE auf Twitch: demochannel!\nTaucht ein in die Twitch-Welten, seid aktiv im Chat und verteilt ein bisschen Liebe im Stream! 💜💻",
-                color=Config.COLORS['twitch']
-            )
-            standard_comparison.add_field(name="👀 Zuschauer", value="1,337", inline=True)
-            standard_comparison.add_field(name="🎮 Spiel", value="Cyberpunk 2077", inline=True)
-            standard_comparison.add_field(name="💖 Follower", value="42,069", inline=True)
-            standard_comparison.set_footer(text="📋 Standard Karma Notification")
-            standard_comparison.timestamp = datetime.now()
-            
-            await channel.send(content="**📋 STANDARD:**", embed=standard_comparison)
-            
+            # 1. Twitch Karma Standard
+            await channel.send("**📋 STANDARD KARMA MESSAGES:**")
             await asyncio.sleep(1)
             
-            # Custom notification
-            custom_comparison = discord.Embed(
-                description="🚀 MEGA STREAM ALERT! 🚀\nDemoUser bringt heute KRASSEN Content - alle reinspringen und mitfeiern! 🎉✨",
+            twitch_karma_std = discord.Embed(
+                description="🚨 Hey Cyber-Runner! 🚨\nTestUser ist jetzt LIVE auf Twitch: testchannel!\nTaucht ein in die Neon-Welten, seid aktiv im Chat und verteilt ein bisschen Liebe im Grid! 💜💻",
                 color=Config.COLORS['twitch']
             )
-            custom_comparison.add_field(name="👀 Zuschauer", value="1,337", inline=True)
-            custom_comparison.add_field(name="🎮 Spiel", value="Cyberpunk 2077", inline=True)
-            custom_comparison.add_field(name="💖 Follower", value="42,069", inline=True)
-            custom_comparison.set_footer(text="✏️ Custom Message Notification")
-            custom_comparison.timestamp = datetime.now()
+            twitch_karma_std.set_thumbnail(url="https://static-cdn.jtvnw.net/user-default-pictures-uv/de130ab0-def7-11e9-b668-784f43822e80-profile_image-300x300.png")
+            twitch_karma_std.set_image(url="https://static-cdn.jtvnw.net/previews-ttv/live_user_testchannel-1920x1080.jpg")
+            twitch_karma_std.add_field(name="👀 Zuschauer", value="1,234", inline=True)
+            twitch_karma_std.add_field(name="🎮 Spiel", value="Cyberpunk 2077", inline=True)
+            twitch_karma_std.add_field(name="💖 Follower", value="15,678", inline=True)
+            twitch_karma_std.add_field(name="🔥 Daily Streak", value="5 Tage", inline=True)
+            twitch_karma_std.set_footer(text="🟣 Twitch • Karma Streamer • Standard Message")
+            twitch_karma_std.timestamp = datetime.now()
             
-            await channel.send(content="**✏️ CUSTOM:**", embed=custom_comparison)
+            await channel.send(embed=twitch_karma_std)
+            await asyncio.sleep(2)
+            
+            # 2. YouTube Karma Standard
+            youtube_karma_std = discord.Embed(
+                description="⚡ Attention, Net-Runners! ⚡\nTestUser streamt jetzt LIVE auf YouTube: testchannel!\nCheckt die Action, seid Teil des Chats und boostet die Community! 🔴🤖",
+                color=Config.COLORS['youtube']
+            )
+            youtube_karma_std.set_thumbnail(url="https://yt3.ggpht.com/a/default-user=s300-c-k-c0x00ffffff-no-rj")
+            youtube_karma_std.set_image(url="https://i.ytimg.com/vi/dQw4w9WgXcQ/maxresdefault_live.jpg")
+            youtube_karma_std.add_field(name="👀 Zuschauer", value="856", inline=True)
+            youtube_karma_std.add_field(name="🎮 Kategorie", value="Gaming", inline=True)
+            youtube_karma_std.add_field(name="❤️ Subscriber", value="23,456", inline=True)
+            youtube_karma_std.add_field(name="🔥 Daily Streak", value="5 Tage", inline=True)
+            youtube_karma_std.set_footer(text="🔴 YouTube • Karma Streamer • Standard Message")
+            youtube_karma_std.timestamp = datetime.now()
+            
+            await channel.send(embed=youtube_karma_std)
+            await asyncio.sleep(2)
+            
+            # 3. TikTok Karma Standard
+            tiktok_karma_std = discord.Embed(
+                description="💥 Heads up, TikToker! 💥\nTestUser ist jetzt LIVE auf TikTok: testchannel!\nScrollt nicht vorbei, droppt ein Like und lasst den Stream glühen! 🔵✨",
+                color=Config.COLORS['tiktok']
+            )
+            tiktok_karma_std.set_thumbnail(url="https://p16-sign-va.tiktokcdn.com/tos-maliva-avt-0068/default_avatar.jpeg")
+            tiktok_karma_std.set_image(url="https://p16-webcast.tiktokcdn.com/img/webcast/default_live_cover.jpg")
+            tiktok_karma_std.add_field(name="👀 Zuschauer", value="342", inline=True)
+            tiktok_karma_std.add_field(name="💎 Kategorie", value="Gaming", inline=True)
+            tiktok_karma_std.add_field(name="💖 Follower", value="8,912", inline=True)
+            tiktok_karma_std.add_field(name="🔥 Daily Streak", value="5 Tage", inline=True)
+            tiktok_karma_std.set_footer(text="🔵 TikTok • Karma Streamer • Standard Message")
+            tiktok_karma_std.timestamp = datetime.now()
+            
+            await channel.send(embed=tiktok_karma_std)
+            await asyncio.sleep(3)
+            
+            # ===== REGULAR STREAMER STANDARD MESSAGES WITH LIVE PREVIEW =====
+            await channel.send("**👾 STANDARD REGULAR MESSAGES:**")
+            await asyncio.sleep(1)
+            
+            # 4. Twitch Regular Standard
+            twitch_regular_std = discord.Embed(
+                description="👾 TestUser ist LIVE auf Twitch: testchannel!\nKommt vorbei und schaut kurz rein! 💜",
+                color=Config.COLORS['twitch']
+            )
+            twitch_regular_std.set_image(url="https://static-cdn.jtvnw.net/previews-ttv/live_user_testchannel-1920x1080.jpg")
+            twitch_regular_std.add_field(name="👀 Zuschauer", value="789", inline=True)
+            twitch_regular_std.add_field(name="🎮 Spiel", value="Valorant", inline=True)
+            twitch_regular_std.add_field(name="💖 Follower", value="3,421", inline=True)
+            twitch_regular_std.set_footer(text="🟣 Twitch • Regular Streamer • Standard Message")
+            twitch_regular_std.timestamp = datetime.now()
+            
+            await channel.send(embed=twitch_regular_std)
+            await asyncio.sleep(2)
+            
+            # 5. YouTube Regular Standard
+            youtube_regular_std = discord.Embed(
+                description="👾 TestUser streamt jetzt LIVE auf YouTube: testchannel!\nVorbeischauen lohnt sich! 🔴",
+                color=Config.COLORS['youtube']
+            )
+            youtube_regular_std.set_image(url="https://i.ytimg.com/vi/dQw4w9WgXcQ/maxresdefault_live.jpg")
+            youtube_regular_std.add_field(name="👀 Zuschauer", value="234", inline=True)
+            youtube_regular_std.add_field(name="🎮 Kategorie", value="Just Chatting", inline=True)
+            youtube_regular_std.add_field(name="❤️ Subscriber", value="1,567", inline=True)
+            youtube_regular_std.set_footer(text="🔴 YouTube • Regular Streamer • Standard Message")
+            youtube_regular_std.timestamp = datetime.now()
+            
+            await channel.send(embed=youtube_regular_std)
+            await asyncio.sleep(2)
+            
+            # 6. TikTok Regular Standard
+            tiktok_regular_std = discord.Embed(
+                description="👾 TestUser ist LIVE auf TikTok: testchannel!\nLasst ein Like da! 🔵",
+                color=Config.COLORS['tiktok']
+            )
+            tiktok_regular_std.set_image(url="https://p16-webcast.tiktokcdn.com/img/webcast/default_live_cover.jpg")
+            tiktok_regular_std.add_field(name="👀 Zuschauer", value="145", inline=True)
+            tiktok_regular_std.add_field(name="💎 Kategorie", value="Gaming", inline=True)
+            tiktok_regular_std.add_field(name="💖 Follower", value="892", inline=True)
+            tiktok_regular_std.set_footer(text="🔵 TikTok • Regular Streamer • Standard Message")
+            tiktok_regular_std.timestamp = datetime.now()
+            
+            await channel.send(embed=tiktok_regular_std)
+            await asyncio.sleep(3)
+            
+            # ===== CUSTOM MESSAGE EXAMPLES WITH LIVE PREVIEW =====
+            await channel.send("**✏️ CUSTOM MESSAGE BEISPIELE:**")
+            await asyncio.sleep(1)
+            
+            # Custom Example 1 - Twitch with custom message
+            custom_example1 = discord.Embed(
+                description="🔥 Achtung! TestUser rockt jetzt die Bühne - schaut rein! 🔥",
+                color=Config.COLORS['twitch']
+            )
+            custom_example1.set_thumbnail(url="https://static-cdn.jtvnw.net/user-default-pictures-uv/de130ab0-def7-11e9-b668-784f43822e80-profile_image-300x300.png")
+            custom_example1.set_image(url="https://static-cdn.jtvnw.net/previews-ttv/live_user_testchannel-1920x1080.jpg")
+            custom_example1.add_field(name="👀 Zuschauer", value="1,234", inline=True)
+            custom_example1.add_field(name="🎮 Spiel", value="Cyberpunk 2077", inline=True)
+            custom_example1.add_field(name="💖 Follower", value="15,678", inline=True)
+            custom_example1.add_field(name="🔥 Daily Streak", value="5 Tage", inline=True)
+            custom_example1.set_footer(text="🟣 Twitch • Karma Streamer • Custom Message #1")
+            custom_example1.timestamp = datetime.now()
+            
+            await channel.send(embed=custom_example1)
+            await asyncio.sleep(2)
+            
+            # Custom Example 2 - YouTube with custom message
+            custom_example2 = discord.Embed(
+                description="🎮 HYPE! Der beste Gamer ist live - verpasst es nicht! 🚀",
+                color=Config.COLORS['youtube']
+            )
+            custom_example2.set_thumbnail(url="https://yt3.ggpht.com/a/default-user=s300-c-k-c0x00ffffff-no-rj")
+            custom_example2.set_image(url="https://i.ytimg.com/vi/dQw4w9WgXcQ/maxresdefault_live.jpg")
+            custom_example2.add_field(name="👀 Zuschauer", value="856", inline=True)
+            custom_example2.add_field(name="🎮 Kategorie", value="Gaming", inline=True)
+            custom_example2.add_field(name="❤️ Subscriber", value="23,456", inline=True)
+            custom_example2.add_field(name="🔥 Daily Streak", value="5 Tage", inline=True)
+            custom_example2.set_footer(text="🔴 YouTube • Karma Streamer • Custom Message #2")
+            custom_example2.timestamp = datetime.now()
+            
+            await channel.send(embed=custom_example2)
+            await asyncio.sleep(3)
+            
+            # ===== COMMAND INFORMATION =====
+            info_embed = discord.Embed(
+                title="💡 Custom Message Befehle",
+                description="So verwendest du Custom Messages:",
+                color=discord.Color.orange()
+            )
+            info_embed.add_field(
+                name="📝 Befehl:",
+                value="`/customstreamermessage` *(interaktive Auswahl)*\nWähle Streamer aus Dropdown-Liste und setze/entferne Custom Message",
+                inline=False
+            )
+            info_embed.add_field(
+                name="📋 Features:",
+                value="• Max. 1000 Zeichen pro Custom Message\n• Leer lassen um Custom Message zu entfernen\n• Funktioniert für alle Streamer-Typen\n• Behält alle visuellen Elemente (Profilbild, Live-Vorschau, etc.)",
+                inline=False
+            )
+            
+            await channel.send(embed=info_embed)
+            await asyncio.sleep(2)
             
             # ===== FINAL STATUS (EPHEMERAL) =====
             final_status = discord.Embed(
-                title="✅ Custom Message Test Abgeschlossen",
+                title="✅ Custom Message Test mit Live-Vorschauen Abgeschlossen",
                 description="**Test erfolgreich durchgeführt!**\n\n"
                            "📊 **Demonstriert:**\n"
-                           "• 6 Standard-Nachrichten (2 Typen × 3 Plattformen)\n"
-                           "• 2 Custom Message Beispiele\n"
-                           "• 1 Seite-an-Seite Vergleich\n"
-                           "• Vollständige Verwendungsanleitung\n\n"
+                           "• 6 Standard-Nachrichten mit Live-Vorschauen & Profilbildern\n"
+                           "• 2 Custom Message Beispiele mit allen visuellen Elementen\n"
+                           "• Vollständige Discord Embed-Darstellung\n"
+                           "• Unterschiede zwischen Karma & Regular Streamern\n"
+                           "• Interaktive Befehlsverwendung\n\n"
                            "💡 **Nächste Schritte:**\n"
-                           "• `/customstreamermessage` für individuelle Nachrichten verwenden\n"
+                           "• `/customstreamermessage` für individuelle Nachrichten verwenden (interaktive Auswahl)\n"
                            "• Standard-Messages bleiben wenn keine Custom Message gesetzt\n"
-                           "• Max. 1000 Zeichen pro Custom Message",
+                           "• Max. 1000 Zeichen pro Custom Message\n"
+                           "• Alle visuellen Elemente bleiben erhalten (Profilbild, Live-Vorschau, etc.)",
                 color=discord.Color.green()
             )
             
             final_status.add_field(
                 name="🔧 Quick Commands:",
-                value="`/customstreamermessage` - Custom Message setzen/entfernen\n"
+                value="`/customstreamermessage` - Custom Message setzen/entfernen (interaktiv)\n"
                       "`/serverinfo` - Weitere Tests verfügbar",
                 inline=False
             )
             
-            final_status.set_footer(text="✏️ Custom Message Feature • Vollständig getestet und einsatzbereit")
+            final_status.add_field(
+                name="🎯 Neue Features:",
+                value="✅ Live-Stream-Vorschauen\n✅ Profilbilder für alle Plattformen\n✅ Echte Discord Embed-Darstellung\n✅ Vollständige visuelle Demonstration",
+                inline=False
+            )
+            
+            final_status.set_footer(text="✏️ Custom Message Feature mit Live-Vorschauen • Vollständig getestet und einsatzbereit")
             final_status.timestamp = datetime.now()
             
             await interaction.followup.send(embed=final_status, ephemeral=True)
