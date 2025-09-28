@@ -13,6 +13,7 @@ import time
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Tuple
 import random
+import difflib
 
 import discord
 from discord.ext import commands, tasks
@@ -328,13 +329,24 @@ class InstantGamingAPI:
         self.cache.clear()
         logger.info("Instant Gaming cache cleared")
     
+    def normalize_game_name(self, game: str) -> str:
+        """Normalize game name for better matching on Instant Gaming"""
+        game = game.lower()
+        # Remove edition keywords that can interfere with search
+        for bad in ["edition", "deluxe", "ultimate", "season", "beta", "early access", "definitive", "complete", "goty", "remastered"]:
+            game = game.replace(bad, "")
+        # Clean up punctuation and extra spaces
+        game = game.replace(":", "").replace("-", " ").replace("_", " ")
+        return " ".join(game.split())  # Remove extra whitespace
+
     async def search_game(self, game_name: str) -> Optional[Dict]:
-        """Search for a game on Instant Gaming and return the first result with affiliate link"""
+        """Search for a game on Instant Gaming with smart matching and return direct product link"""
         if not game_name or not game_name.strip():
             return None
         
-        # Normalize game name for cache key
-        cache_key = f"instant_gaming_{game_name.lower().strip()}"
+        # Normalize game name for better search results
+        normalized_game = self.normalize_game_name(game_name)
+        cache_key = f"instant_gaming_{normalized_game}"
         current_time = time.time()
         
         # Check cache first
@@ -345,19 +357,20 @@ class InstantGamingAPI:
                 return cached_data['data']
         
         try:
-            # Prepare search URL - FIX: Use 'q' parameter instead of 'query'
-            search_url = f"{self.search_base_url}?q={game_name.replace(' ', '+')}"
-            affiliate_url = f"{search_url}&igr={self.affiliate_tag}"
+            # Use German URL with normalized game name
+            search_url = f"https://www.instant-gaming.com/de/suche/?q={normalized_game.replace(' ', '+')}"
             
-            logger.info(f"Searching Instant Gaming for: {game_name}")
+            logger.info(f"Searching Instant Gaming for: {game_name} (normalized: {normalized_game})")
             logger.info(f"Using URL: {search_url}")
             
-            # Perform web scraping to check if game exists
+            # Headers to appear like a real browser
             headers = {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
                 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-                'Accept-Language': 'en-US,en;q=0.9,de;q=0.8',
+                'Accept-Language': 'de-DE,de;q=0.9,en;q=0.8',
+                'Accept-Encoding': 'gzip, deflate, br',
                 'Connection': 'keep-alive',
+                'Upgrade-Insecure-Requests': '1',
                 'Cache-Control': 'no-cache',
                 'Pragma': 'no-cache'
             }
@@ -369,53 +382,82 @@ class InstantGamingAPI:
                     if response.status == 200:
                         html = await response.text()
                         
-                        # Debug: Log part of the HTML to see what we're getting
-                        logger.info(f"Response length: {len(html)} characters")
+                        # Parse HTML with BeautifulSoup
+                        from bs4 import BeautifulSoup
+                        soup = BeautifulSoup(html, 'html.parser')
                         
-                        # More comprehensive check for game results
-                        game_indicators = [
-                            'data-product-id' in html,
-                            'product-card' in html,
-                            'game-card' in html,
-                            'search-result' in html,
-                            'item-cover' in html,
-                            'productCard' in html,
-                            'game-item' in html,
-                            'product-item' in html,
-                            'data-gtm-product-name' in html,
-                            'class="price"' in html,
-                            'class="title"' in html and 'class="cover"' in html
-                        ]
+                        # Find all products with their titles and links
+                        products = []
                         
-                        found_indicators = [i for i, indicator in enumerate(game_indicators) if indicator]
-                        logger.info(f"Found indicators: {found_indicators} out of {len(game_indicators)}")
+                        # Try multiple selectors to find product links
+                        link_elements = soup.find_all("a", class_="cover") or soup.select('a[href*="/de/"]')
                         
-                        game_found = any(game_indicators)
+                        for element in link_elements:
+                            href = element.get('href', '')
+                            if href and '/de/' in href:
+                                # Get product title from img alt or nearby text
+                                title = ""
+                                img = element.find('img')
+                                if img and img.get('alt'):
+                                    title = img.get('alt').strip()
+                                
+                                if title and href:
+                                    # Convert relative URLs to absolute
+                                    if href.startswith('/'):
+                                        href = f"https://www.instant-gaming.com{href}"
+                                    products.append({'title': title, 'url': href})
                         
-                        if game_found:
-                            result = {
-                                'found': True,
-                                'game_name': game_name,
-                                'search_url': search_url,
-                                'affiliate_url': affiliate_url
-                            }
+                        logger.info(f"Found {len(products)} products for {normalized_game}")
+                        
+                        if products:
+                            # Use difflib to find the best match
+                            import difflib
+                            product_titles = [p['title'] for p in products]
                             
-                            # Cache the result
-                            self.cache[cache_key] = {
-                                'data': result,
-                                'timestamp': current_time
-                            }
+                            # Try to find close matches
+                            best_matches = difflib.get_close_matches(game_name, product_titles, n=1, cutoff=0.4)
+                            if not best_matches:
+                                # If no close match with original name, try with normalized name
+                                best_matches = difflib.get_close_matches(normalized_game, product_titles, n=1, cutoff=0.3)
                             
-                            logger.info(f"✅ Found game '{game_name}' on Instant Gaming")
-                            return result
+                            if best_matches:
+                                # Find the product with the best matching title
+                                best_title = best_matches[0]
+                                best_product = next(p for p in products if p['title'] == best_title)
+                                product_url = best_product['url']
+                                
+                                # Add affiliate tag to direct product link
+                                separator = '&' if '?' in product_url else '?'
+                                affiliate_url = f"{product_url}{separator}igr={self.affiliate_tag}"
+                                
+                                result = {
+                                    'found': True,
+                                    'game_name': best_title,
+                                    'product_url': product_url,
+                                    'affiliate_url': affiliate_url,
+                                    'search_url': search_url,
+                                    'match_confidence': difflib.SequenceMatcher(None, game_name.lower(), best_title.lower()).ratio()
+                                }
+                                
+                                # Cache the result
+                                self.cache[cache_key] = {
+                                    'data': result,
+                                    'timestamp': current_time
+                                }
+                                
+                                logger.info(f"✅ Found matching product for '{game_name}': {best_title} (confidence: {result['match_confidence']:.2f})")
+                                return result
+                            else:
+                                logger.info(f"❌ No good matches found for '{game_name}' on Instant Gaming")
                         else:
-                            logger.info(f"❌ Game '{game_name}' not found on Instant Gaming")
-                            # Cache negative result to avoid repeated searches
-                            self.cache[cache_key] = {
-                                'data': None,
-                                'timestamp': current_time
-                            }
-                            return None
+                            logger.info(f"❌ No products found for '{game_name}' on Instant Gaming")
+                        
+                        # Cache negative result
+                        self.cache[cache_key] = {
+                            'data': None,
+                            'timestamp': current_time
+                        }
+                        return None
                     else:
                         logger.warning(f"Instant Gaming search failed with status {response.status} for {game_name}")
                         return None
@@ -1313,9 +1355,9 @@ class TikTokLiveChecker:
                 elif indicator_count >= 1:
                     detection_score += 1
                     
-                if live_mentions > 500:  # Many live mentions suggests full page
+                if live_mentions > 1000:  # Many live mentions suggests full page (higher threshold)
                     detection_score += 2
-                elif live_mentions > 100:
+                elif live_mentions > 500:
                     detection_score += 1
                     
                 if url_has_live:
@@ -1324,7 +1366,7 @@ class TikTokLiveChecker:
                 if html_size > 50000:  # Large page suggests not blocked
                     detection_score += 1
                 
-                is_likely_live = detection_score >= 4
+                is_likely_live = detection_score >= 6  # Raised threshold to reduce false positives
                 
                 logger.info(f"TikTok {username}: Detection score: {detection_score}/8, Live: {is_likely_live}")
                 

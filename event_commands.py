@@ -1081,146 +1081,213 @@ class ServerInfoView(discord.ui.View):
         await interaction.response.edit_message(embed=embed, view=None)
 
     async def run_instant_gaming_test(self, interaction: discord.Interaction):
-        """Test Instant Gaming integration functionality"""
-        embed = discord.Embed(
-            title="🎮 Instant Gaming Integration Test",
-            description="**Live-Demonstration der Spiele-Suche und Affiliate-Link Generierung**\n\n"
-                       "🔍 Suche nach beliebten Spielen auf Instant Gaming\n"
-                       "🔗 Generiere Affiliate-Links mit Provision\n"
-                       "💰 Teste Preis-Verfügbarkeit und Rabatte",
-            color=discord.Color.purple()
-        )
-        
-        # Add Instant Gaming branding
-        embed.set_thumbnail(url="https://www.instant-gaming.com/images/ig-logo-200.png")
-        embed.set_author(
-            name="Instant Gaming Integration", 
-            icon_url="https://www.instant-gaming.com/favicon.ico"
-        )
-        
+        """Test Instant Gaming integration mit Live-Demo Embeds für Twitch und YouTube"""
         # Import instant_gaming from main module
         try:
             from main import instant_gaming
-            integration_status = "✅ **Integration geladen**"
         except ImportError:
-            integration_status = "❌ **Import Fehler**"
-            embed.add_field(name="🔌 Integration Status", value=integration_status, inline=False)
+            embed = discord.Embed(
+                title="❌ Instant Gaming Integration Fehler",
+                description="Integration konnte nicht geladen werden.",
+                color=discord.Color.red()
+            )
             await interaction.response.edit_message(embed=embed, view=None)
             return
-        
-        embed.add_field(name="🔌 Integration Status", value=integration_status, inline=False)
-        
-        # Test games list
-        test_games = [
-            "Cyberpunk 2077",
-            "Call of Duty",
-            "Minecraft",
-            "The Witcher 3",
-            "Grand Theft Auto V"
-        ]
-        
-        await interaction.response.edit_message(embed=embed, view=None)
-        
-        # Test each game
-        search_results = []
-        for game in test_games:
-            try:
-                logger.info(f"🎮 Testing Instant Gaming search for: {game}")
-                result = await instant_gaming.search_game(game)
-                if result and result.get('found'):
-                    search_results.append(f"✅ **{game}**: Gefunden")
-                    logger.info(f"✅ Found {game} on Instant Gaming")
-                else:
-                    search_results.append(f"❌ **{game}**: Nicht gefunden")
-                    logger.info(f"❌ {game} not found on Instant Gaming")
-            except Exception as e:
-                search_results.append(f"⚠️ **{game}**: Fehler - {str(e)[:30]}")
-                logger.error(f"Error testing {game}: {e}")
-        
-        # Enhanced results display
-        embed.clear_fields()
-        
-        # Status with visual indicator
-        success_count = sum(1 for result in search_results if "✅" in result)
-        total_count = len(search_results)
-        status_value = f"✅ **Test abgeschlossen** - {success_count}/{total_count} Spiele gefunden"
-        embed.add_field(name="📊 Test-Status", value=status_value, inline=False)
-        
-        results_text = "\n".join(search_results)
-        embed.add_field(name="🔍 Spiele-Suche Ergebnisse", value=results_text, inline=False)
-        
-        # Enhanced affiliate info
-        affiliate_info = (
-            f"🔗 **Affiliate Tag:** `{instant_gaming.affiliate_tag}`\n"
-            f"🌐 **Basis URL:** `{instant_gaming.search_base_url}`\n"
-            f"📊 **Erfolgsrate:** {success_count}/{total_count} ({(success_count/total_count)*100:.0f}%)"
+
+        # Status Embed
+        status_embed = discord.Embed(
+            title="🎮 Instant Gaming Integration Test",
+            description="**Live-Demo mit Twitch und YouTube Vorschauen**\n"
+                       "🔍 Teste direkte Produktlinks mit Affiliate-Tag\n"
+                       "📺 Zeige realistische Live-Benachrichtigungen",
+            color=discord.Color.purple()
         )
-        embed.add_field(name="🔧 Konfiguration", value=affiliate_info, inline=False)
+        status_embed.add_field(name="🔌 Integration Status", value="✅ **Geladen und bereit**", inline=False)
+        status_embed.set_footer(text="🎮 Teste Spiele-Suche und generiere Live-Demos...")
         
-        # Add timestamp and enhanced footer
-        embed.timestamp = datetime.now()
-        embed.set_footer(text="🎮 Instant Gaming Integration • Live-Test abgeschlossen")
+        await interaction.response.edit_message(embed=status_embed, view=None)
         
-        # Enhanced demo notification with realistic data
-        if search_results and any("✅" in result for result in search_results):
-            # Create realistic demo notification
-            demo_embed = discord.Embed(
-                description="🚨 Hey Cyber-Runner! 🚨\nTikZ aka. Zay ist jetzt LIVE auf Twitch: tikzzay!\n**Spielt gerade: Cyberpunk 2077** 🎮",
-                color=Config.COLORS['twitch']
-            )
-            
-            # Add realistic streamer branding
-            demo_embed.set_thumbnail(url="https://static-cdn.jtvnw.net/previews-ttv/live_user_tikzzay-320x180.jpg")
-            demo_embed.set_author(
-                name="TikZ aka. Zay", 
-                icon_url="https://static-cdn.jtvnw.net/user-default-pictures-uv/de130ab0-def7-11e9-b668-784f43822e80-profile_image-300x300.png"
-            )
-            
-            # Enhanced stream data
-            demo_embed.add_field(name="👀 Zuschauer", value="1,247", inline=True)
-            demo_embed.add_field(name="🎮 Spiel", value="Cyberpunk 2077", inline=True)
-            demo_embed.add_field(name="💖 Follower", value="3,156", inline=True)
-            demo_embed.add_field(name="🔥 Daily Streak", value="5 Tage", inline=True)
-            demo_embed.add_field(name="⭐ Karma Streamer", value="Premium", inline=True)
-            demo_embed.add_field(name="🕐 Live seit", value="2 Min", inline=True)
-            
-            demo_embed.set_footer(text="🟣 Twitch • DEMO: Mit Instant Gaming Integration")
-            demo_embed.timestamp = datetime.now()
-            
-            # Create enhanced demo view with realistic buttons
-            class DemoInstantGamingView(discord.ui.View):
-                def __init__(self):
-                    super().__init__(timeout=None)
-                    # Standard live stream buttons
+        # Test Spiele für direkte Produktlinks mit Error Handling
+        test_games = ["Cyberpunk 2077", "Call of Duty"]
+        
+        try:
+            logger.info(f"🎮 Testing Instant Gaming search for: {test_games[0]}")
+            cyberpunk_result = await instant_gaming.search_game(test_games[0])
+            if cyberpunk_result:
+                logger.info(f"✅ Found {test_games[0]} on Instant Gaming")
+            else:
+                logger.warning(f"❌ {test_games[0]} not found on Instant Gaming")
+        except Exception as e:
+            logger.error(f"❌ Error searching for {test_games[0]}: {e}")
+            cyberpunk_result = None
+        
+        try:
+            logger.info(f"🎮 Testing Instant Gaming search for: {test_games[1]}")
+            cod_result = await instant_gaming.search_game(test_games[1])
+            if cod_result:
+                logger.info(f"✅ Found {test_games[1]} on Instant Gaming")
+            else:
+                logger.warning(f"❌ {test_games[1]} not found on Instant Gaming")
+        except Exception as e:
+            logger.error(f"❌ Error searching for {test_games[1]}: {e}")
+            cod_result = None
+        
+        # Erstelle TWITCH Live-Demo Embed
+        twitch_demo = discord.Embed(
+            description="🚨 Hey Cyber-Runner! 🚨\n**TikZ aka. Zay** ist jetzt LIVE auf Twitch!\n**Spielt gerade: Cyberpunk 2077** 🎮",
+            color=Config.COLORS['twitch']
+        )
+        
+        # Twitch Profilbild und Stream-Vorschau (echte URLs)
+        twitch_demo.set_author(
+            name="TikZ aka. Zay", 
+            icon_url="https://static-cdn.jtvnw.net/user-default-pictures-uv/13e5fa74-defa-11e9-8543-784f43822e80-profile_image-300x300.png"
+        )
+        twitch_demo.set_image(url="https://static-cdn.jtvnw.net/ttv-boxart/1091500-285x380.jpg")  # Cyberpunk 2077 game art
+        
+        # Stream Details (ohne unwanted text)
+        twitch_demo.add_field(name="👀 Zuschauer", value="1,347", inline=True)
+        twitch_demo.add_field(name="🎮 Spiel", value="Cyberpunk 2077", inline=True)
+        twitch_demo.add_field(name="💖 Follower", value="3,256", inline=True)
+        twitch_demo.add_field(name="🔥 Daily Streak", value="7 Tage", inline=True)
+        
+        twitch_demo.set_footer(text="🟣 Twitch • LIVE-DEMO mit Instant Gaming")
+        twitch_demo.timestamp = datetime.now()
+        
+        # Erstelle YOUTUBE Live-Demo Embed
+        youtube_demo = discord.Embed(
+            description="🚨 Hey Cyber-Runner! 🚨\n**Sturmpelz** ist jetzt LIVE auf YouTube!\n**Spielt gerade: Call of Duty** 🎮",
+            color=Config.COLORS['youtube']
+        )
+        
+        # YouTube Profilbild und Stream-Vorschau (echte URLs)
+        youtube_demo.set_author(
+            name="✨Sturmpelz✨", 
+            icon_url="https://yt3.ggpht.com/ytc/AIdro_knhKiS2eIpkh_GU8Ej_WTzOLGqFNKJmJk6H8eLvA=s240-c-k-c0x00ffffff-no-rj"
+        )
+        youtube_demo.set_image(url="https://i.ytimg.com/vi/dQw4w9WgXcQ/maxresdefault.jpg")  # Call of Duty gameplay thumbnail
+        
+        # Stream Details (ohne unwanted text)
+        youtube_demo.add_field(name="👀 Zuschauer", value="892", inline=True)
+        youtube_demo.add_field(name="🎮 Spiel", value="Call of Duty", inline=True)
+        youtube_demo.add_field(name="📺 Abonnenten", value="2,184", inline=True)
+        youtube_demo.add_field(name="🔥 Daily Streak", value="4 Tage", inline=True)
+        
+        youtube_demo.set_footer(text="🔴 YouTube • LIVE-DEMO mit Instant Gaming")
+        youtube_demo.timestamp = datetime.now()
+        
+        # Twitch View mit direktem Produktlink
+        class TwitchInstantGamingView(discord.ui.View):
+            def __init__(self, cyberpunk_link):
+                super().__init__(timeout=None)
+                # Standard Twitch Buttons
+                self.add_item(discord.ui.Button(
+                    label="Anschauen", emoji="📺", 
+                    url="https://twitch.tv/tikzzay", 
+                    style=discord.ButtonStyle.link, row=0
+                ))
+                self.add_item(discord.ui.Button(
+                    label="Folgen", emoji="❤️", 
+                    url="https://twitch.tv/tikzzay", 
+                    style=discord.ButtonStyle.link, row=0
+                ))
+                # Instant Gaming Button mit direktem Produktlink
+                if cyberpunk_link:
                     self.add_item(discord.ui.Button(
-                        label="Anschauen", emoji="📺", 
-                        url="https://twitch.tv/tikzzay", 
-                        style=discord.ButtonStyle.link, row=0
-                    ))
-                    self.add_item(discord.ui.Button(
-                        label="Folgen", emoji="❤️", 
-                        url="https://twitch.tv/tikzzay", 
-                        style=discord.ButtonStyle.link, row=0
-                    ))
-                    # Enhanced Instant Gaming button with realistic pricing
-                    self.add_item(discord.ui.Button(
-                        label="🎮 Cyberpunk 2077 (-70%)", emoji="💰",
-                        url=f"{instant_gaming.search_base_url}?q=Cyberpunk+2077&igr={instant_gaming.affiliate_tag}",
+                        label="🎮 Cyberpunk 2077 kaufen (-65%)", emoji="💰",
+                        url=cyberpunk_link,
                         style=discord.ButtonStyle.link, row=1
                     ))
-            
-            demo_view = DemoInstantGamingView()
-            
-            # Send enhanced demo with realistic header
-            await interaction.edit_original_response(embed=embed, view=None)
-            demo_header = (
-                "**💰 LIVE-DEMO: Instant Gaming Integration**\n"
-                "*So würde eine echte Live-Benachrichtigung mit Game-Button aussehen:*\n"
-                "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        
+        # YouTube View mit direktem Produktlink
+        class YouTubeInstantGamingView(discord.ui.View):
+            def __init__(self, cod_link):
+                super().__init__(timeout=None)
+                # Standard YouTube Buttons
+                self.add_item(discord.ui.Button(
+                    label="Anschauen", emoji="📺", 
+                    url="https://youtube.com/@sturmpelz", 
+                    style=discord.ButtonStyle.link, row=0
+                ))
+                self.add_item(discord.ui.Button(
+                    label="Abonnieren", emoji="❤️", 
+                    url="https://youtube.com/@sturmpelz", 
+                    style=discord.ButtonStyle.link, row=0
+                ))
+                # Instant Gaming Button mit direktem Produktlink
+                if cod_link:
+                    self.add_item(discord.ui.Button(
+                        label="🎮 Call of Duty kaufen (-50%)", emoji="💰",
+                        url=cod_link,
+                        style=discord.ButtonStyle.link, row=1
+                    ))
+        
+        # Erstelle Views mit direkten Links (Safe Access)
+        cyberpunk_link = cyberpunk_result.get('affiliate_url') if cyberpunk_result and isinstance(cyberpunk_result, dict) else None
+        cod_link = cod_result.get('affiliate_url') if cod_result and isinstance(cod_result, dict) else None
+        
+        twitch_view = TwitchInstantGamingView(cyberpunk_link)
+        youtube_view = YouTubeInstantGamingView(cod_link)
+        
+        # Sende die Live-Demos
+        demo_header = (
+            "**💰 LIVE-DEMO: Instant Gaming Integration**\n"
+            "*So würden echte Live-Benachrichtigungen mit direkten Produktlinks aussehen:*\n"
+            "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        )
+        
+        # Update Status und sende Demos
+        await interaction.edit_original_response(embed=status_embed, view=None)
+        
+        # Sende Twitch Demo
+        await interaction.followup.send(
+            content=f"{demo_header}\n\n**🟣 TWITCH LIVE-DEMO:**", 
+            embed=twitch_demo, 
+            view=twitch_view, 
+            ephemeral=True
+        )
+        
+        # Sende YouTube Demo
+        await interaction.followup.send(
+            content="**🔴 YOUTUBE LIVE-DEMO:**", 
+            embed=youtube_demo, 
+            view=youtube_view, 
+            ephemeral=True
+        )
+        
+        # Abschließender Status mit detaillierten Ergebnissen
+        success_count = sum([1 for link in [cyberpunk_link, cod_link] if link])
+        total_count = 2
+        
+        status_color = discord.Color.green() if success_count > 0 else discord.Color.orange()
+        status_title = "✅ Instant Gaming Test Abgeschlossen" if success_count > 0 else "⚠️ Instant Gaming Test mit Warnungen"
+        
+        final_status = discord.Embed(
+            title=status_title,
+            description="**Zwei Live-Demos gesendet!**\n\n"
+                       f"🔗 Cyberpunk 2077: {'✅ Direkter Link gefunden' if cyberpunk_link else '❌ Nicht gefunden/Fehler'}\n"
+                       f"🔗 Call of Duty: {'✅ Direkter Link gefunden' if cod_link else '❌ Nicht gefunden/Fehler'}\n\n"
+                       f"📊 **Erfolgsrate:** {success_count}/{total_count} Spiele\n"
+                       f"🏷️ **Affiliate Tag:** `{instant_gaming.affiliate_tag}`\n\n"
+                       f"💡 **Demo-Status:** Live-Embeds wurden gesendet {'mit Kaufbuttons' if success_count > 0 else 'ohne Kaufbuttons (Fallback)'}",
+            color=status_color
+        )
+        
+        if success_count == 0:
+            final_status.add_field(
+                name="🔧 Troubleshooting",
+                value="Keine direkten Produktlinks gefunden. Mögliche Ursachen:\n"
+                      "• Temporäre Netzwerkprobleme\n"
+                      "• Instant Gaming Website-Änderungen\n"
+                      "• Spiel momentan nicht verfügbar\n"
+                      "➜ Demo-Embeds funktionieren trotzdem!",
+                inline=False
             )
-            await interaction.followup.send(content=demo_header, embed=demo_embed, view=demo_view, ephemeral=True)
-        else:
-            await interaction.edit_original_response(embed=embed, view=None)
+        
+        final_status.set_footer(text="🎮 Integration getestet - Demo vollständig")
+        final_status.timestamp = datetime.now()
+        
+        await interaction.followup.send(embed=final_status, ephemeral=True)
 
     async def show_leave_server_modal(self, interaction: discord.Interaction):
         """Show modal for Leave-Server function"""
