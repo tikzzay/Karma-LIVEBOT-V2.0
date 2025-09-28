@@ -1628,6 +1628,57 @@ class ServerManagement(commands.Cog):
         )
         
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
+    
+    @app_commands.command(name="socialmediastatschannel", description="Social Media Stats-Channels erstellen für Follower-Zahlen")
+    @app_commands.default_permissions(administrator=True)
+    @has_admin_role()
+    async def setup_social_media_stats_channels(self, interaction: discord.Interaction):
+        """Setup social media stats channels command"""
+        # Check how many social media stats channels already exist
+        conn = self.db.get_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute('SELECT COUNT(*) FROM social_media_stats_channels WHERE guild_id = ?', (str(interaction.guild.id),))
+        existing_count = cursor.fetchone()[0]
+        conn.close()
+        
+        if existing_count >= 20:
+            embed = discord.Embed(
+                title="❌ Limit erreicht",
+                description="Maximal 20 Social Media Stats-Channels sind erlaubt. Lösche zuerst bestehende Channels.",
+                color=discord.Color.red()
+            )
+            await interaction.response.send_message(embed=embed, ephemeral=True)
+            return
+        
+        # Create setup view
+        view = SocialMediaStatsSetupView(self.db, interaction.guild, existing_count)
+        
+        embed = discord.Embed(
+            title="📱 Social Media Stats-Channels Setup",
+            description="Erstellen Sie Voice Channels die Social Media Follower-Zahlen anzeigen:",
+            color=discord.Color.purple()
+        )
+        
+        embed.add_field(
+            name="📋 Verfügbare Plattformen",
+            value="• Instagram\n• X (Twitter)\n• YouTube\n• TikTok\n• Twitch",
+            inline=False
+        )
+        
+        embed.add_field(
+            name="⚙️ Funktionen",
+            value="• Username-Validierung (prüft ob User existiert)\n• Updates alle 5 Minuten\n• Format: '[Platform] Follower: [Anzahl]'",
+            inline=False
+        )
+        
+        embed.add_field(
+            name="⚠️ Hinweise",
+            value=f"• Bereits verwendet: {existing_count}/20 Slots\n• Channels werden gesperrt (nur Anzeige)\n• Einige APIs benötigen Konfiguration",
+            inline=False
+        )
+        
+        await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
 
     @app_commands.command(name="managestatschannels", description="Bestehende Stats-Channels verwalten und löschen")
     @app_commands.default_permissions(administrator=True)
@@ -2123,3 +2174,244 @@ class RefreshStatsButton(discord.ui.Button):
             color=discord.Color.green()
         )
         await interaction.edit_original_response(embed=embed)
+
+
+# ===== SOCIAL MEDIA STATS SETUP VIEWS =====
+
+class SocialMediaStatsSetupView(discord.ui.View):
+    def __init__(self, db, guild, existing_count):
+        super().__init__(timeout=300)
+        self.db = db
+        self.guild = guild
+        self.existing_count = existing_count
+        self.selected_platforms = []  # List of (platform, username) tuples
+        
+        # Add platform selection button
+        self.add_item(AddSocialMediaChannelButton(db, guild))
+        
+    async def update_display(self, interaction: discord.Interaction):
+        """Update the display with current selections"""
+        remaining_slots = 20 - self.existing_count - len(self.selected_platforms)
+        
+        embed = discord.Embed(
+            title="📱 Social Media Stats-Channels Setup",
+            description="Ihre aktuelle Auswahl:",
+            color=discord.Color.purple()
+        )
+        
+        if self.selected_platforms:
+            platform_list = []
+            for platform, username in self.selected_platforms:
+                emoji_map = {
+                    'instagram': '📷',
+                    'x': '❌',
+                    'twitter': '🐦',
+                    'youtube': '📹',
+                    'tiktok': '🎥',
+                    'twitch': '🟣'
+                }
+                emoji = emoji_map.get(platform, '📱')
+                platform_list.append(f"{emoji} {platform.title()}: @{username}")
+            
+            embed.add_field(
+                name="📋 Ausgewählte Kanäle",
+                value="\n".join(platform_list),
+                inline=False
+            )
+        
+        embed.add_field(
+            name="📊 Zusammenfassung",
+            value=f"Gewählt: {len(self.selected_platforms)}\nVerfügbare Slots: {remaining_slots}/20",
+            inline=False
+        )
+        
+        # Show create button if we have selections
+        if len(self.selected_platforms) > 0:
+            if not any(isinstance(item, CreateSocialMediaChannelsButton) for item in self.children):
+                self.add_item(CreateSocialMediaChannelsButton(self.db, self.guild, self.selected_platforms))
+        
+        await interaction.response.edit_message(embed=embed, view=self)
+
+
+class AddSocialMediaChannelButton(discord.ui.Button):
+    def __init__(self, db, guild):
+        super().__init__(label="➕ Kanal hinzufügen", style=discord.ButtonStyle.primary)
+        self.db = db
+        self.guild = guild
+    
+    async def callback(self, interaction: discord.Interaction):
+        modal = SocialMediaChannelModal(self.view)
+        await interaction.response.send_modal(modal)
+
+
+class CreateSocialMediaChannelsButton(discord.ui.Button):
+    def __init__(self, db, guild, selected_platforms):
+        super().__init__(label="✅ Kanäle erstellen", style=discord.ButtonStyle.green)
+        self.db = db
+        self.guild = guild
+        self.selected_platforms = selected_platforms
+    
+    async def callback(self, interaction: discord.Interaction):
+        await interaction.response.defer(ephemeral=True)
+        
+        created_channels = []
+        errors = []
+        
+        try:
+            # Import social media APIs from main module
+            from main import social_media_apis
+            
+            for platform, username in self.selected_platforms:
+                try:
+                    # Validate username exists first
+                    logger.info(f"Validating {platform} username: {username}")
+                    is_valid = await social_media_apis.validate_username(platform, username)
+                    
+                    if not is_valid:
+                        errors.append(f"{platform.title()}: @{username} - Nutzer nicht gefunden")
+                        continue
+                    
+                    # Get initial follower count
+                    initial_count = await social_media_apis.get_follower_count(platform, username)
+                    if initial_count is None:
+                        initial_count = 0
+                    
+                    # Create voice channel
+                    channel_name = f"{platform.title()} Follower: {initial_count:,}"
+                    
+                    # Create channel with proper permissions
+                    overwrites = {
+                        self.guild.default_role: discord.PermissionOverwrite(connect=False),
+                        self.guild.me: discord.PermissionOverwrite(
+                            connect=True,
+                            manage_channels=True,
+                            view_channel=True
+                        )
+                    }
+                    
+                    channel = await self.guild.create_voice_channel(
+                        name=channel_name,
+                        overwrites=overwrites,
+                        reason="Social Media Stats Channel erstellt"
+                    )
+                    
+                    # Store in database
+                    conn = self.db.get_connection()
+                    cursor = conn.cursor()
+                    
+                    cursor.execute('''
+                        INSERT INTO social_media_stats_channels 
+                        (guild_id, channel_id, platform, username, last_follower_count)
+                        VALUES (?, ?, ?, ?, ?)
+                    ''', (str(self.guild.id), str(channel.id), platform, username, initial_count))
+                    
+                    conn.commit()
+                    conn.close()
+                    
+                    created_channels.append(f"✅ {platform.title()}: @{username} ({initial_count:,} Follower)")
+                    logger.info(f"Created social media stats channel for {platform}/{username}")
+                    
+                except Exception as e:
+                    error_msg = f"{platform.title()}: @{username} - {str(e)[:50]}"
+                    errors.append(error_msg)
+                    logger.error(f"Error creating channel for {platform}/{username}: {e}")
+            
+            # Create response embed
+            if created_channels or errors:
+                embed = discord.Embed(
+                    title="📱 Social Media Stats-Channels Erstellt",
+                    color=discord.Color.green() if created_channels else discord.Color.red()
+                )
+                
+                if created_channels:
+                    embed.add_field(
+                        name="✅ Erfolgreich erstellt",
+                        value="\n".join(created_channels),
+                        inline=False
+                    )
+                
+                if errors:
+                    embed.add_field(
+                        name="❌ Fehler",
+                        value="\n".join(errors),
+                        inline=False
+                    )
+                
+                embed.add_field(
+                    name="🔄 Updates",
+                    value="Die Follower-Zahlen werden alle 5 Minuten automatisch aktualisiert.",
+                    inline=False
+                )
+            else:
+                embed = discord.Embed(
+                    title="❌ Keine Kanäle erstellt",
+                    description="Es konnten keine Social Media Stats-Channels erstellt werden.",
+                    color=discord.Color.red()
+                )
+            
+            await interaction.edit_original_response(embed=embed, view=None)
+            
+        except Exception as e:
+            logger.error(f"Error in social media stats channel creation: {e}")
+            embed = discord.Embed(
+                title="❌ Unerwarteter Fehler",
+                description=f"Ein unerwarteter Fehler ist aufgetreten: {str(e)}",
+                color=discord.Color.red()
+            )
+            await interaction.edit_original_response(embed=embed, view=None)
+
+
+class SocialMediaChannelModal(discord.ui.Modal):
+    def __init__(self, view):
+        super().__init__(title='Social Media Kanal hinzufügen')
+        self.setup_view = view
+        
+        # Platform selection
+        self.platform = discord.ui.TextInput(
+            label='Plattform',
+            placeholder='instagram, x, twitter, youtube, tiktok, twitch',
+            required=True,
+            max_length=20
+        )
+        self.add_item(self.platform)
+        
+        # Username input
+        self.username = discord.ui.TextInput(
+            label='Nutzername',
+            placeholder='Nutzername ohne @',
+            required=True,
+            max_length=50
+        )
+        self.add_item(self.username)
+    
+    async def on_submit(self, interaction: discord.Interaction):
+        platform = self.platform.value.lower().strip()
+        username = self.username.value.strip().replace('@', '')
+        
+        # Validate platform
+        valid_platforms = ['instagram', 'x', 'twitter', 'youtube', 'tiktok', 'twitch']
+        if platform not in valid_platforms:
+            embed = discord.Embed(
+                title="❌ Ungültige Plattform",
+                description=f"Plattform '{platform}' ist nicht unterstützt.\nGültige Plattformen: {', '.join(valid_platforms)}",
+                color=discord.Color.red()
+            )
+            await interaction.response.send_message(embed=embed, ephemeral=True)
+            return
+        
+        # Check for duplicates
+        for existing_platform, existing_username in self.setup_view.selected_platforms:
+            if existing_platform == platform and existing_username == username:
+                embed = discord.Embed(
+                    title="❌ Bereits hinzugefügt",
+                    description=f"{platform.title()}: @{username} ist bereits ausgewählt.",
+                    color=discord.Color.orange()
+                )
+                await interaction.response.send_message(embed=embed, ephemeral=True)
+                return
+        
+        # Add to selection
+        self.setup_view.selected_platforms.append((platform, username))
+        
+        # Update the main view
+        await self.setup_view.update_display(interaction)

@@ -89,17 +89,23 @@ class Config:
     TWITCH_CLIENT_ID = os.getenv('TWITCH_CLIENT_ID')
     TWITCH_CLIENT_SECRET = os.getenv('TWITCH_CLIENT_SECRET')
     YOUTUBE_API_KEY = os.getenv('YOUTUBE_API_KEY')
+    TWITTER_BEARER_TOKEN = os.getenv('TWITTER_BEARER_TOKEN')
+    INSTAGRAM_SESSION_ID = os.getenv('INSTAGRAM_SESSION_ID')
     
     # Platform Colors
     COLORS = {
         'twitch': 0x9146FF,    # Lila
         'youtube': 0xFF0000,   # Rot
-        'tiktok': 0x00F2EA     # Hellblau
+        'tiktok': 0x00F2EA,    # Hellblau
+        'instagram': 0xE4405F, # Instagram Pink
+        'twitter': 0x1DA1F2,   # Twitter Blau
+        'x': 0x000000          # X (Twitter) Schwarz
     }
     
     # Check Intervals
     KARMA_CHECK_INTERVAL = 60    # 1 Minute
     REGULAR_CHECK_INTERVAL = 180 # 3 Minuten
+    SOCIAL_MEDIA_CHECK_INTERVAL = 300 # 5 Minuten
 
 # Database Manager with better concurrency handling
 class DatabaseManager:
@@ -307,6 +313,22 @@ class DatabaseManager:
             )
         ''')
         
+        # Social Media Stats Channels table (für Social Media Follower Statistiken)
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS social_media_stats_channels (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                guild_id TEXT NOT NULL,
+                channel_id TEXT NOT NULL,
+                platform TEXT NOT NULL CHECK (platform IN ('instagram', 'x', 'twitter', 'twitch', 'youtube', 'tiktok')),
+                username TEXT NOT NULL,
+                last_follower_count INTEGER DEFAULT 0,
+                last_update TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(channel_id),
+                UNIQUE(guild_id, platform, username)
+            )
+        ''')
+        
         # Initialize event status if not exists
         cursor.execute('INSERT OR IGNORE INTO event_status (id, is_active) VALUES (1, FALSE)')
         
@@ -498,6 +520,210 @@ class InstantGamingAPI:
 
 # Initialize Instant Gaming API
 instant_gaming = InstantGamingAPI()
+
+# Social Media APIs Manager
+class SocialMediaAPIs:
+    """Manager for all social media platform APIs"""
+    
+    def __init__(self):
+        self.twitter_bearer_token = Config.TWITTER_BEARER_TOKEN
+        self.instagram_session_id = Config.INSTAGRAM_SESSION_ID
+        self.youtube_api_key = Config.YOUTUBE_API_KEY
+        self.twitch_client_id = Config.TWITCH_CLIENT_ID
+        self.twitch_client_secret = Config.TWITCH_CLIENT_SECRET
+        self.cache = {}  # Cache for follower counts
+        self.cache_duration = 300  # 5 minutes cache
+    
+    async def get_follower_count(self, platform: str, username: str) -> Optional[int]:
+        """Get follower count for a given platform and username"""
+        cache_key = f"{platform}_{username}"
+        current_time = time.time()
+        
+        # Check cache first
+        if cache_key in self.cache:
+            cached_data = self.cache[cache_key]
+            if current_time - cached_data['timestamp'] < self.cache_duration:
+                logger.info(f"Using cached follower count for {platform}/{username}: {cached_data['count']}")
+                return cached_data['count']
+        
+        try:
+            if platform == 'instagram':
+                count = await self._get_instagram_followers(username)
+            elif platform in ['x', 'twitter']:
+                count = await self._get_twitter_followers(username)
+            elif platform == 'youtube':
+                count = await self._get_youtube_subscribers(username)
+            elif platform == 'tiktok':
+                count = await self._get_tiktok_followers(username)
+            elif platform == 'twitch':
+                count = await self._get_twitch_followers(username)
+            else:
+                logger.error(f"Unsupported platform: {platform}")
+                return None
+            
+            if count is not None:
+                # Cache the result
+                self.cache[cache_key] = {
+                    'count': count,
+                    'timestamp': current_time
+                }
+                logger.info(f"✅ Retrieved {platform} followers for {username}: {count:,}")
+                return count
+            else:
+                logger.warning(f"❌ Failed to get {platform} followers for {username}")
+                return None
+                
+        except Exception as e:
+            logger.error(f"Error getting {platform} followers for {username}: {e}")
+            return None
+    
+    async def _get_instagram_followers(self, username: str) -> Optional[int]:
+        """Get Instagram follower count via web scraping"""
+        try:
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+            }
+            
+            async with aiohttp.ClientSession() as session:
+                url = f"https://www.instagram.com/api/v1/users/web_profile_info/?username={username}"
+                async with session.get(url, headers=headers) as response:
+                    if response.status == 200:
+                        data = await response.json()
+                        followers = data.get('data', {}).get('user', {}).get('edge_followed_by', {}).get('count')
+                        return followers
+                    else:
+                        logger.warning(f"Instagram API returned status {response.status} for {username}")
+                        return None
+        except Exception as e:
+            logger.error(f"Instagram API error for {username}: {e}")
+            return None
+    
+    async def _get_twitter_followers(self, username: str) -> Optional[int]:
+        """Get Twitter/X follower count via official API v2"""
+        if not self.twitter_bearer_token:
+            logger.warning("Twitter Bearer Token not configured")
+            return None
+            
+        try:
+            headers = {
+                'Authorization': f'Bearer {self.twitter_bearer_token}',
+                'User-Agent': 'TwitterBot/1.0'
+            }
+            
+            async with aiohttp.ClientSession() as session:
+                url = f"https://api.twitter.com/2/users/by/username/{username}?user.fields=public_metrics"
+                async with session.get(url, headers=headers) as response:
+                    if response.status == 200:
+                        data = await response.json()
+                        followers = data.get('data', {}).get('public_metrics', {}).get('followers_count')
+                        return followers
+                    else:
+                        logger.warning(f"Twitter API returned status {response.status} for {username}")
+                        return None
+        except Exception as e:
+            logger.error(f"Twitter API error for {username}: {e}")
+            return None
+    
+    async def _get_youtube_subscribers(self, username: str) -> Optional[int]:
+        """Get YouTube subscriber count via official API"""
+        if not self.youtube_api_key:
+            logger.warning("YouTube API Key not configured")
+            return None
+            
+        try:
+            async with aiohttp.ClientSession() as session:
+                # Try by username first
+                url = f"https://www.googleapis.com/youtube/v3/channels?part=statistics&forUsername={username}&key={self.youtube_api_key}"
+                async with session.get(url) as response:
+                    if response.status == 200:
+                        data = await response.json()
+                        if data.get('items'):
+                            subscribers = data['items'][0].get('statistics', {}).get('subscriberCount')
+                            return int(subscribers) if subscribers else None
+                        else:
+                            # Try by channel ID if username doesn't work
+                            url = f"https://www.googleapis.com/youtube/v3/channels?part=statistics&id={username}&key={self.youtube_api_key}"
+                            async with session.get(url) as response:
+                                if response.status == 200:
+                                    data = await response.json()
+                                    if data.get('items'):
+                                        subscribers = data['items'][0].get('statistics', {}).get('subscriberCount')
+                                        return int(subscribers) if subscribers else None
+                    else:
+                        logger.warning(f"YouTube API returned status {response.status} for {username}")
+                        return None
+        except Exception as e:
+            logger.error(f"YouTube API error for {username}: {e}")
+            return None
+    
+    async def _get_tiktok_followers(self, username: str) -> Optional[int]:
+        """Get TikTok follower count via web scraping"""
+        try:
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+            }
+            
+            async with aiohttp.ClientSession() as session:
+                url = f"https://www.tiktok.com/api/user/detail/?uniqueId={username}"
+                async with session.get(url, headers=headers) as response:
+                    if response.status == 200:
+                        data = await response.json()
+                        followers = data.get('userInfo', {}).get('stats', {}).get('followerCount')
+                        return followers
+                    else:
+                        logger.warning(f"TikTok API returned status {response.status} for {username}")
+                        return None
+        except Exception as e:
+            logger.error(f"TikTok API error for {username}: {e}")
+            return None
+    
+    async def _get_twitch_followers(self, username: str) -> Optional[int]:
+        """Get Twitch follower count via official API"""
+        if not self.twitch_client_id or not self.twitch_client_secret:
+            logger.warning("Twitch API credentials not configured")
+            return None
+            
+        try:
+            # Get access token first (reuse existing TwitchAPI logic)
+            twitch_api = TwitchAPI()
+            access_token = await twitch_api.get_access_token()
+            if not access_token:
+                return None
+            
+            headers = {
+                'Client-ID': self.twitch_client_id,
+                'Authorization': f'Bearer {access_token}'
+            }
+            
+            async with aiohttp.ClientSession() as session:
+                # Get user ID first
+                url = f"https://api.twitch.tv/helix/users?login={username}"
+                async with session.get(url, headers=headers) as response:
+                    if response.status == 200:
+                        data = await response.json()
+                        if data.get('data'):
+                            user_id = data['data'][0]['id']
+                            
+                            # Get follower count
+                            url = f"https://api.twitch.tv/helix/channels/followers?broadcaster_id={user_id}"
+                            async with session.get(url, headers=headers) as response:
+                                if response.status == 200:
+                                    data = await response.json()
+                                    return data.get('total', 0)
+                    else:
+                        logger.warning(f"Twitch API returned status {response.status} for {username}")
+                        return None
+        except Exception as e:
+            logger.error(f"Twitch API error for {username}: {e}")
+            return None
+    
+    async def validate_username(self, platform: str, username: str) -> bool:
+        """Validate if username exists on platform"""
+        count = await self.get_follower_count(platform, username)
+        return count is not None
+
+# Initialize Social Media APIs
+social_media_apis = SocialMediaAPIs()
 
 # Platform API Managers
 class TwitchAPI:
@@ -2627,8 +2853,119 @@ async def stats_updater():
         updated_count = sum(1 for guild_data in guilds_data.values())
         logger.info(f"📊 STATS-UPDATE: Completed - processed {len(stats_channels)} channels across {updated_count} guilds")
         
+        # Also update social media stats channels
+        await social_media_stats_updater()
+        
     except Exception as e:
         logger.error(f"📊 STATS-UPDATE ERROR: {e}")
+        if 'conn' in locals():
+            try:
+                conn.close()
+            except:
+                pass
+
+
+# Social Media Stats Update Task
+@tasks.loop(minutes=5)
+async def social_media_stats_updater_task():
+    """Task loop for updating social media stats channels every 5 minutes"""
+    await social_media_stats_updater()
+
+
+async def social_media_stats_updater():
+    """Update all social media stats channels with current follower counts"""
+    try:
+        logger.info("📱 SOCIAL-MEDIA-UPDATE: Starting social media stats channels update...")
+        
+        conn = db.get_connection()
+        cursor = conn.cursor()
+        
+        # Get all social media stats channels
+        cursor.execute('SELECT guild_id, channel_id, platform, username, last_follower_count FROM social_media_stats_channels')
+        social_channels = cursor.fetchall()
+        
+        if not social_channels:
+            logger.info("📱 SOCIAL-MEDIA-UPDATE: No social media stats channels configured")
+            conn.close()
+            return
+        
+        updated_channels = 0
+        failed_updates = 0
+        
+        for guild_id, channel_id, platform, username, last_count in social_channels:
+            try:
+                guild = bot.get_guild(int(guild_id))
+                if not guild:
+                    logger.warning(f"📱 Guild {guild_id} not found for social media channel {channel_id}")
+                    continue
+                
+                channel = guild.get_channel(int(channel_id))
+                if not channel:
+                    logger.warning(f"📱 Channel {channel_id} not found in guild {guild.name}")
+                    # Remove from database if channel no longer exists
+                    cursor.execute('DELETE FROM social_media_stats_channels WHERE channel_id = ?', (channel_id,))
+                    continue
+                
+                # Get current follower count
+                current_count = await social_media_apis.get_follower_count(platform, username)
+                
+                if current_count is None:
+                    # If we can't get the count, try one more time after a brief delay
+                    await asyncio.sleep(2)
+                    current_count = await social_media_apis.get_follower_count(platform, username)
+                    
+                    if current_count is None:
+                        logger.warning(f"📱 Failed to get {platform} follower count for @{username}")
+                        failed_updates += 1
+                        continue
+                
+                # Format the channel name
+                new_channel_name = f"{platform.title()} Follower: {current_count:,}"
+                
+                # Only update if the count has changed or name format has changed
+                if current_count != last_count or channel.name != new_channel_name:
+                    try:
+                        await channel.edit(name=new_channel_name, reason="Social Media Follower Update")
+                        
+                        # Update database with new count and timestamp
+                        cursor.execute('''
+                            UPDATE social_media_stats_channels 
+                            SET last_follower_count = ?, last_update = CURRENT_TIMESTAMP 
+                            WHERE channel_id = ?
+                        ''', (current_count, channel_id))
+                        
+                        change_indicator = "➕" if current_count > last_count else ("➖" if current_count < last_count else "➡️")
+                        logger.info(f"📱 Updated {guild.name}: {platform.title()} @{username}: {current_count:,} {change_indicator} (was {last_count:,})")
+                        updated_channels += 1
+                        
+                    except discord.HTTPException as http_error:
+                        if http_error.status == 429:  # Rate limited
+                            logger.warning(f"📱 Rate limited updating {platform} channel for @{username}, will retry next cycle")
+                            await asyncio.sleep(1)  # Brief delay before continuing
+                        else:
+                            logger.error(f"📱 HTTP error updating {platform} channel for @{username}: {http_error}")
+                        failed_updates += 1
+                    except Exception as update_error:
+                        logger.error(f"📱 Error updating {platform} channel for @{username}: {update_error}")
+                        failed_updates += 1
+                else:
+                    logger.debug(f"📱 No change for {platform} @{username}: {current_count:,} followers")
+                
+                # Small delay to avoid hitting Discord rate limits
+                await asyncio.sleep(0.5)
+                
+            except Exception as channel_error:
+                logger.error(f"📱 Error processing social media channel {channel_id}: {channel_error}")
+                failed_updates += 1
+        
+        conn.commit()
+        conn.close()
+        
+        if updated_channels > 0 or failed_updates > 0:
+            logger.info(f"📱 SOCIAL-MEDIA-UPDATE: Completed - Updated: {updated_channels}, Failed: {failed_updates}, Total: {len(social_channels)}")
+        
+    except Exception as e:
+        logger.error(f"📱 SOCIAL-MEDIA-UPDATE ERROR: {e}")
         if 'conn' in locals():
             try:
                 conn.close()
@@ -2790,6 +3127,10 @@ async def on_ready():
     # Start stats updater task
     stats_updater.start()
     logger.info("📊 Stats updater started - updating stats channels every 5 minutes")
+    
+    # Start social media stats updater task
+    social_media_stats_updater_task.start()
+    logger.info("📱 Social Media stats updater started - updating social media channels every 5 minutes")
     
     # Start TikTok recovery task
     tiktok_recovery_task.start()
