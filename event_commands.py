@@ -13,6 +13,7 @@ import os
 import asyncio
 import glob
 import time
+import aiohttp
 
 logger = logging.getLogger('KARMA-LiveBOT.events')
 
@@ -24,6 +25,11 @@ class Config:
     # Developer/Main Server Configuration (from secrets)
     MAIN_SERVER_ID = int(os.getenv('MAIN_SERVER_ID', '0'))  # Main server where serverinfo command is available
     BOT_DEVELOPER_ID = int(os.getenv('BOT_DEVELOPER_ID', '0'))  # Developer user ID
+    
+    # API Keys from Environment (avoid circular import)
+    TWITCH_CLIENT_ID = os.getenv('TWITCH_CLIENT_ID')
+    TWITCH_CLIENT_SECRET = os.getenv('TWITCH_CLIENT_SECRET')
+    YOUTUBE_API_KEY = os.getenv('YOUTUBE_API_KEY')
     
     COLORS = {
         'twitch': 0x9146FF,    # Lila
@@ -81,6 +87,133 @@ class EventCommands(commands.Cog):
     def __init__(self, bot: commands.Bot, db):
         self.bot = bot
         self.db = db
+    
+    async def get_twitch_profile_image(self, username: str) -> Optional[str]:
+        """Get Twitch profile image URL via API - dedicated method to avoid circular imports"""
+        if not Config.TWITCH_CLIENT_ID or not Config.TWITCH_CLIENT_SECRET:
+            logger.warning(f"Twitch API credentials missing for profile image request: {username}")
+            return None
+        
+        try:
+            # Get OAuth token
+            token_url = 'https://id.twitch.tv/oauth2/token'
+            token_data = {
+                'client_id': Config.TWITCH_CLIENT_ID,
+                'client_secret': Config.TWITCH_CLIENT_SECRET,
+                'grant_type': 'client_credentials'
+            }
+            
+            timeout = aiohttp.ClientTimeout(total=5)
+            async with aiohttp.ClientSession(timeout=timeout) as session:
+                # Get access token
+                async with session.post(token_url, data=token_data) as token_response:
+                    if token_response.status != 200:
+                        logger.error(f"Failed to get Twitch token for profile image: {token_response.status}")
+                        return None
+                    
+                    token_json = await token_response.json()
+                    access_token = token_json.get('access_token')
+                    
+                    if not access_token:
+                        logger.error("No access token received from Twitch API")
+                        return None
+                
+                # Get user profile
+                headers = {
+                    'Client-ID': Config.TWITCH_CLIENT_ID,
+                    'Authorization': f'Bearer {access_token}'
+                }
+                
+                user_url = f'https://api.twitch.tv/helix/users?login={username}'
+                async with session.get(user_url, headers=headers) as user_response:
+                    if user_response.status != 200:
+                        logger.error(f"Failed to get Twitch user profile for {username}: {user_response.status}")
+                        return None
+                    
+                    user_data = await user_response.json()
+                    if not user_data.get('data'):
+                        logger.warning(f"No Twitch user data found for username: {username}")
+                        return None
+                    
+                    profile_image_url = user_data['data'][0].get('profile_image_url')
+                    if profile_image_url:
+                        logger.info(f"✅ Successfully fetched Twitch profile image for {username}")
+                        return profile_image_url
+                    else:
+                        logger.warning(f"No profile image URL in Twitch response for {username}")
+                        return None
+                        
+        except Exception as e:
+            logger.error(f"Error fetching Twitch profile image for {username}: {e}")
+            return None
+    
+    async def get_youtube_profile_image(self, username: str) -> Optional[str]:
+        """Get YouTube profile image URL via API - dedicated method to avoid circular imports"""
+        if not Config.YOUTUBE_API_KEY:
+            logger.warning(f"YouTube API key missing for profile image request: {username}")
+            return None
+        
+        try:
+            timeout = aiohttp.ClientTimeout(total=5)
+            async with aiohttp.ClientSession(timeout=timeout) as session:
+                # Search for channel by username
+                search_url = 'https://www.googleapis.com/youtube/v3/search'
+                params = {
+                    'part': 'snippet',
+                    'q': f'@{username}',
+                    'type': 'channel',
+                    'key': Config.YOUTUBE_API_KEY,
+                    'maxResults': 1
+                }
+                
+                async with session.get(search_url, params=params) as search_response:
+                    if search_response.status == 403:
+                        logger.warning(f"YouTube API quota exceeded for profile image request: {username}")
+                        return None
+                    elif search_response.status != 200:
+                        logger.error(f"YouTube search API error for {username}: {search_response.status}")
+                        return None
+                    
+                    search_data = await search_response.json()
+                    if not search_data.get('items'):
+                        logger.warning(f"No YouTube channel found for username: {username}")
+                        return None
+                    
+                    # Fix: Use correct channel ID extraction for search results
+                    channel_id = search_data['items'][0]['id']['channelId']
+                
+                # Get channel details for profile image
+                channels_url = 'https://www.googleapis.com/youtube/v3/channels'
+                params = {
+                    'part': 'snippet',
+                    'id': channel_id,
+                    'key': Config.YOUTUBE_API_KEY
+                }
+                
+                async with session.get(channels_url, params=params) as channel_response:
+                    if channel_response.status != 200:
+                        logger.error(f"YouTube channels API error for {username}: {channel_response.status}")
+                        return None
+                    
+                    channel_data = await channel_response.json()
+                    if not channel_data.get('items'):
+                        logger.warning(f"No YouTube channel details found for {username}")
+                        return None
+                    
+                    thumbnails = channel_data['items'][0]['snippet'].get('thumbnails', {})
+                    # Try different thumbnail sizes, prioritizing higher quality
+                    for size in ['high', 'medium', 'default']:
+                        if size in thumbnails:
+                            profile_url = thumbnails[size]['url']
+                            logger.info(f"✅ Successfully fetched YouTube profile image for {username} (size: {size})")
+                            return profile_url
+                    
+                    logger.warning(f"No thumbnail URLs found in YouTube response for {username}")
+                    return None
+                    
+        except Exception as e:
+            logger.error(f"Error fetching YouTube profile image for {username}: {e}")
+            return None
 
     @app_commands.command(name="streakevent", description="Event-Management: on/off")
     @app_commands.describe(action="Event aktivieren oder deaktivieren")
@@ -945,12 +1078,18 @@ class ServerInfoView(discord.ui.View):
             color=Config.COLORS['twitch']
         )
         
-        # Add realistic streamer branding and thumbnail
+        # Get real Twitch profile image via dedicated API call
+        real_profile_url = await self.get_twitch_profile_image("tikzzay")
+        
+        # Add realistic streamer branding and thumbnail with REAL profile image
         test_live_embed.set_thumbnail(url="https://static-cdn.jtvnw.net/previews-ttv/live_user_tikzzay-320x180.jpg")
         test_live_embed.set_author(
             name="TikZ aka. Zay", 
-            icon_url="https://static-cdn.jtvnw.net/user-default-pictures-uv/de130ab0-def7-11e9-b668-784f43822e80-profile_image-300x300.png"
+            icon_url=real_profile_url or "https://static-cdn.jtvnw.net/user-default-pictures-uv/de130ab0-def7-11e9-b668-784f43822e80-profile_image-300x300.png"
         )
+        
+        if not real_profile_url:
+            logger.warning("⚠️ Auto-deletion test using placeholder Twitch profile image (API failed)")
         
         # Enhanced live stream data
         test_live_embed.add_field(name="👀 Zuschauer", value="892", inline=True)
@@ -1138,11 +1277,17 @@ class ServerInfoView(discord.ui.View):
             color=Config.COLORS['twitch']
         )
         
-        # Twitch Profilbild und Stream-Vorschau (generische funktionierende URLs)
+        # Get REAL Twitch profile image via dedicated API call
+        tikz_profile_url = await self.get_twitch_profile_image("tikzzay")
+        
+        # Twitch Profilbild mit ECHTEM API-Aufruf
         twitch_demo.set_author(
             name="TikZ aka. Zay", 
-            icon_url="https://static-cdn.jtvnw.net/user-default-pictures-uv/13e5fa74-defa-11e9-8543-784f43822e80-profile_image-300x300.png"
+            icon_url=tikz_profile_url or "https://static-cdn.jtvnw.net/user-default-pictures-uv/13e5fa74-defa-11e9-8543-784f43822e80-profile_image-300x300.png"
         )
+        
+        if not tikz_profile_url:
+            logger.warning("⚠️ Instant Gaming test using placeholder Twitch profile (API failed)")
         twitch_demo.set_image(url="https://static-cdn.jtvnw.net/ttv-boxart/1091500-285x380.jpg")  # Cyberpunk 2077 game art
         
         # Stream Details (ohne unwanted text)
@@ -1160,11 +1305,17 @@ class ServerInfoView(discord.ui.View):
             color=Config.COLORS['youtube']
         )
         
-        # YouTube Profilbild und Stream-Vorschau (generische funktionierende URLs)
+        # Get REAL YouTube profile image via dedicated API call
+        sturmpelz_profile_url = await self.get_youtube_profile_image("sturmpelz11")
+        
+        # YouTube Profilbild mit ECHTEM API-Aufruf
         youtube_demo.set_author(
             name="✨Sturmpelz✨", 
-            icon_url="https://yt3.ggpht.com/a/default-user=s240-c-k-c0x00ffffff-no-rj"
+            icon_url=sturmpelz_profile_url or "https://yt3.ggpht.com/a/default-user=s240-c-k-c0x00ffffff-no-rj"
         )
+        
+        if not sturmpelz_profile_url:
+            logger.warning("⚠️ Instant Gaming test using placeholder YouTube profile (API failed)")
         youtube_demo.set_image(url="https://i.ytimg.com/vi/dQw4w9WgXcQ/maxresdefault.jpg")  # Call of Duty gameplay thumbnail
         
         # Stream Details (ohne unwanted text)
