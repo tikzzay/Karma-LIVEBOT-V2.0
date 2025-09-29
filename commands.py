@@ -124,43 +124,39 @@ class CreatorManagement(commands.Cog):
     @app_commands.command(name="deletecreator", description="Creator entfernen")
     @app_commands.default_permissions(administrator=True)
     @has_admin_role()
-    async def delete_creator(self, interaction: discord.Interaction, discord_user: discord.Member):
-        """Delete creator command"""
+    async def delete_creator(self, interaction: discord.Interaction):
+        """Delete creator command - shows selection interface"""
         conn = self.db.get_connection()
         cursor = conn.cursor()
         
-        # Check if creator exists
-        cursor.execute('SELECT id FROM creators WHERE discord_user_id = ?', (str(discord_user.id),))
-        creator = cursor.fetchone()
-        
-        if not creator:
-            await interaction.response.send_message(
-                f"❌ Creator {discord_user.mention} ist nicht in der Datenbank registriert.",
-                ephemeral=True
-            )
-            conn.close()
-            return
-        
-        creator_id = creator[0]
-        
-        # Delete all related data
-        cursor.execute('DELETE FROM user_subscriptions WHERE creator_id = ?', (creator_id,))
-        cursor.execute('DELETE FROM live_status WHERE creator_id = ?', (creator_id,))
-        cursor.execute('DELETE FROM event_streaks WHERE creator_id = ?', (creator_id,))
-        cursor.execute('DELETE FROM daily_streaks WHERE creator_id = ?', (creator_id,))
-        cursor.execute('DELETE FROM creator_channels WHERE creator_id = ?', (creator_id,))
-        cursor.execute('DELETE FROM creators WHERE id = ?', (creator_id,))
-        
-        conn.commit()
+        cursor.execute('SELECT id, discord_username, streamer_type, discord_user_id FROM creators')
+        creators = cursor.fetchall()
         conn.close()
         
+        if not creators:
+            embed = discord.Embed(
+                title="❌ Keine Creator gefunden",
+                description="Es sind noch keine Creator in der Datenbank registriert.\n\nVerwende `/addcreator` um zuerst Creator hinzuzufügen.",
+                color=discord.Color.red()
+            )
+            await interaction.response.send_message(embed=embed, ephemeral=True)
+            return
+        
+        # Create delete creator view
+        view = DeleteCreatorView(self.db, creators)
+        
         embed = discord.Embed(
-            title="✅ Creator entfernt",
-            description=f"Creator {discord_user.mention} und alle zugehörigen Daten wurden erfolgreich entfernt.",
-            color=discord.Color.green()
+            title="🗑️ Creator entfernen",
+            description="Wähle einen Creator aus der Liste aus, den du entfernen möchtest.\n\n**⚠️ Warnung:** Alle zugehörigen Daten werden unwiderruflich gelöscht!",
+            color=discord.Color.orange()
+        )
+        embed.add_field(
+            name="💡 Hinweise:",
+            value="• Wähle den Creator aus der Dropdown-Liste\n• Alle Abonnements, Live-Status und Streak-Daten werden gelöscht\n• Diese Aktion kann nicht rückgängig gemacht werden",
+            inline=False
         )
         
-        await interaction.response.send_message(embed=embed)
+        await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
     
     @app_commands.command(name="customstreamermessage", description="Custom Benachrichtigungstext für einen Streamer setzen oder entfernen")
     @app_commands.default_permissions(administrator=True)
@@ -2752,3 +2748,105 @@ class DeleteSelectedChannelsButton(discord.ui.Button):
                 color=discord.Color.red()
             )
             await interaction.followup.send(embed=embed, ephemeral=True)
+
+
+# ====================== DELETE CREATOR INTERFACE ======================
+
+class DeleteCreatorView(discord.ui.View):
+    def __init__(self, db, creators):
+        super().__init__(timeout=300)
+        self.db = db
+        self.add_item(DeleteCreatorSelect(db, creators))
+
+class DeleteCreatorSelect(discord.ui.Select):
+    def __init__(self, db, creators):
+        self.db = db
+        
+        # Create select options
+        options = []
+        for creator_id, username, streamer_type, discord_user_id in creators:
+            emoji = "⭐" if streamer_type == "karma" else "👾"
+            options.append(discord.SelectOption(
+                label=f"{username} ({streamer_type.title()})",
+                value=str(creator_id),
+                emoji=emoji,
+                description=f"Discord ID: {discord_user_id}"
+            ))
+        
+        super().__init__(
+            placeholder="Creator zum Löschen auswählen...",
+            options=options,
+            max_values=1
+        )
+    
+    async def callback(self, interaction: discord.Interaction):
+        """Handle creator deletion"""
+        await interaction.response.defer(ephemeral=True)
+        
+        creator_id = int(self.values[0])
+        
+        # Get creator details for confirmation
+        conn = self.db.get_connection()
+        cursor = conn.cursor()
+        
+        try:
+            cursor.execute(
+                'SELECT discord_username, streamer_type, discord_user_id FROM creators WHERE id = ?',
+                (creator_id,)
+            )
+            creator_details = cursor.fetchone()
+            
+            if not creator_details:
+                embed = discord.Embed(
+                    title="❌ Fehler",
+                    description="Creator nicht gefunden.",
+                    color=discord.Color.red()
+                )
+                await interaction.followup.send(embed=embed, ephemeral=True)
+                return
+            
+            username, streamer_type, discord_user_id = creator_details
+            
+            # Delete all related data
+            cursor.execute('DELETE FROM user_subscriptions WHERE creator_id = ?', (creator_id,))
+            cursor.execute('DELETE FROM live_status WHERE creator_id = ?', (creator_id,))
+            cursor.execute('DELETE FROM event_streaks WHERE creator_id = ?', (creator_id,))
+            cursor.execute('DELETE FROM daily_streaks WHERE creator_id = ?', (creator_id,))
+            cursor.execute('DELETE FROM creator_channels WHERE creator_id = ?', (creator_id,))
+            cursor.execute('DELETE FROM creators WHERE id = ?', (creator_id,))
+            
+            conn.commit()
+            
+            # Get Discord user mention if possible
+            user_mention = f"<@{discord_user_id}>"
+            try:
+                user = interaction.client.get_user(int(discord_user_id))
+                if user:
+                    user_mention = f"{user.mention} ({user.display_name})"
+            except:
+                pass
+            
+            embed = discord.Embed(
+                title="✅ Creator erfolgreich entfernt",
+                description=f"**{username}** ({streamer_type.title()}) wurde aus der Datenbank entfernt.\n\nUser: {user_mention}",
+                color=discord.Color.green()
+            )
+            embed.add_field(
+                name="🗑️ Gelöschte Daten:",
+                value="• Creator-Profil\n• Alle Abonnements\n• Live-Status Tracking\n• Daily & Event Streaks\n• Kanal-Konfigurationen",
+                inline=False
+            )
+            
+            await interaction.followup.send(embed=embed, ephemeral=True)
+            logger.info(f"✅ Creator {username} (ID: {creator_id}) successfully deleted by admin")
+            
+        except Exception as e:
+            logger.error(f"Error deleting creator {creator_id}: {e}")
+            embed = discord.Embed(
+                title="❌ Fehler beim Löschen",
+                description="Ein unerwarteter Fehler ist aufgetreten beim Löschen des Creators.",
+                color=discord.Color.red()
+            )
+            await interaction.followup.send(embed=embed, ephemeral=True)
+        finally:
+            conn.close()

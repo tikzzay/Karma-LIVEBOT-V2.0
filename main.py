@@ -3415,30 +3415,38 @@ async def auto_restart_task():
         logger.error(f"🚨 AUTO-RESTART ERROR: {e}")
 
 async def post_logs_to_dev_channel(log_files_to_delete):
-    """Post log files to dev channel before deletion (only on main server)"""
+    """Post log files to dev channel before deletion - SECURE: Only to configured channels"""
     try:
-        # Check if dev channel and main server are configured
+        # SECURITY: Only upload to specifically configured channels - no fallbacks to other servers
         if not Config.DEV_CHANNEL_ID or not Config.MAIN_SERVER_ID:
-            logger.info("📁 LOG-BACKUP: Dev channel or main server not configured - skipping log backup")
+            logger.warning("📁 LOG-BACKUP: DEV_CHANNEL_ID or MAIN_SERVER_ID not configured - skipping log backup for security")
             return
         
-        # Get the main server
+        # Get the main server (must be configured)
         main_guild = bot.get_guild(Config.MAIN_SERVER_ID)
         if not main_guild:
-            logger.warning(f"📁 LOG-BACKUP: Main server {Config.MAIN_SERVER_ID} not found")
+            logger.warning(f"📁 LOG-BACKUP: Main server {Config.MAIN_SERVER_ID} not found - skipping log backup")
             return
         
-        # Get the dev channel
+        # Get the dev channel (must be configured and exist)
         dev_channel = main_guild.get_channel(Config.DEV_CHANNEL_ID)
         if not dev_channel:
-            logger.warning(f"📁 LOG-BACKUP: Dev channel {Config.DEV_CHANNEL_ID} not found in main server")
+            logger.warning(f"📁 LOG-BACKUP: Dev channel {Config.DEV_CHANNEL_ID} not found in main server - skipping log backup")
             return
+        
+        # Verify bot has required permissions
+        permissions = dev_channel.permissions_for(main_guild.me)
+        if not permissions.send_messages or not permissions.attach_files:
+            logger.warning(f"📁 LOG-BACKUP: Missing permissions in dev channel {dev_channel.name} - skipping log backup")
+            return
+        
+        logger.info(f"📁 LOG-BACKUP: Using secure dev channel {dev_channel.name} in {main_guild.name}")
         
         if not log_files_to_delete:
             logger.info("📁 LOG-BACKUP: No log files to backup")
             return
         
-        logger.info(f"📁 LOG-BACKUP: Backing up {len(log_files_to_delete)} log files to dev channel...")
+        logger.info(f"📁 LOG-BACKUP: Backing up {len(log_files_to_delete)} log files to dev channel {dev_channel.name}...")
         
         # Create embed for the log backup
         embed = discord.Embed(
@@ -4002,36 +4010,49 @@ async def on_ready():
     
     logger.info("🌍 ============ END SERVER OVERVIEW ============\n")
     
-    # Start the live check tasks
+    # ========== OPTIMIZED TASK STARTUP (with staggered delays) ==========
+    
+    # Start the live checker immediately (most critical)
     live_checker.start()
     
-    # Start the status rotation task
-    status_rotator.start()
-    logger.info("🤖 Status rotation started - cycling every 3 minutes")
+    # Staggered startup to avoid overlaps:
+    # Delay each task by 30 seconds to prevent simultaneous execution
     
-    # Start keep-alive ping for Render.com
-    keep_alive_ping.start()
-    logger.info("🔄 Keep-alive ping started - preventing Render.com sleep every 10 minutes")
+    async def start_tasks_with_delays():
+        """Start background tasks with staggered delays to optimize performance"""
+        await asyncio.sleep(30)  # 30s delay
+        status_rotator.start()
+        logger.info("🤖 Status rotation started - cycling every 3 minutes (30s offset)")
+        
+        await asyncio.sleep(30)  # 60s total delay  
+        stats_updater.start()
+        logger.info("📊 Stats updater started - updating stats channels every 5 minutes (60s offset)")
+        
+        await asyncio.sleep(30)  # 90s total delay
+        keep_alive_ping.start()
+        logger.info("🔄 Keep-alive ping started - preventing cloud sleep every 10 minutes (90s offset)")
+        
+        await asyncio.sleep(30)  # 120s total delay
+        social_media_stats_updater_task.start() 
+        logger.info("📱 Social Media stats updater started - updating social media channels every 30 minutes (120s offset)")
+        
+        await asyncio.sleep(30)  # 150s total delay
+        tiktok_recovery_task.start()
+        logger.info("🔧 TikTok recovery task started - checking TikTok connectivity every 30 minutes (150s offset)")
+        
+        await asyncio.sleep(30)  # 180s total delay
+        auto_restart_task.start()
+        logger.info("🔄 Auto-restart task started - restarting every 12 hours (180s offset)")
+        
+        await asyncio.sleep(30)  # 210s total delay
+        log_cleanup_task.start()
+        logger.info("🗑️ Log cleanup task started - cleaning logs every 6 hours (210s offset)")
+        
+        logger.info("⚡ All background tasks started with performance optimization (7 minutes total stagger)")
     
-    # Start auto-restart task
-    auto_restart_task.start()
-    logger.info("🔄 Auto-restart task started - restarting every 12 hours")
-    
-    # Start log cleanup task
-    log_cleanup_task.start()
-    logger.info("🗑️ Log cleanup task started - cleaning logs every 6 hours (keep 10 newest)")
-    
-    # Start stats updater task
-    stats_updater.start()
-    logger.info("📊 Stats updater started - updating stats channels every 5 minutes")
-    
-    # Start social media stats updater task
-    social_media_stats_updater_task.start()
-    logger.info("📱 Social Media stats updater started - updating social media channels every 30 minutes")
-    
-    # Start TikTok recovery task
-    tiktok_recovery_task.start()
-    logger.info("🔧 TikTok recovery task started - checking TikTok connectivity every 30 minutes")
+    # Start the staggered task startup in background
+    asyncio.create_task(start_tasks_with_delays())
+    logger.info("⚡ Performance-optimized task startup initiated - tasks will start over 7 minutes to prevent overlaps")
     
     # Initialize OpenAI Auto-Repair System
     global auto_repair_system

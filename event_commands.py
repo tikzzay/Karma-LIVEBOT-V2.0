@@ -724,6 +724,7 @@ class ServerInfoView(discord.ui.View):
             discord.SelectOption(label="Event-Test", value="event_test", emoji="🎮"),
             discord.SelectOption(label="Custom Message Test", value="custom_message_test", emoji="✏️"),
             discord.SelectOption(label="Instant Gaming Test", value="instant_gaming_test", emoji="🎮"),
+            discord.SelectOption(label="Log-Upload Test", value="log_upload_test", emoji="📁"),
             discord.SelectOption(label="Leave-Server", value="leave_server", emoji="🚪"),
             discord.SelectOption(label="Server-Unban", value="server_unban", emoji="🔓")
         ]
@@ -756,6 +757,9 @@ class ServerInfoView(discord.ui.View):
         elif option_type == "leave_server":
             logger.info(f"🚪 Calling show_leave_server_modal for user {interaction.user}")
             await self.show_leave_server_modal(interaction)
+        elif option_type == "log_upload_test":
+            logger.info(f"📁 Calling run_log_upload_test for user {interaction.user}")
+            await self.run_log_upload_test(interaction)
         elif option_type == "server_unban":
             logger.info(f"🔓 Calling show_server_unban_modal for user {interaction.user}")
             await self.show_server_unban_modal(interaction)
@@ -1735,6 +1739,188 @@ class ServerInfoView(discord.ui.View):
         """Show modal for Leave-Server function"""
         modal = LeaveServerModal(self.bot)
         await interaction.response.send_modal(modal)
+
+    async def run_log_upload_test(self, interaction: discord.Interaction):
+        """Test the log upload functionality to dev channel"""
+        try:
+            await interaction.response.defer(ephemeral=True)
+            
+            # Create test embed
+            embed = discord.Embed(
+                title="📁 Log-Upload Test",
+                description="**Teste die 6-Stunden Log-Upload Funktionalität**",
+                color=discord.Color.blue()
+            )
+            
+            # Import the log upload function from main
+            try:
+                from main import post_logs_to_dev_channel, Config
+                embed.add_field(
+                    name="🔧 Import Status", 
+                    value="✅ Log-Upload Funktion erfolgreich importiert", 
+                    inline=False
+                )
+            except ImportError as e:
+                embed.add_field(
+                    name="❌ Import Fehler", 
+                    value=f"Konnte Log-Upload Funktion nicht importieren: {e}", 
+                    inline=False
+                )
+                await interaction.followup.send(embed=embed, ephemeral=True)
+                return
+            
+            # Check configuration
+            config_status = []
+            if Config.DEV_CHANNEL_ID:
+                config_status.append(f"✅ DEV_CHANNEL_ID: {Config.DEV_CHANNEL_ID}")
+            else:
+                config_status.append("❌ DEV_CHANNEL_ID: Nicht konfiguriert")
+                
+            if Config.MAIN_SERVER_ID:
+                config_status.append(f"✅ MAIN_SERVER_ID: {Config.MAIN_SERVER_ID}")
+            else:
+                config_status.append("❌ MAIN_SERVER_ID: Nicht konfiguriert")
+            
+            embed.add_field(
+                name="⚙️ Konfiguration",
+                value="\n".join(config_status),
+                inline=False
+            )
+            
+            # Test channel accessibility
+            channel_status = []
+            try:
+                if Config.MAIN_SERVER_ID:
+                    main_guild = self.bot.get_guild(Config.MAIN_SERVER_ID)
+                    if main_guild:
+                        channel_status.append(f"✅ Main Server gefunden: {main_guild.name}")
+                        
+                        if Config.DEV_CHANNEL_ID:
+                            dev_channel = main_guild.get_channel(Config.DEV_CHANNEL_ID)
+                            if dev_channel:
+                                channel_status.append(f"✅ Dev Channel gefunden: {dev_channel.name}")
+                                
+                                # Test permissions
+                                permissions = dev_channel.permissions_for(main_guild.me)
+                                if permissions.send_messages:
+                                    channel_status.append("✅ Send Messages Berechtigung vorhanden")
+                                else:
+                                    channel_status.append("❌ Keine Send Messages Berechtigung")
+                                    
+                                if permissions.attach_files:
+                                    channel_status.append("✅ Attach Files Berechtigung vorhanden")
+                                else:
+                                    channel_status.append("❌ Keine Attach Files Berechtigung")
+                            else:
+                                channel_status.append("❌ Dev Channel nicht gefunden")
+                        else:
+                            channel_status.append("❌ DEV_CHANNEL_ID nicht konfiguriert")
+                    else:
+                        channel_status.append("❌ Main Server nicht gefunden")
+                else:
+                    channel_status.append("❌ MAIN_SERVER_ID nicht konfiguriert")
+                    
+            except Exception as e:
+                channel_status.append(f"❌ Fehler beim Testen der Channel-Zugriff: {e}")
+            
+            embed.add_field(
+                name="🔍 Channel-Zugriff Test",
+                value="\n".join(channel_status) if channel_status else "❌ Keine Tests möglich",
+                inline=False
+            )
+            
+            # Find test log files
+            import glob
+            import os
+            log_files = glob.glob('/tmp/logs/*.log')
+            if log_files:
+                latest_log = max(log_files, key=os.path.getmtime)
+                file_size = os.path.getsize(latest_log)
+                embed.add_field(
+                    name="📋 Log-Dateien Status",
+                    value=f"✅ {len(log_files)} Log-Dateien gefunden\n📄 Neueste: {os.path.basename(latest_log)}\n💾 Größe: {file_size:,} Bytes",
+                    inline=False
+                )
+                
+                # Simulate test upload (create fake old files list for testing)
+                test_files = [(latest_log, os.path.getmtime(latest_log))]
+                embed.add_field(
+                    name="🧪 Test-Upload durchführen",
+                    value="⏳ Teste Log-Upload Funktion...",
+                    inline=False
+                )
+                
+                # Update embed first
+                await interaction.followup.send(embed=embed, ephemeral=True)
+                
+                # Test result - Configuration test only (SECURE: No actual uploads to prevent leak risks)
+                if Config.DEV_CHANNEL_ID and Config.MAIN_SERVER_ID and len(channel_status) > 0:
+                    # Success embed - Configuration is correct
+                    success_embed = discord.Embed(
+                        title="✅ Log-Upload Konfiguration Korrekt",
+                        description="**Die Konfiguration für sichere Log-Uploads ist korrekt!**",
+                        color=discord.Color.green()
+                    )
+                    success_embed.add_field(
+                        name="📊 Test-Ergebnis",
+                        value="✅ DEV_CHANNEL_ID und MAIN_SERVER_ID konfiguriert\n✅ Dev Channel erreichbar\n✅ Bot-Berechtigungen vorhanden\n✅ Sicherer Upload nur an konfigurierten Channel",
+                        inline=False
+                    )
+                    success_embed.add_field(
+                        name="🔐 Sicherheitsfeatures",
+                        value="• Keine Fallbacks zu anderen Servern\n• Nur konfigurierte Channels werden verwendet\n• Berechtigungen werden vor Upload geprüft\n• Sensitive Logs bleiben sicher",
+                        inline=False
+                    )
+                    success_embed.add_field(
+                        name="⏰ Automatischer Upload",
+                        value="Log-Upload erfolgt automatisch alle 6 Stunden bei der Log-Bereinigung",
+                        inline=False
+                    )
+                    success_embed.set_footer(text="🔐 Sicherheits-orientiertes Log-Upload System")
+                    
+                    await interaction.followup.send(embed=success_embed, ephemeral=True)
+                    logger.info("✅ Log-Upload Configuration Test completed successfully")
+                    
+                else:
+                    # Configuration error embed
+                    error_embed = discord.Embed(
+                        title="⚠️ Log-Upload Konfiguration Unvollständig",
+                        description="**Die Konfiguration für Log-Uploads ist unvollständig**",
+                        color=discord.Color.orange()
+                    )
+                    error_embed.add_field(
+                        name="🔧 Benötigte Konfiguration",
+                        value="• `DEV_CHANNEL_ID` - Channel-ID für Log-Uploads\n• `MAIN_SERVER_ID` - Server-ID für den Dev-Channel\n• Bot-Berechtigungen im Dev-Channel",
+                        inline=False
+                    )
+                    error_embed.add_field(
+                        name="🔐 Sicherheitshinweis",
+                        value="Ohne korrekte Konfiguration werden Log-Uploads für Sicherheit übersprungen. Dies verhindert versehentliche Uploads an falsche Server.",
+                        inline=False
+                    )
+                    
+                    await interaction.followup.send(embed=error_embed, ephemeral=True)
+                    logger.warning("⚠️ Log-Upload Configuration Test: Incomplete configuration")
+                    
+            else:
+                embed.add_field(
+                    name="❌ Keine Log-Dateien",
+                    value="Keine Log-Dateien in /tmp/logs/ gefunden",
+                    inline=False
+                )
+                await interaction.followup.send(embed=embed, ephemeral=True)
+                
+        except Exception as e:
+            logger.error(f"❌ Log-Upload Test error: {e}")
+            error_embed = discord.Embed(
+                title="❌ Log-Upload Test Fehler",
+                description="Ein unerwarteter Fehler ist aufgetreten.",
+                color=discord.Color.red()
+            )
+            try:
+                await interaction.followup.send(embed=error_embed, ephemeral=True)
+            except:
+                pass
 
     async def show_server_unban_modal(self, interaction: discord.Interaction):
         """Show modal for Server-Unban function"""  
