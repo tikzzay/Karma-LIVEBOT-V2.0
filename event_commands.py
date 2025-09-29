@@ -14,6 +14,7 @@ import asyncio
 import glob
 import time
 import aiohttp
+import random
 
 from config import Config
 from database import DatabaseManager
@@ -489,13 +490,24 @@ class UtilityCommands(commands.Cog):
         
         if is_admin:
             embed.add_field(
-                name="👑 Admin Befehle",
+                name="👑 Admin Befehle - Creator",
                 value=(
                     "`/addcreator` - Creator hinzufügen\n"
                     "`/deletecreator` - Creator entfernen\n"
+                    "`/customstreamermessage` - Custom Benachrichtigungstext setzen\n"
+                    "`/editigreftag` - Instant Gaming Referral Tag ändern"
+                ),
+                inline=False
+            )
+            embed.add_field(
+                name="👑 Admin Befehle - Event & Stats",
+                value=(
                     "`/streakevent on/off` - Event starten/stoppen\n"
                     "`/reset` - Event-Daten zurücksetzen\n"
-                    "`/serverinfo` - Server-Übersicht & Bot-Tests"
+                    "`/setupstatschannel` - Stats-Channels erstellen (Member, Online, etc.)\n"
+                    "`/socialmediastatschannel` - Social Media Stats-Channels erstellen\n"
+                    "`/managestatschannels` - Stats-Channels verwalten und löschen\n"
+                    "`/deletesocialmediastatschannel` - Social Media Stats-Channel löschen"
                 ),
                 inline=False
             )
@@ -1361,8 +1373,14 @@ class ServerInfoView(discord.ui.View):
         
         await interaction.response.edit_message(embed=status_embed, view=None)
         
-        # Test Spiele für direkte Produktlinks mit Error Handling
-        test_games = ["Cyberpunk 2077", "Call of Duty Black Ops 6"]
+        # Test Spiele für direkte Produktlinks mit Error Handling - wechselnde Spiele
+        import random
+        all_test_games = [
+            "Cyberpunk 2077", "Call of Duty Black Ops 6", "Elden Ring", 
+            "Hogwarts Legacy", "Red Dead Redemption 2", "GTA V",
+            "Minecraft", "Baldur's Gate 3", "Starfield", "Spider-Man"
+        ]
+        test_games = random.sample(all_test_games, 2)  # Wähle 2 zufällige Spiele
         
         try:
             logger.info(f"🎮 Testing Instant Gaming search for: {test_games[0]}")
@@ -1689,8 +1707,7 @@ class ServerInfoView(discord.ui.View):
             
             final_status.add_field(
                 name="🔧 Quick Commands:",
-                value="`/customstreamermessage` - Custom Message setzen/entfernen (interaktiv)\n"
-                      "`/serverinfo` - Weitere Tests verfügbar",
+                value="`/customstreamermessage` - Custom Message setzen/entfernen (interaktiv)",
                 inline=False
             )
             
@@ -1735,22 +1752,12 @@ class ServerInfoView(discord.ui.View):
                 color=discord.Color.blue()
             )
             
-            # Import the log upload function from main
-            try:
-                from main import post_logs_to_dev_channel, Config
-                embed.add_field(
-                    name="🔧 Import Status", 
-                    value="✅ Log-Upload Funktion erfolgreich importiert", 
-                    inline=False
-                )
-            except ImportError as e:
-                embed.add_field(
-                    name="❌ Import Fehler", 
-                    value=f"Konnte Log-Upload Funktion nicht importieren: {e}", 
-                    inline=False
-                )
-                await interaction.followup.send(embed=embed, ephemeral=True)
-                return
+            # No need to import from main - we'll upload directly
+            embed.add_field(
+                name="🔧 Upload Status", 
+                value="✅ Bereit zum Hochladen", 
+                inline=False
+            )
             
             # Check configuration
             config_status = []
@@ -1836,33 +1843,55 @@ class ServerInfoView(discord.ui.View):
                 # Update embed first
                 await interaction.followup.send(embed=embed, ephemeral=True)
                 
-                # Test result - Configuration test only (SECURE: No actual uploads to prevent leak risks)
+                # Test result - Actually upload the current log file to dev channel
                 if Config.DEV_CHANNEL_ID and Config.MAIN_SERVER_ID and len(channel_status) > 0:
-                    # Success embed - Configuration is correct
-                    success_embed = discord.Embed(
-                        title="✅ Log-Upload Konfiguration Korrekt",
-                        description="**Die Konfiguration für sichere Log-Uploads ist korrekt!**",
-                        color=discord.Color.green()
-                    )
-                    success_embed.add_field(
-                        name="📊 Test-Ergebnis",
-                        value="✅ DEV_CHANNEL_ID und MAIN_SERVER_ID konfiguriert\n✅ Dev Channel erreichbar\n✅ Bot-Berechtigungen vorhanden\n✅ Sicherer Upload nur an konfigurierten Channel",
-                        inline=False
-                    )
-                    success_embed.add_field(
-                        name="🔐 Sicherheitsfeatures",
-                        value="• Keine Fallbacks zu anderen Servern\n• Nur konfigurierte Channels werden verwendet\n• Berechtigungen werden vor Upload geprüft\n• Sensitive Logs bleiben sicher",
-                        inline=False
-                    )
-                    success_embed.add_field(
-                        name="⏰ Automatischer Upload",
-                        value="Log-Upload erfolgt automatisch alle 6 Stunden bei der Log-Bereinigung",
-                        inline=False
-                    )
-                    success_embed.set_footer(text="🔐 Sicherheits-orientiertes Log-Upload System")
-                    
-                    await interaction.followup.send(embed=success_embed, ephemeral=True)
-                    logger.info("✅ Log-Upload Configuration Test completed successfully")
+                    try:
+                        # Get dev channel
+                        main_guild = self.bot.get_guild(Config.MAIN_SERVER_ID)
+                        dev_channel = main_guild.get_channel(Config.DEV_CHANNEL_ID) if main_guild else None
+                        
+                        if dev_channel:
+                            # Upload the latest log file
+                            upload_embed = discord.Embed(
+                                title="📁 Log-Upload Test",
+                                description=f"**Aktueller Log wird hochgeladen...**\n📄 Datei: {os.path.basename(latest_log)}",
+                                color=discord.Color.blue()
+                            )
+                            await dev_channel.send(
+                                embed=upload_embed,
+                                file=discord.File(latest_log, filename=os.path.basename(latest_log))
+                            )
+                            
+                            # Success embed - Actual upload done
+                            success_embed = discord.Embed(
+                                title="✅ Log-Upload Test Erfolgreich",
+                                description="**Der aktuelle Log wurde erfolgreich hochgeladen!**",
+                                color=discord.Color.green()
+                            )
+                            success_embed.add_field(
+                                name="📊 Test-Ergebnis",
+                                value=f"✅ Log hochgeladen in: {dev_channel.mention}\n✅ Datei: {os.path.basename(latest_log)}\n✅ Größe: {file_size:,} Bytes",
+                                inline=False
+                            )
+                            success_embed.add_field(
+                                name="⏰ Automatischer Upload",
+                                value="Log-Upload erfolgt automatisch alle 6 Stunden bei der Log-Bereinigung",
+                                inline=False
+                            )
+                            success_embed.set_footer(text="🔐 Sicherheits-orientiertes Log-Upload System")
+                            
+                            await interaction.followup.send(embed=success_embed, ephemeral=True)
+                            logger.info(f"✅ Log-Upload Test completed successfully - uploaded {os.path.basename(latest_log)} to dev channel")
+                        else:
+                            raise Exception("Dev channel not accessible")
+                    except Exception as upload_error:
+                        logger.error(f"❌ Log-Upload Test failed: {upload_error}")
+                        error_embed = discord.Embed(
+                            title="❌ Log-Upload Test Fehlgeschlagen",
+                            description=f"**Fehler beim Upload: {str(upload_error)}**",
+                            color=discord.Color.red()
+                        )
+                        await interaction.followup.send(embed=error_embed, ephemeral=True)
                     
                 else:
                     # Configuration error embed

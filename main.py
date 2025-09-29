@@ -3118,8 +3118,11 @@ async def on_ready():
     
     # Initialize OpenAI Auto-Repair System
     global auto_repair_system
-    auto_repair_system = OpenAIAutoRepair(bot)
-    logger.info("🤖 OpenAI Auto-Repair System ready for scraping failures")
+    auto_repair_system = OpenAIAutoRepair(bot, openai_api_key=Config.OPENAI_API_KEY, dev_channel_id=Config.DEV_CHANNEL_ID)
+    if auto_repair_system.openai_client:
+        logger.info("🤖 OpenAI Auto-Repair System ready for scraping failures")
+    else:
+        logger.warning("🤖 OpenAI Auto-Repair System disabled - check API key configuration")
     
     # Import and add command cogs (pass DatabaseManager class)
     import commands
@@ -3191,7 +3194,7 @@ async def create_health_server():
     app.router.add_get('/status', health_check)
     
     # Get port from environment (backend health check server)
-    port = int(os.getenv('PORT', 8080))
+    port = int(os.getenv('PORT', 5000))
     
     # Start server
     runner = web.AppRunner(app)

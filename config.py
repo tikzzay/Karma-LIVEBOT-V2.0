@@ -30,7 +30,7 @@ class Config:
     
     # OpenAI Auto-Repair System
     OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
-    DEV_CHANNEL_ID = int(os.getenv('DEV_CHANNEL_ID')) if os.getenv('DEV_CHANNEL_ID') else 0
+    DEV_CHANNEL_ID = int(os.getenv('DEV_CHANNEL_ID', '0'))
     
     # Developer/Main Server Configuration
     MAIN_SERVER_ID = int(os.getenv('MAIN_SERVER_ID', '0'))

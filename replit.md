@@ -4,14 +4,22 @@
 KARMA-LiveBOT is a Discord bot designed to monitor and notify users about live streams across Twitch, YouTube, and TikTok. It features a tiered notification system: "Karma Streamers" receive enhanced cyberpunk-style notifications with daily streak tracking, while "Regular Streamers" get standard notifications. The bot operates entirely within Discord, offering a seamless user experience without external dashboards. Its core purpose is to keep Discord communities updated on their favorite streamers going live, fostering engagement and providing unique interactions like affiliate product links.
 
 ## User Preferences
-Preferred communication style: Simple, everyday language.
+- Preferred communication style: Simple, everyday language (German)
+- /serverinfo command restricted to BOT_DEVELOPER_ID on MAIN_SERVER_ID only
+- Stats channels auto-update every 5 minutes - manual renaming will be overwritten
 
 ## Recent Changes
-- [2025-09-29] Project imported to Replit environment, setting up dependencies and configuration
-- [2025-09-29] All Python dependencies installed successfully
-- [2025-09-29] Discord bot successfully configured and running
-- [2025-09-29] Health check web server running on port 5000
-- [2025-09-29] Production deployment configured for VM target
+- [2025-09-29] Fresh GitHub clone imported to Replit environment
+- [2025-09-29] All Python dependencies installed successfully (discord.py, aiohttp, tiktoklive, httpx, openai, etc.)
+- [2025-09-29] Fixed config.py type issue with DEV_CHANNEL_ID
+- [2025-09-29] Health check HTTP server configured on port 5000 for Replit
+- [2025-09-29] Workflow configured to run the Discord bot
+- [2025-09-29] .gitignore created for Python project
+- [2025-09-29] OpenAI Auto-Repair System fixed - API key and DEV_CHANNEL_ID now correctly passed
+- [2025-09-29] Database cleanup - removed 10 non-existent channels from stats_channels table
+- [2025-09-29] Improved event_commands.py tests: Instant Gaming (randomized), Log Upload (actual upload), Custom Message (cleaned up)
+- [2025-09-29] /help command updated with all new features (/customstreamermessage, /editigreftag, /setupstatschannel, etc.)
+- [2025-09-29] Procfile created for Railway deployment
 
 ## System Architecture
 The bot utilizes a modular, MEE6-style architecture, with specialized modules for each functional area. It is built on `discord.py` and uses `SQLite` for local data persistence.
