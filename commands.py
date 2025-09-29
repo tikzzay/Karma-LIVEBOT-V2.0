@@ -196,6 +196,127 @@ class CreatorManagement(commands.Cog):
         )
         
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
+    
+    @app_commands.command(name="editigreftag", description="Instant Gaming Referral Tag ändern")
+    @app_commands.default_permissions(administrator=True)
+    @has_admin_role()
+    async def edit_ig_ref_tag(self, interaction: discord.Interaction):
+        """Admin command to change the Instant Gaming referral tag - opens modal"""
+        try:
+            # Get current tag from database
+            conn = self.db.get_connection()
+            cursor = conn.cursor()
+            cursor.execute('SELECT affiliate_tag FROM instant_gaming_config WHERE id = 1')
+            current_result = cursor.fetchone()
+            current_tag = current_result[0] if current_result else "tikzzay"
+            conn.close()
+            
+            # Create and send modal
+            modal = EditIGRefTagModal(self.db, current_tag)
+            await interaction.response.send_modal(modal)
+            
+        except Exception as e:
+            logger.error(f"Error opening IG ref tag edit modal: {e}")
+            await interaction.response.send_message(
+                "❌ Fehler beim Öffnen des Bearbeitungsfensters. Bitte versuche es erneut.",
+                ephemeral=True
+            )
+
+class EditIGRefTagModal(discord.ui.Modal):
+    def __init__(self, db, current_tag):
+        super().__init__(title='Instant Gaming Referral Tag bearbeiten')
+        self.db = db
+        self.current_tag = current_tag
+        
+        # Create input field with current tag as default value
+        self.new_tag_input = discord.ui.TextInput(
+            label=f'Aktueller Tag: {current_tag}',
+            placeholder='Gib deinen neuen Referral Tag ein...',
+            default=current_tag,
+            style=discord.TextStyle.short,
+            max_length=50,
+            required=True
+        )
+        self.add_item(self.new_tag_input)
+
+    async def on_submit(self, interaction: discord.Interaction):
+        """Handle the submission of the new referral tag"""
+        new_tag = self.new_tag_input.value.strip()
+        
+        # Validate tag format
+        if not new_tag:
+            await interaction.response.send_message(
+                "❌ Der Referral Tag darf nicht leer sein!",
+                ephemeral=True
+            )
+            return
+        
+        # Check for invalid characters
+        invalid_chars = ['&', '?', '#', '/', '\\', ' ', '=']
+        if any(char in new_tag for char in invalid_chars):
+            await interaction.response.send_message(
+                f"❌ Der Referral Tag darf folgende Zeichen nicht enthalten: {', '.join(invalid_chars)}",
+                ephemeral=True
+            )
+            return
+        
+        # Check if tag is the same as current
+        if new_tag == self.current_tag:
+            await interaction.response.send_message(
+                f"❌ Der neue Tag ist identisch mit dem aktuellen Tag: `{self.current_tag}`",
+                ephemeral=True
+            )
+            return
+        
+        try:
+            # Update the affiliate tag in database
+            conn = self.db.get_connection()
+            cursor = conn.cursor()
+            cursor.execute('UPDATE instant_gaming_config SET affiliate_tag = ? WHERE id = 1', (new_tag,))
+            conn.commit()
+            conn.close()
+            
+            # Clear InstantGamingAPI cache to ensure new tag is used immediately
+            try:
+                from main import instant_gaming
+                instant_gaming.clear_cache()
+                logger.info("InstantGamingAPI cache cleared after affiliate tag update")
+            except Exception as cache_error:
+                logger.warning(f"Could not clear InstantGamingAPI cache: {cache_error}")
+            
+            # Create success embed
+            embed = discord.Embed(
+                title="✅ Instant Gaming Referral Tag aktualisiert",
+                description=f"Der Referral Tag wurde erfolgreich geändert!",
+                color=discord.Color.green()
+            )
+            embed.add_field(
+                name="Vorher:",
+                value=f"`{self.current_tag}`",
+                inline=True
+            )
+            embed.add_field(
+                name="Nachher:",
+                value=f"`{new_tag}`",
+                inline=True
+            )
+            embed.add_field(
+                name="💡 Hinweis:",
+                value="Alle neuen Instant Gaming Links verwenden nun den neuen Referral Tag.",
+                inline=False
+            )
+            
+            await interaction.response.send_message(embed=embed)
+            
+            # Log the change
+            logger.info(f"Instant Gaming referral tag changed from '{self.current_tag}' to '{new_tag}' by {interaction.user}")
+            
+        except Exception as e:
+            logger.error(f"Error updating Instant Gaming referral tag: {e}")
+            await interaction.response.send_message(
+                "❌ Fehler beim Aktualisieren des Referral Tags. Bitte versuche es erneut.",
+                ephemeral=True
+            )
 
 class CustomMessageModal(discord.ui.Modal):
     def __init__(self, db, creator_id, creator_name):

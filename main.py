@@ -500,8 +500,19 @@ class DatabaseManager:
             )
         ''')
         
+        # Instant Gaming Configuration table
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS instant_gaming_config (
+                id INTEGER PRIMARY KEY,
+                affiliate_tag TEXT NOT NULL DEFAULT 'tikzzay'
+            )
+        ''')
+        
         # Initialize event status if not exists
         cursor.execute('INSERT OR IGNORE INTO event_status (id, is_active) VALUES (1, FALSE)')
+        
+        # Initialize Instant Gaming config if not exists
+        cursor.execute('INSERT OR IGNORE INTO instant_gaming_config (id, affiliate_tag) VALUES (1, "tikzzay")')
         
         conn.commit()
         conn.close()
@@ -522,10 +533,22 @@ class InstantGamingAPI:
     """Integration for Instant Gaming game searches and affiliate links"""
     
     def __init__(self):
-        self.affiliate_tag = "tikzzay"  # Affiliate tag for commission
         self.search_base_url = "https://www.instant-gaming.com/en/search/"
         self.cache = {}  # Cache search results to avoid repeated requests
         self.cache_duration = 1800  # 30 minutes cache
+    
+    def get_affiliate_tag(self) -> str:
+        """Get the current affiliate tag from database"""
+        try:
+            conn = db.get_connection()
+            cursor = conn.cursor()
+            cursor.execute('SELECT affiliate_tag FROM instant_gaming_config WHERE id = 1')
+            result = cursor.fetchone()
+            conn.close()
+            return result[0] if result else "tikzzay"
+        except Exception as e:
+            logger.error(f"Error reading affiliate tag from database: {e}")
+            return "tikzzay"  # Fallback to default
     
     def clear_cache(self):
         """Clear the search cache to force fresh requests"""
@@ -651,7 +674,7 @@ class InstantGamingAPI:
                                 
                                 # Add affiliate tag to direct product link
                                 separator = '&' if '?' in product_url else '?'
-                                affiliate_url = f"{product_url}{separator}igr={self.affiliate_tag}"
+                                affiliate_url = f"{product_url}{separator}igr={self.get_affiliate_tag()}"
                                 
                                 result = {
                                     'found': True,
