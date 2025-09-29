@@ -8,6 +8,7 @@ import requests
 import re
 import json
 import logging
+import asyncio
 from typing import Optional, Dict, Any
 
 try:
@@ -22,17 +23,34 @@ class TikTokLiveChecker:
     """Verbesserte TikTok Live-Status-Überprüfung mit doppelter Verifikation"""
     
     def __init__(self):
-        self.session = requests.Session()
-        self.session.headers.update({
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-            'Accept-Language': 'en-US,en;q=0.5',
-            'Accept-Encoding': 'gzip, deflate',
-            'DNT': '1',
-            'Connection': 'keep-alive',
-            'Upgrade-Insecure-Requests': '1',
-        })
+        # Client-Cache für Wiederverwendung (Performance-Optimierung)
+        self.tiktok_clients = {}  # username -> TikTokLiveClient
+        self.client_creation_time = {}  # username -> creation timestamp
+        self.client_max_age = 3600  # Clients nach 1 Stunde erneuern
 
+    def _get_or_create_client(self, username: str):
+        """Holt wiederverwendbaren Client oder erstellt neuen (Performance-Optimierung)"""
+        import time
+        current_time = time.time()
+        
+        # Prüfe ob Client existiert und noch gültig ist
+        if username in self.tiktok_clients:
+            client_age = current_time - self.client_creation_time.get(username, 0)
+            if client_age < self.client_max_age:
+                # Client ist noch gültig, wiederverwenden
+                return self.tiktok_clients[username]
+            else:
+                # Client zu alt, entfernen
+                del self.tiktok_clients[username]
+                del self.client_creation_time[username]
+        
+        # Neuen Client erstellen und cachen
+        client = TikTokLiveClient(unique_id=username)
+        self.tiktok_clients[username] = client
+        self.client_creation_time[username] = current_time
+        logger.debug(f"TikTok {username}: Neuer Client erstellt (Cache: {len(self.tiktok_clients)} Clients)")
+        return client
+    
     async def check_tiktoklive_library(self, username: str) -> bool:
         """Überprüfung mit TikTokLive library (async)"""
         try:
@@ -41,7 +59,8 @@ class TikTokLiveChecker:
                 return False
                 
             logger.info(f"TikTok {username}: Teste TikTokLive library...")
-            client = TikTokLiveClient(unique_id=username)
+            # Wiederverwendbaren Client holen statt neuen zu erstellen
+            client = self._get_or_create_client(username)
             
             # Prüfe Live-Status (richtig mit await aufrufen!)
             try:
@@ -71,14 +90,25 @@ class TikTokLiveChecker:
             logger.error(f"TikTok {username}: TikTokLive library Fehler: {e}")
             return False
 
-    def check_html_parsing(self, username: str) -> Dict[str, Any]:
-        """Überprüfung mit HTML-Parsing der TikTok-Seite - erweitert für Bilder"""
+    def _sync_html_parsing(self, username: str) -> Dict[str, Any]:
+        """Synchrone HTML-Parsing Hilfsfunktion (wird in Thread ausgeführt)"""
         try:
             url = f"https://www.tiktok.com/@{username}"
-            logger.info(f"TikTok {username}: Teste HTML-Parsing von {url}...")
+            
+            # Erstelle neue Session pro Call für Thread-Sicherheit
+            session = requests.Session()
+            session.headers.update({
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                'Accept-Language': 'en-US,en;q=0.5',
+                'Accept-Encoding': 'gzip, deflate',
+                'DNT': '1',
+                'Connection': 'keep-alive',
+                'Upgrade-Insecure-Requests': '1',
+            })
             
             # Mache Request zur TikTok-Seite
-            response = self.session.get(url, timeout=10)
+            response = session.get(url, timeout=10)
             
             if response.status_code != 200:
                 logger.warning(f"TikTok {username}: HTTP Status {response.status_code}")
@@ -184,6 +214,17 @@ class TikTokLiveChecker:
         except Exception as e:
             logger.error(f"TikTok {username}: HTML-Parsing Fehler: {e}")
             return {"is_live": False, "thumbnail_url": "", "profile_image_url": "", "follower_count": 0}
+    
+    async def check_html_parsing(self, username: str) -> Dict[str, Any]:
+        """Asynchrone Überprüfung mit HTML-Parsing (Event-Loop-sicher)"""
+        logger.info(f"TikTok {username}: Teste HTML-Parsing von https://www.tiktok.com/@{username}...")
+        try:
+            # Führe synchrones HTML-Parsing in separatem Thread aus (verhindert Event-Loop Blocking)
+            result = await asyncio.to_thread(self._sync_html_parsing, username)
+            return result
+        except Exception as e:
+            logger.error(f"TikTok {username}: Async HTML-Parsing Fehler: {e}")
+            return {"is_live": False, "thumbnail_url": "", "profile_image_url": "", "follower_count": 0}
 
     async def is_user_live(self, username: str) -> Dict[str, Any]:
         """
@@ -200,7 +241,7 @@ class TikTokLiveChecker:
         logger.info(f"TikTok {username}: TikTokLive library Ergebnis: {library_result}")
         
         # Methode 2: HTML-Parsing (Zusatzbestätigung + Bild-Extraktion)
-        html_data = self.check_html_parsing(username)
+        html_data = await self.check_html_parsing(username)
         html_result = html_data.get("is_live", False)
         logger.info(f"TikTok {username}: HTML-Parsing Ergebnis: {html_result}")
         
@@ -267,15 +308,14 @@ class TikTokLiveChecker:
 improved_tiktok_checker = TikTokLiveChecker()
 
 # Kompatibilitätsfunktionen für einfache Integration (async)
-import asyncio
 
 async def check_tiktoklive(username: str) -> bool:
     """Einfache TikTokLive library Überprüfung"""
     return await improved_tiktok_checker.check_tiktoklive_library(username)
 
-def check_html(username: str) -> bool:
-    """Einfache HTML-Parsing Überprüfung"""
-    result = improved_tiktok_checker.check_html_parsing(username)
+async def check_html(username: str) -> bool:
+    """Einfache HTML-Parsing Überprüfung (async)"""
+    result = await improved_tiktok_checker.check_html_parsing(username)
     return result.get("is_live", False)
 
 async def is_user_live(username: str) -> bool:

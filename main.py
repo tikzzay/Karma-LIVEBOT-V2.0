@@ -114,7 +114,7 @@ class Config:
     
     # OpenAI Auto-Repair System
     OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
-    DEV_CHANNEL_ID = int(os.getenv('DEV_CHANNEL_ID')) if os.getenv('DEV_CHANNEL_ID') else None
+    DEV_CHANNEL_ID = int(os.getenv('DEV_CHANNEL_ID')) if os.getenv('DEV_CHANNEL_ID') else 0
     
     # Developer/Main Server Configuration
     MAIN_SERVER_ID = int(os.getenv('MAIN_SERVER_ID', '0'))  # Main server where dev logs should be posted
@@ -155,7 +155,7 @@ class OpenAIAutoRepair:
         else:
             logger.warning("🤖 OpenAI Auto-Repair System disabled - missing API key or library")
     
-    async def send_dev_notification(self, title: str, description: str, error_details: str = None, fix_applied: str = None, color: int = 0xFF6B6B):
+    async def send_dev_notification(self, title: str, description: str, error_details: str = "", fix_applied: str = "", color: int = 0xFF6B6B):
         """Sendet Entwickler-Benachrichtigung an DEV_CHANNEL_ID"""
         if not Config.DEV_CHANNEL_ID:
             logger.warning("🤖 DEV_CHANNEL_ID nicht konfiguriert - Benachrichtigung übersprungen")
@@ -196,7 +196,7 @@ class OpenAIAutoRepair:
         except Exception as e:
             logger.error(f"🤖 Fehler beim Senden der Dev-Benachrichtigung: {e}")
     
-    async def attempt_repair(self, platform: str, method: str, error: str, html_content: str = None, url: str = None) -> dict:
+    async def attempt_repair(self, platform: str, method: str, error: str, html_content: str = "", url: str = "") -> dict:
         """Versucht automatische Reparatur mit OpenAI"""
         if not self.openai_client:
             return {"success": False, "reason": "OpenAI nicht verfügbar"}
@@ -2664,6 +2664,8 @@ async def validate_tiktok_username(username: str) -> bool:
 # Live Checking Task
 # Individual Creator Task System - More Stable and Robust
 creator_tasks = {}  # Store individual task references
+creator_heartbeats = {}  # Track last heartbeat for each creator task
+creator_data_cache = {}  # Cache creator data for restarts
 
 async def individual_creator_task(creator_data):
     """Individual task for monitoring one creator across all platforms"""
@@ -2679,17 +2681,37 @@ async def individual_creator_task(creator_data):
     
     while True:
         try:
+            # Update heartbeat BEFORE check starts
+            creator_heartbeats[creator_id] = datetime.now()
+            
             logger.debug(f"🔍 Checking creator {username} ({streamer_type})")
-            await check_creator_platforms(creator_id, discord_user_id, username, streamer_type, channel_id, twitch_user, youtube_user, tiktok_user)
+            
+            # Wrap check in timeout to prevent hanging (max 90 seconds)
+            timeout_duration = 90  # Maximum time for a complete platform check
+            try:
+                await asyncio.wait_for(
+                    check_creator_platforms(creator_id, discord_user_id, username, streamer_type, channel_id, twitch_user, youtube_user, tiktok_user),
+                    timeout=timeout_duration
+                )
+            except asyncio.TimeoutError:
+                logger.error(f"⏱️ TIMEOUT: Creator check for {username} exceeded {timeout_duration}s - skipping this cycle")
+            
+            # Update heartbeat AFTER successful check
+            creator_heartbeats[creator_id] = datetime.now()
             
             # Wait for next check
             await asyncio.sleep(check_interval)
             
         except asyncio.CancelledError:
             logger.info(f"🛑 Task cancelled for creator {username}")
+            # Clean up heartbeat on cancellation
+            if creator_id in creator_heartbeats:
+                del creator_heartbeats[creator_id]
             break
         except Exception as e:
             logger.error(f"❌ Error in individual task for {username}: {e}")
+            # Update heartbeat even after error to show task is still alive
+            creator_heartbeats[creator_id] = datetime.now()
             # Wait a bit before retrying to avoid spam
             await asyncio.sleep(30)
 
@@ -2709,6 +2731,12 @@ async def start_individual_creator_tasks():
         for creator in creators:
             creator_id, discord_user_id, username, streamer_type, channel_id, twitch_user, youtube_user, tiktok_user = creator
             
+            # Cache creator data for potential restarts
+            creator_data_cache[creator_id] = creator
+            
+            # Initialize heartbeat
+            creator_heartbeats[creator_id] = datetime.now()
+            
             # Create individual task for this creator
             task = asyncio.create_task(individual_creator_task(creator))
             creator_tasks[creator_id] = task
@@ -2727,13 +2755,17 @@ async def start_individual_creator_tasks():
             except:
                 pass
 
-async def restart_creator_task(creator_id):
+async def restart_creator_task(creator_id, reason="manual"):
     """Restart task for a specific creator (useful when creator data changes)"""
     # Cancel existing task if it exists
     if creator_id in creator_tasks:
         creator_tasks[creator_id].cancel()
+        try:
+            await asyncio.wait_for(creator_tasks[creator_id], timeout=5.0)
+        except (asyncio.CancelledError, asyncio.TimeoutError):
+            pass
         del creator_tasks[creator_id]
-        logger.info(f"🔄 Cancelled old task for creator {creator_id}")
+        logger.info(f"🔄 Cancelled old task for creator {creator_id} (reason: {reason})")
     
     # Get updated creator data
     conn = None
@@ -2744,6 +2776,12 @@ async def restart_creator_task(creator_id):
         creator = cursor.fetchone()
         
         if creator:
+            # Update cache
+            creator_data_cache[creator_id] = creator
+            
+            # Reset heartbeat
+            creator_heartbeats[creator_id] = datetime.now()
+            
             # Start new task
             task = asyncio.create_task(individual_creator_task(creator))
             creator_tasks[creator_id] = task
@@ -2759,6 +2797,71 @@ async def restart_creator_task(creator_id):
                 conn.close()
             except:
                 pass
+
+async def watchdog_task():
+    """Watchdog task that monitors all creator tasks and restarts hung tasks"""
+    logger.info("🐕 Watchdog task started - monitoring all creator tasks for hangs")
+    
+    # Wait a bit before starting to let tasks initialize
+    await asyncio.sleep(60)
+    
+    while True:
+        try:
+            current_time = datetime.now()
+            hung_tasks = []
+            
+            # Check each creator task
+            for creator_id, last_heartbeat in list(creator_heartbeats.items()):
+                # Get creator info for logging
+                creator_info = creator_data_cache.get(creator_id)
+                if not creator_info:
+                    continue
+                
+                username = creator_info[2]  # discord_username
+                streamer_type = creator_info[3]  # streamer_type
+                
+                # Determine expected check interval
+                if streamer_type == 'karma':
+                    check_interval = Config.KARMA_CHECK_INTERVAL
+                else:
+                    check_interval = Config.REGULAR_CHECK_INTERVAL
+                
+                # Maximum allowed time without heartbeat (3x check interval + 90s buffer for processing)
+                max_allowed_time = check_interval * 3 + 90
+                time_since_heartbeat = (current_time - last_heartbeat).total_seconds()
+                
+                # Check if task is hung
+                if time_since_heartbeat > max_allowed_time:
+                    logger.warning(f"⚠️ WATCHDOG: Task for {username} (ID: {creator_id}) appears hung - last heartbeat {time_since_heartbeat:.0f}s ago (max: {max_allowed_time}s)")
+                    hung_tasks.append((creator_id, username, time_since_heartbeat))
+                
+                # Also check if task is still actually running
+                if creator_id in creator_tasks:
+                    task = creator_tasks[creator_id]
+                    if task.done():
+                        logger.warning(f"⚠️ WATCHDOG: Task for {username} (ID: {creator_id}) is unexpectedly done/crashed")
+                        hung_tasks.append((creator_id, username, 0))
+            
+            # Restart hung tasks
+            for creator_id, username, time_hung in hung_tasks:
+                logger.error(f"🔄 WATCHDOG: Restarting hung task for {username} (ID: {creator_id}) - was hung for {time_hung:.0f}s")
+                try:
+                    await restart_creator_task(creator_id, reason=f"watchdog_restart_hung_{time_hung:.0f}s")
+                except Exception as e:
+                    logger.error(f"❌ WATCHDOG: Failed to restart task for {username}: {e}")
+            
+            if hung_tasks:
+                logger.info(f"🐕 WATCHDOG: Restarted {len(hung_tasks)} hung task(s)")
+            
+            # Run watchdog check every 2 minutes
+            await asyncio.sleep(120)
+            
+        except asyncio.CancelledError:
+            logger.info("🐕 Watchdog task cancelled")
+            break
+        except Exception as e:
+            logger.error(f"❌ Error in watchdog task: {e}")
+            await asyncio.sleep(60)  # Wait before retrying
 
 # Old central live_checker removed - using individual creator tasks for better stability
 
@@ -4117,14 +4220,19 @@ async def on_ready():
         logger.info("🔧 TikTok recovery task started - checking TikTok connectivity every 30 minutes (150s offset)")
         
         await asyncio.sleep(30)  # 180s total delay
-        auto_restart_task.start()
-        logger.info("🔄 Auto-restart task started - restarting every 12 hours (180s offset)")
+        # Start watchdog task to monitor creator tasks
+        asyncio.create_task(watchdog_task())
+        logger.info("🐕 Watchdog task started - monitoring creator tasks for hangs every 2 minutes (180s offset)")
         
         await asyncio.sleep(30)  # 210s total delay
-        log_cleanup_task.start()
-        logger.info("🗑️ Log cleanup task started - cleaning logs every 6 hours (210s offset)")
+        auto_restart_task.start()
+        logger.info("🔄 Auto-restart task started - restarting every 12 hours (210s offset)")
         
-        logger.info("⚡ All background tasks started with performance optimization (7 minutes total stagger)")
+        await asyncio.sleep(30)  # 240s total delay
+        log_cleanup_task.start()
+        logger.info("🗑️ Log cleanup task started - cleaning logs every 6 hours (240s offset)")
+        
+        logger.info("⚡ All background tasks started with performance optimization (8 minutes total stagger)")
     
     # Start the staggered task startup in background
     asyncio.create_task(start_tasks_with_delays())
