@@ -32,6 +32,7 @@ from tiktok import improved_tiktok_checker, tiktok_platform_task
 from social import stats_platform_task, social_media_stats_platform_task, social_media_scraping_apis
 
 # Import core modules
+from config import Config
 from database import DatabaseManager
 from autorepair import OpenAIAutoRepair
 from instantgaming import InstantGamingAPI
@@ -101,46 +102,6 @@ logging.getLogger('discord.webhook.async_').setLevel(logging.WARNING)  # Reduce 
 logging.getLogger('aiohttp.access').setLevel(logging.WARNING)
 
 logger = logging.getLogger('KARMA-LiveBOT')
-
-# Bot Configuration
-class Config:
-    # Discord IDs aus der Spezifikation
-    ADMIN_ROLES = [1388945013735424020, 581139700408909864, 898970074491269170]
-    USER_ROLES = [292321283608150016, 276471077402705920]  # Beide normale User-Rollen
-    REGULAR_STREAMER_ROLE = 898194971029561344
-    KARMA_STREAMER_ROLE = 898971225311838268
-    LIVE_ROLE = 899306754549108786
-    
-    # API Keys aus Environment
-    DISCORD_TOKEN = os.getenv('DISCORD_TOKEN')
-    DISCORD_APP_ID = os.getenv('DISCORD_APP_ID')
-    TWITCH_CLIENT_ID = os.getenv('TWITCH_CLIENT_ID')
-    TWITCH_CLIENT_SECRET = os.getenv('TWITCH_CLIENT_SECRET')
-    YOUTUBE_API_KEY = os.getenv('YOUTUBE_API_KEY')
-    TWITTER_BEARER_TOKEN = os.getenv('TWITTER_BEARER_TOKEN')
-    INSTAGRAM_SESSION_ID = os.getenv('INSTAGRAM_SESSION_ID')
-    
-    # OpenAI Auto-Repair System
-    OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
-    DEV_CHANNEL_ID = int(os.getenv('DEV_CHANNEL_ID')) if os.getenv('DEV_CHANNEL_ID') else 0
-    
-    # Developer/Main Server Configuration
-    MAIN_SERVER_ID = int(os.getenv('MAIN_SERVER_ID', '0'))  # Main server where dev logs should be posted
-    
-    # Platform Colors
-    COLORS = {
-        'twitch': 0x9146FF,    # Lila
-        'youtube': 0xFF0000,   # Rot
-        'tiktok': 0x00F2EA,    # Hellblau
-        'instagram': 0xE4405F, # Instagram Pink
-        'twitter': 0x1DA1F2,   # Twitter Blau
-        'x': 0x000000          # X (Twitter) Schwarz
-    }
-    
-    # Check Intervals
-    KARMA_CHECK_INTERVAL = 60    # 1 Minute
-    REGULAR_CHECK_INTERVAL = 180 # 3 Minuten
-    SOCIAL_MEDIA_CHECK_INTERVAL = 1800 # 30 Minuten
 
 # Discord Bot Setup
 intents = discord.Intents.default()
@@ -2421,22 +2382,16 @@ async def get_discord_member_count():
 # Global variable for status rotation
 current_status_index = 0
 
-# Keep-Alive Task for Render.com
+# Keep-Alive Task
 @tasks.loop(minutes=10)
 async def keep_alive_ping():
     """Ping self every 10 minutes to prevent cloud platform from sleeping"""
     try:
-        # Get external URL from environment (Render/Railway)
-        external_url = os.getenv('RENDER_EXTERNAL_URL') or os.getenv('RAILWAY_PUBLIC_DOMAIN')
+        # Get current port from environment
+        port = int(os.getenv('PORT', 5000))
         
-        if external_url:
-            # Use external URL for cloud deployment
-            if not external_url.startswith('http'):
-                external_url = f"https://{external_url}"
-            ping_url = f"{external_url}/health"
-        else:
-            # Fallback to local - use same PORT as HTTP server (8080)
-            ping_url = f"http://localhost:8080/health"
+        # Use localhost with correct port
+        ping_url = f"http://localhost:{port}/health"
         
         # Ping health endpoint
         timeout = aiohttp.ClientTimeout(total=30)
@@ -2742,7 +2697,7 @@ async def log_cleanup_task():
         logger.error(f"🚨 LOG-CLEANUP ERROR: {e}")
 
 # Stats Channels Update Task
-@tasks.loop(minutes=5)
+@tasks.loop(minutes=10)
 async def stats_updater():
     """Update all stats channels with current server statistics"""
     try:
@@ -3128,7 +3083,7 @@ async def on_ready():
         
         await asyncio.sleep(30)  # 60s total delay  
         stats_updater.start()
-        logger.info("📊 Stats updater started - updating stats channels every 5 minutes (60s offset)")
+        logger.info("📊 Stats updater started - updating stats channels every 10 minutes (60s offset)")
         
         await asyncio.sleep(30)  # 90s total delay
         keep_alive_ping.start()
@@ -3136,7 +3091,7 @@ async def on_ready():
         
         await asyncio.sleep(30)  # 120s total delay
         social_media_stats_updater_task.start() 
-        logger.info("📱 Social Media stats updater started - updating social media channels every 30 minutes (120s offset)")
+        logger.info("📱 Social Media stats updater started - updating social media channels every 60 minutes (120s offset)")
         
         await asyncio.sleep(30)  # 150s total delay
         tiktok_recovery_task.start()
@@ -3214,7 +3169,7 @@ async def on_ready():
             logger.error(f'❌ All sync methods failed: {fallback_e}')
 
 async def create_health_server():
-    """Create a simple HTTP server for Render.com health checks"""
+    """Create a simple HTTP server for health checks"""
     async def health_check(request):
         return web.json_response({
             "status": "healthy",
@@ -3244,7 +3199,7 @@ async def create_health_server():
     site = web.TCPSite(runner, '0.0.0.0', port)
     await site.start()
     
-    logger.info(f"🌐 HTTP server started on port {port} for Render.com health checks")
+    logger.info(f"🌐 HTTP server started on port {port} for health checks")
     return runner
 
 async def main():
@@ -3255,7 +3210,7 @@ async def main():
     
     logger.info("Starting KARMA-LiveBOT...")
     
-    # Start HTTP server for Render.com
+    # Start HTTP server for health checks
     server_runner = await create_health_server()
     
     try:

@@ -10,27 +10,11 @@ from typing import List, Optional
 import logging
 from datetime import datetime, timedelta
 
+from config import Config
 from database import DatabaseManager
 from instantgaming import InstantGamingAPI
 
 logger = logging.getLogger('KARMA-LiveBOT.commands')
-
-# Configuration class (copied from main to avoid circular imports)
-class Config:
-    # Discord IDs aus der Spezifikation
-    ADMIN_ROLES = [1388945013735424020, 581139700408909864, 898970074491269170]
-    USER_ROLES = [292321283608150016, 276471077402705920]  # Beide normale User-Rollen
-    REGULAR_STREAMER_ROLE = 898194971029561344
-    KARMA_STREAMER_ROLE = 898971225311838268
-    LIVE_ROLE = 899306754549108786
-    STREAMER_REQUESTS_CHANNEL = 1420132930436595815  # Channel für Streamer-Anfragen
-    
-    # Platform Colors
-    COLORS = {
-        'twitch': 0x9146FF,    # Lila
-        'youtube': 0xFF0000,   # Rot
-        'tiktok': 0x00F2EA     # Hellblau
-    }
 
 # DatabaseManager will be set at runtime via set_database function
 

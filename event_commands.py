@@ -15,30 +15,11 @@ import glob
 import time
 import aiohttp
 
+from config import Config
 from database import DatabaseManager
 from event import EventManager
 
 logger = logging.getLogger('KARMA-LiveBOT.events')
-
-# Configuration
-class Config:
-    ADMIN_ROLES = [1388945013735424020, 581139700408909864, 898970074491269170]
-    USER_ROLES = [292321283608150016, 276471077402705920]  # Beide normale User-Rollen
-    
-    # Developer/Main Server Configuration (from secrets)
-    MAIN_SERVER_ID = int(os.getenv('MAIN_SERVER_ID', '0'))  # Main server where serverinfo command is available
-    BOT_DEVELOPER_ID = int(os.getenv('BOT_DEVELOPER_ID', '0'))  # Developer user ID
-    
-    # API Keys from Environment (avoid circular import)
-    TWITCH_CLIENT_ID = os.getenv('TWITCH_CLIENT_ID')
-    TWITCH_CLIENT_SECRET = os.getenv('TWITCH_CLIENT_SECRET')
-    YOUTUBE_API_KEY = os.getenv('YOUTUBE_API_KEY')
-    
-    COLORS = {
-        'twitch': 0x9146FF,    # Lila
-        'youtube': 0xFF0000,   # Rot
-        'tiktok': 0x00F2EA     # Hellblau
-    }
 
 # DatabaseManager will be set at runtime via set_database function
 

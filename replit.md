@@ -6,6 +6,13 @@ KARMA-LiveBOT is a Discord bot designed to monitor and notify users about live s
 ## User Preferences
 Preferred communication style: Simple, everyday language.
 
+## Recent Changes
+- [2025-09-29] Project imported to Replit environment, setting up dependencies and configuration
+- [2025-09-29] All Python dependencies installed successfully
+- [2025-09-29] Discord bot successfully configured and running
+- [2025-09-29] Health check web server running on port 5000
+- [2025-09-29] Production deployment configured for VM target
+
 ## System Architecture
 The bot utilizes a modular, MEE6-style architecture, with specialized modules for each functional area. It is built on `discord.py` and uses `SQLite` for local data persistence.
 
@@ -25,6 +32,12 @@ The bot utilizes a modular, MEE6-style architecture, with specialized modules fo
     -   **Personal Subscriptions:** Private DM notifications for subscribed users.
 -   **Data Model:** Manages creator profiles, stream sessions, dual streak systems (daily and event), user subscriptions, and channel configurations within an SQLite database.
 -   **Authentication & Permissions:** Role-based access control for Discord commands and environment variable-based API key management for external services.
+
+## Setup Requirements
+- Discord bot token and app ID required
+- Optional: Twitch, YouTube, TikTok API keys for full functionality
+- SQLite database (local storage)
+- Python 3.11+ runtime
 
 ## External Dependencies
 -   **Discord Services:** Discord Bot API, Discord Webhooks.
