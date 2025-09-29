@@ -15,6 +15,9 @@ import glob
 import time
 import aiohttp
 
+from database import DatabaseManager
+from event import EventManager
+
 logger = logging.getLogger('KARMA-LiveBOT.events')
 
 # Configuration
@@ -37,8 +40,7 @@ class Config:
         'tiktok': 0x00F2EA     # Hellblau
     }
 
-# DatabaseManager placeholder (will be set at runtime)
-DatabaseManager = None
+# DatabaseManager will be set at runtime via set_database function
 
 def has_admin_role():
     """Check if user has admin permissions"""

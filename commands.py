@@ -10,6 +10,9 @@ from typing import List, Optional
 import logging
 from datetime import datetime, timedelta
 
+from database import DatabaseManager
+from instantgaming import InstantGamingAPI
+
 logger = logging.getLogger('KARMA-LiveBOT.commands')
 
 # Configuration class (copied from main to avoid circular imports)
@@ -29,8 +32,7 @@ class Config:
         'tiktok': 0x00F2EA     # Hellblau
     }
 
-# DatabaseManager placeholder (will be set at runtime)
-DatabaseManager = None
+# DatabaseManager will be set at runtime via set_database function
 
 def has_admin_role():
     """Check if user has admin permissions"""
