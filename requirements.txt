@@ -9,17 +9,6 @@ brotli>=1.1.0
 schedule>=1.2.2
 httpx>=0.25.0
 openai
-aiohttp
-beautifulsoup4
-brotli
-discord.py
-httpx
-openai
-PyNaCl
-python-dotenv
-requests
-schedule
-tiktoklive
 aiohttp>=3.12.15
 beautifulsoup4>=4.13.5
 brotli>=1.1.0

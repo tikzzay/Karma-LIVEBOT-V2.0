@@ -25,6 +25,13 @@ import json
 import zipfile
 import io
 
+# Verbesserte TikTok Live-Erkennung
+try:
+    from live_checker import improved_tiktok_checker
+    IMPROVED_TIKTOK_CHECKER_AVAILABLE = True
+except ImportError:
+    IMPROVED_TIKTOK_CHECKER_AVAILABLE = False
+
 # OpenAI for automatic scraping repair
 # the newest OpenAI model is "gpt-5" which was released August 7, 2025. 
 # do not change this unless explicitly requested by the user
@@ -2272,7 +2279,30 @@ class TikTokLiveChecker:
         return None
 
     async def get_stream_info(self, username: str) -> Optional[Dict]:
-        """Get stream information for a TikTok user with advanced WAF bypass"""
+        """Get stream information for a TikTok user with improved double verification"""
+        
+        # 🚀 PRIORITÄT 1: Neue doppelte Verifikation (TikTokLive + HTML-Parsing)
+        if IMPROVED_TIKTOK_CHECKER_AVAILABLE:
+            try:
+                logger.info(f"TikTok {username}: Verwende verbesserte doppelte Verifikation...")
+                result = await improved_tiktok_checker.is_user_live(username)
+                
+                if result.get('is_live'):
+                    logger.info(f"TikTok {username}: ✅ DOPPELT BESTÄTIGT via neue Methode - User ist LIVE!")
+                    return result
+                else:
+                    logger.info(f"TikTok {username}: Doppelte Verifikation bestätigt - User offline")
+                    # Bei negativem Ergebnis der doppelten Verifikation ist das sehr sicher
+                    return {'is_live': False, 'method': 'double_verification_offline'}
+                    
+            except Exception as e:
+                logger.warning(f"TikTok {username}: Doppelte Verifikation fehlgeschlagen: {e}")
+                # Falls die neue Methode fehlschlägt, verwende Fallback
+                logger.info(f"TikTok {username}: Fallback auf erweiterte WAF-Umgehung...")
+        else:
+            logger.warning(f"TikTok {username}: Verbesserte Checker nicht verfügbar, verwende Fallback...")
+        
+        # 🔄 FALLBACK: Bestehende erweiterte WAF-Umgehungslogik
         try:
             # Initialize session if needed
             await self._init_session()
