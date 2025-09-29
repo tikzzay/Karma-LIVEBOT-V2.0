@@ -25,12 +25,14 @@ import json
 import zipfile
 import io
 
-# Verbesserte TikTok Live-Erkennung
-try:
-    from live_checker import improved_tiktok_checker
-    IMPROVED_TIKTOK_CHECKER_AVAILABLE = True
-except ImportError:
-    IMPROVED_TIKTOK_CHECKER_AVAILABLE = False
+# Import platform modules
+from twitch import twitch_api, twitch_platform_task
+from youtube import youtube_api, youtube_platform_task
+from tiktok import improved_tiktok_checker, tiktok_platform_task
+from stats import stats_platform_task, social_media_stats_platform_task, social_media_scraping_apis
+
+# Verbesserte TikTok Live-Erkennung (legacy compatibility)
+IMPROVED_TIKTOK_CHECKER_AVAILABLE = True
 
 # OpenAI for automatic scraping repair
 # the newest OpenAI model is "gpt-5" which was released August 7, 2025. 
@@ -2662,10 +2664,254 @@ async def validate_tiktok_username(username: str) -> bool:
     return False  # Default to False if validation fails
 
 # Live Checking Task
-# Individual Creator Task System - More Stable and Robust
-creator_tasks = {}  # Store individual task references
-creator_heartbeats = {}  # Track last heartbeat for each creator task
-creator_data_cache = {}  # Cache creator data for restarts
+# ========== NEW MODULAR PLATFORM TASK SYSTEM ==========
+# Platform task references
+platform_tasks = {}  # Store platform task references
+platform_task_heartbeats = {}  # Track platform task health
+creators_cache = []  # Cache all creators for platform tasks
+
+# Legacy compatibility (for functions that still expect the old system)
+creator_tasks = {}  # Keep for backward compatibility
+creator_heartbeats = {}  # Keep for backward compatibility  
+creator_data_cache = {}  # Keep for backward compatibility
+
+# ========== NEW PLATFORM COORDINATION SYSTEM ==========
+
+async def refresh_creators_cache():
+    """Refresh the creators cache for platform tasks"""
+    global creators_cache
+    try:
+        conn = db.get_connection()
+        cursor = conn.cursor()
+        cursor.execute('SELECT id, discord_user_id, discord_username, streamer_type, notification_channel_id, twitch_username, youtube_username, tiktok_username FROM creators')
+        creators_cache = cursor.fetchall()
+        conn.close()
+        logger.info(f"✅ Refreshed creators cache: {len(creators_cache)} creators")
+        return creators_cache
+    except Exception as e:
+        logger.error(f"❌ Error refreshing creators cache: {e}")
+        return []
+
+async def platform_notification_coordinator(creator_id, discord_user_id, username, streamer_type, channel_id, platform, platform_username, stream_info):
+    """Coordinate notifications from platform tasks to the notification system"""
+    try:
+        # This is the bridge between new platform tasks and existing notification system
+        await handle_stream_status(creator_id, discord_user_id, username, streamer_type, channel_id, platform, platform_username, stream_info)
+    except Exception as e:
+        logger.error(f"❌ Error in platform notification coordinator for {username} on {platform}: {e}")
+
+async def start_new_platform_tasks():
+    """Start the new modular platform tasks"""
+    global platform_tasks
+    
+    try:
+        logger.info("🚀 Starting new modular platform task system...")
+        
+        # Refresh creators cache
+        creators = await refresh_creators_cache()
+        
+        # Start Twitch platform task
+        logger.info("🎮 Starting Twitch platform task...")
+        platform_tasks['twitch'] = asyncio.create_task(
+            enhanced_twitch_platform_task(db, bot, creators)
+        )
+        
+        # Start YouTube platform task
+        logger.info("📺 Starting YouTube platform task...")
+        platform_tasks['youtube'] = asyncio.create_task(
+            enhanced_youtube_platform_task(db, bot, creators)
+        )
+        
+        # Start TikTok platform task
+        logger.info("🎵 Starting TikTok platform task...")
+        platform_tasks['tiktok'] = asyncio.create_task(
+            enhanced_tiktok_platform_task(db, bot, creators)
+        )
+        
+        # Start Stats platform task
+        logger.info("📊 Starting Stats platform task...")
+        platform_tasks['stats'] = asyncio.create_task(
+            stats_platform_task(db, bot)
+        )
+        
+        # Start Social Media Stats platform task
+        logger.info("📱 Starting Social Media Stats platform task...")
+        platform_tasks['social_media_stats'] = asyncio.create_task(
+            social_media_stats_platform_task(db, bot)
+        )
+        
+        logger.info(f"✅ Successfully started {len(platform_tasks)} platform tasks")
+        
+    except Exception as e:
+        logger.error(f"❌ Error starting platform tasks: {e}")
+
+async def enhanced_twitch_platform_task(db, bot, creators):
+    """Enhanced Twitch platform task with notification coordination"""
+    logger.info("🎮 Enhanced Twitch platform task started")
+    
+    while True:
+        try:
+            # Refresh creators periodically
+            if random.randint(1, 10) == 1:  # 10% chance each cycle
+                creators = await refresh_creators_cache()
+            
+            twitch_creators = [c for c in creators if c[5]]  # Has twitch_username
+            
+            if not twitch_creators:
+                await asyncio.sleep(120)  # Wait 2 minutes if no Twitch creators
+                continue
+            
+            platform_task_heartbeats['twitch'] = datetime.now()
+            logger.debug(f"🎮 Checking {len(twitch_creators)} Twitch creators")
+            
+            for creator in twitch_creators:
+                creator_id, discord_user_id, username, streamer_type, channel_id, twitch_user, youtube_user, tiktok_user = creator
+                
+                try:
+                    # Check if user is live using the imported twitch_api
+                    stream_info = await twitch_api.get_stream_info(twitch_user)
+                    
+                    if stream_info and stream_info.get('is_live'):
+                        logger.info(f"🎮 {twitch_user} is LIVE on Twitch!")
+                        # Trigger notification through coordinator
+                        await platform_notification_coordinator(
+                            creator_id, discord_user_id, username, streamer_type, 
+                            channel_id, 'twitch', twitch_user, stream_info
+                        )
+                    else:
+                        # Handle offline status too
+                        offline_info = {'is_live': False}
+                        await platform_notification_coordinator(
+                            creator_id, discord_user_id, username, streamer_type, 
+                            channel_id, 'twitch', twitch_user, offline_info
+                        )
+                    
+                except Exception as e:
+                    logger.error(f"🎮 Error checking Twitch user {twitch_user}: {e}")
+                
+                # Small delay between checks to avoid rate limits
+                await asyncio.sleep(2)
+            
+            # Determine wait time based on streamer types
+            karma_creators = [c for c in twitch_creators if c[3] == 'karma']
+            if karma_creators:
+                await asyncio.sleep(60)  # 1 minute for karma streamers
+            else:
+                await asyncio.sleep(180)  # 3 minutes for regular streamers
+            
+        except Exception as e:
+            logger.error(f"🎮 Error in enhanced Twitch platform task: {e}")
+            await asyncio.sleep(30)  # Wait before retrying on error
+
+async def enhanced_youtube_platform_task(db, bot, creators):
+    """Enhanced YouTube platform task with notification coordination"""
+    logger.info("📺 Enhanced YouTube platform task started")
+    
+    while True:
+        try:
+            # Refresh creators periodically
+            if random.randint(1, 10) == 1:  # 10% chance each cycle
+                creators = await refresh_creators_cache()
+            
+            youtube_creators = [c for c in creators if c[6]]  # Has youtube_username
+            
+            if not youtube_creators:
+                await asyncio.sleep(300)  # Wait 5 minutes if no YouTube creators
+                continue
+            
+            platform_task_heartbeats['youtube'] = datetime.now()
+            logger.debug(f"📺 Checking {len(youtube_creators)} YouTube creators")
+            
+            for creator in youtube_creators:
+                creator_id, discord_user_id, username, streamer_type, channel_id, twitch_user, youtube_user, tiktok_user = creator
+                
+                try:
+                    # Check if user is live using the imported youtube_api
+                    stream_info = await youtube_api.get_stream_info(youtube_user)
+                    
+                    if stream_info and stream_info.get('is_live'):
+                        logger.info(f"📺 {youtube_user} is LIVE on YouTube!")
+                        # Trigger notification through coordinator
+                        await platform_notification_coordinator(
+                            creator_id, discord_user_id, username, streamer_type, 
+                            channel_id, 'youtube', youtube_user, stream_info
+                        )
+                    else:
+                        # Handle offline status too
+                        offline_info = {'is_live': False}
+                        await platform_notification_coordinator(
+                            creator_id, discord_user_id, username, streamer_type, 
+                            channel_id, 'youtube', youtube_user, offline_info
+                        )
+                    
+                except Exception as e:
+                    logger.error(f"📺 Error checking YouTube user {youtube_user}: {e}")
+                
+                # Small delay between checks to avoid rate limits
+                await asyncio.sleep(3)
+            
+            # YouTube checks less frequently (5 minutes)
+            await asyncio.sleep(300)
+            
+        except Exception as e:
+            logger.error(f"📺 Error in enhanced YouTube platform task: {e}")
+            await asyncio.sleep(60)  # Wait before retrying on error
+
+async def enhanced_tiktok_platform_task(db, bot, creators):
+    """Enhanced TikTok platform task with notification coordination"""
+    logger.info("🎵 Enhanced TikTok platform task started")
+    
+    while True:
+        try:
+            # Refresh creators periodically
+            if random.randint(1, 10) == 1:  # 10% chance each cycle
+                creators = await refresh_creators_cache()
+            
+            tiktok_creators = [c for c in creators if c[7]]  # Has tiktok_username
+            
+            if not tiktok_creators:
+                await asyncio.sleep(180)  # Wait 3 minutes if no TikTok creators
+                continue
+            
+            platform_task_heartbeats['tiktok'] = datetime.now()
+            logger.debug(f"🎵 Checking {len(tiktok_creators)} TikTok creators")
+            
+            for creator in tiktok_creators:
+                creator_id, discord_user_id, username, streamer_type, channel_id, twitch_user, youtube_user, tiktok_user = creator
+                
+                try:
+                    # Check if user is live using the imported improved_tiktok_checker
+                    stream_info = await improved_tiktok_checker.is_user_live(tiktok_user)
+                    
+                    if stream_info and stream_info.get('is_live'):
+                        logger.info(f"🎵 {tiktok_user} is LIVE on TikTok!")
+                        # Trigger notification through coordinator
+                        await platform_notification_coordinator(
+                            creator_id, discord_user_id, username, streamer_type, 
+                            channel_id, 'tiktok', tiktok_user, stream_info
+                        )
+                    else:
+                        # Handle offline status too
+                        offline_info = {'is_live': False}
+                        await platform_notification_coordinator(
+                            creator_id, discord_user_id, username, streamer_type, 
+                            channel_id, 'tiktok', tiktok_user, offline_info
+                        )
+                    
+                except Exception as e:
+                    logger.error(f"🎵 Error checking TikTok user {tiktok_user}: {e}")
+                
+                # Small delay between checks to avoid rate limits
+                await asyncio.sleep(2)
+            
+            # TikTok checks every 3 minutes
+            await asyncio.sleep(180)
+            
+        except Exception as e:
+            logger.error(f"🎵 Error in enhanced TikTok platform task: {e}")
+            await asyncio.sleep(30)  # Wait before retrying on error
+
+# ========== LEGACY SYSTEM (kept for compatibility) ==========
 
 async def individual_creator_task(creator_data):
     """Individual task for monitoring one creator across all platforms"""
@@ -4189,10 +4435,14 @@ async def on_ready():
     
     logger.info("🌍 ============ END SERVER OVERVIEW ============\n")
     
-    # ========== OPTIMIZED TASK STARTUP (with staggered delays) ==========
+    # ========== NEW MODULAR PLATFORM TASK SYSTEM ==========
     
-    # Start individual creator tasks (more stable than central task)
-    await start_individual_creator_tasks()
+    # Start the new modular platform tasks (improved stability and performance)
+    logger.info("🚀 Starting NEW modular platform task system...")
+    await start_new_platform_tasks()
+    
+    # Keep legacy system available for comparison (but don't start it)
+    # await start_individual_creator_tasks()  # OLD SYSTEM - REPLACED
     
     # Staggered startup to avoid overlaps:
     # Delay each task by 30 seconds to prevent simultaneous execution
