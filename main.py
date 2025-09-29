@@ -2533,7 +2533,7 @@ class TikTokLiveChecker:
 # Initialize platform APIs
 twitch_api = TwitchAPI()
 youtube_api = YouTubeAPI()
-tiktok_live_checker = TikTokLiveChecker()
+# Old TikTokLiveChecker removed - using improved_tiktok_checker from live_checker.py
 
 # Username Validation Functions
 async def validate_username(platform: str, username: str) -> bool:
@@ -2662,49 +2662,105 @@ async def validate_tiktok_username(username: str) -> bool:
     return False  # Default to False if validation fails
 
 # Live Checking Task
-@tasks.loop(minutes=1)
-async def live_checker():
-    """Check for live streams based on streamer type intervals"""
+# Individual Creator Task System - More Stable and Robust
+creator_tasks = {}  # Store individual task references
+
+async def individual_creator_task(creator_data):
+    """Individual task for monitoring one creator across all platforms"""
+    creator_id, discord_user_id, username, streamer_type, channel_id, twitch_user, youtube_user, tiktok_user = creator_data
+    
+    # Determine check interval based on streamer type
+    if streamer_type == 'karma':
+        check_interval = Config.KARMA_CHECK_INTERVAL  # 1 minute
+    else:
+        check_interval = Config.REGULAR_CHECK_INTERVAL  # 3 minutes
+    
+    logger.info(f"🎯 Starting individual task for {username} ({streamer_type}) - checking every {check_interval}s")
+    
+    while True:
+        try:
+            logger.debug(f"🔍 Checking creator {username} ({streamer_type})")
+            await check_creator_platforms(creator_id, discord_user_id, username, streamer_type, channel_id, twitch_user, youtube_user, tiktok_user)
+            
+            # Wait for next check
+            await asyncio.sleep(check_interval)
+            
+        except asyncio.CancelledError:
+            logger.info(f"🛑 Task cancelled for creator {username}")
+            break
+        except Exception as e:
+            logger.error(f"❌ Error in individual task for {username}: {e}")
+            # Wait a bit before retrying to avoid spam
+            await asyncio.sleep(30)
+
+async def start_individual_creator_tasks():
+    """Start individual tasks for all creators"""
     conn = None
     try:
         conn = db.get_connection()
         cursor = conn.cursor()
         
-        # Get current time in minutes since epoch for timing calculations
-        current_minute = int(time.time() // 60)
-        
-        logger.info(f"Live checker running - minute {current_minute}")
-        
         # Get all creators
         cursor.execute('SELECT id, discord_user_id, discord_username, streamer_type, notification_channel_id, twitch_username, youtube_username, tiktok_username FROM creators')
         creators = cursor.fetchall()
         
-        logger.info(f"Checking {len(creators)} creators")
+        logger.info(f"🚀 Starting {len(creators)} individual creator tasks...")
         
         for creator in creators:
             creator_id, discord_user_id, username, streamer_type, channel_id, twitch_user, youtube_user, tiktok_user = creator
             
-            # Check interval based on streamer type
-            should_check = False
-            if streamer_type == 'karma':
-                should_check = True  # Check every minute
-            elif streamer_type == 'regular':
-                should_check = (current_minute % 3 == 0)  # Check every 3 minutes
+            # Create individual task for this creator
+            task = asyncio.create_task(individual_creator_task(creator))
+            creator_tasks[creator_id] = task
             
-            if should_check:
-                logger.info(f"Checking creator {username} ({streamer_type})")
-                await check_creator_platforms(creator_id, discord_user_id, username, streamer_type, channel_id, twitch_user, youtube_user, tiktok_user)
-            else:
-                logger.debug(f"Skipping {username} ({streamer_type}) - not time to check")
-    
+            # Small delay between starting tasks to prevent thundering herd
+            await asyncio.sleep(2)
+        
+        logger.info(f"✅ Successfully started {len(creator_tasks)} individual creator tasks")
+        
     except Exception as e:
-        logger.error(f"Error in live_checker: {e}")
+        logger.error(f"❌ Error starting individual creator tasks: {e}")
     finally:
         if conn:
             try:
                 conn.close()
             except:
                 pass
+
+async def restart_creator_task(creator_id):
+    """Restart task for a specific creator (useful when creator data changes)"""
+    # Cancel existing task if it exists
+    if creator_id in creator_tasks:
+        creator_tasks[creator_id].cancel()
+        del creator_tasks[creator_id]
+        logger.info(f"🔄 Cancelled old task for creator {creator_id}")
+    
+    # Get updated creator data
+    conn = None
+    try:
+        conn = db.get_connection()
+        cursor = conn.cursor()
+        cursor.execute('SELECT id, discord_user_id, discord_username, streamer_type, notification_channel_id, twitch_username, youtube_username, tiktok_username FROM creators WHERE id = ?', (creator_id,))
+        creator = cursor.fetchone()
+        
+        if creator:
+            # Start new task
+            task = asyncio.create_task(individual_creator_task(creator))
+            creator_tasks[creator_id] = task
+            logger.info(f"✅ Restarted task for creator {creator[2]} (ID: {creator_id})")
+        else:
+            logger.warning(f"⚠️ Creator {creator_id} not found for restart")
+    
+    except Exception as e:
+        logger.error(f"❌ Error restarting creator task {creator_id}: {e}")
+    finally:
+        if conn:
+            try:
+                conn.close()
+            except:
+                pass
+
+# Old central live_checker removed - using individual creator tasks for better stability
 
 async def check_creator_platforms(creator_id, discord_user_id, username, streamer_type, channel_id, twitch_user, youtube_user, tiktok_user):
     """Check all platforms for a specific creator"""
@@ -2726,7 +2782,13 @@ async def check_creator_platforms(creator_id, discord_user_id, username, streame
             elif platform == 'youtube':
                 stream_info = await youtube_api.get_stream_info(platform_username)
             elif platform == 'tiktok':
-                stream_info = await tiktok_live_checker.get_stream_info(platform_username)
+                # Use improved TikTok checker with image support
+                logger.info(f"TikTok {platform_username}: Verwende verbesserte doppelte Verifikation...")
+                result = await improved_tiktok_checker.is_user_live(platform_username)
+                if result.get('is_live', False):
+                    stream_info = result
+                else:
+                    stream_info = None
             
             if stream_info:
                 await handle_stream_status(creator_id, discord_user_id, username, streamer_type, channel_id, platform, platform_username, stream_info)
@@ -3435,7 +3497,7 @@ async def auto_restart_task():
         
         # Close all connections gracefully
         logger.info("🔄 AUTO-RESTART: Closing connections...")
-        await tiktok_live_checker.cleanup()
+        # Cleanup removed - improved_tiktok_checker handles its own session management
         
         # Exit - Replit/Railway will automatically restart the bot
         logger.info("🔄 AUTO-RESTART: Exiting for restart...")
@@ -3928,14 +3990,8 @@ async def tiktok_recovery_task():
         
         logger.info(f"🔧 TIKTOK-RECOVERY: Checking {len(tiktok_creators)} TikTok creators...")
         
-        # Reset any stuck TikTok connections
-        try:
-            if hasattr(tiktok_live_checker, 'session') and tiktok_live_checker.session:
-                await tiktok_live_checker.session.close()
-                tiktok_live_checker.session = None
-                logger.info("🔧 TIKTOK-RECOVERY: Reset TikTok HTTP session")
-        except Exception as session_error:
-            logger.warning(f"Error resetting TikTok session: {session_error}")
+        # Session management now handled by improved_tiktok_checker
+        logger.info("🔧 TIKTOK-RECOVERY: Using improved TikTok checker")
         
         # Test TikTok connectivity with a quick check
         recovery_success = 0
@@ -3947,7 +4003,7 @@ async def tiktok_recovery_task():
                 
                 # Quick connectivity test with timeout
                 test_result = await asyncio.wait_for(
-                    tiktok_live_checker.get_stream_info(tiktok_user),
+                    improved_tiktok_checker.is_user_live(tiktok_user),
                     timeout=15.0
                 )
                 
@@ -3965,18 +4021,8 @@ async def tiktok_recovery_task():
                 recovery_failed += 1
                 logger.warning(f"⚠️ TikTok recovery error for {username}: {test_error}")
         
-        # Reset TikTok API caches to prevent stale data
-        try:
-            if hasattr(tiktok_live_checker, 'cache'):
-                tiktok_live_checker.cache.clear()
-            if hasattr(tiktok_live_checker, 'scrape_cache'):
-                tiktok_live_checker.scrape_cache.clear()
-            if hasattr(tiktok_live_checker, 'quota_backoff'):
-                # Don't clear quota backoff - it's there for protection
-                pass
-            logger.info("🔧 TIKTOK-RECOVERY: Cleared TikTok caches")
-        except Exception as cache_error:
-            logger.warning(f"Error clearing TikTok caches: {cache_error}")
+        # Cache management now handled by improved_tiktok_checker  
+        logger.info("🔧 TIKTOK-RECOVERY: Cache management handled by improved checker")
         
         conn.close()
         
@@ -4042,8 +4088,8 @@ async def on_ready():
     
     # ========== OPTIMIZED TASK STARTUP (with staggered delays) ==========
     
-    # Start the live checker immediately (most critical)
-    live_checker.start()
+    # Start individual creator tasks (more stable than central task)
+    await start_individual_creator_tasks()
     
     # Staggered startup to avoid overlaps:
     # Delay each task by 30 seconds to prevent simultaneous execution
@@ -4191,7 +4237,7 @@ async def main():
         if server_runner:
             await server_runner.cleanup()
         # Clean up TikTok session to prevent resource leaks
-        await tiktok_live_checker.cleanup()
+        # Cleanup removed - improved_tiktok_checker handles its own session management
         await bot.close()
 
 if __name__ == '__main__':
