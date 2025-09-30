@@ -20,8 +20,6 @@ class SocialMediaAPIs:
     """Manager for all social media platform APIs"""
     
     def __init__(self):
-        self.twitter_bearer_token = os.getenv('TWITTER_BEARER_TOKEN')
-        self.instagram_session_id = os.getenv('INSTAGRAM_SESSION_ID')
         self.youtube_api_key = os.getenv('YOUTUBE_API_KEY')
         self.twitch_client_id = os.getenv('TWITCH_CLIENT_ID')
         self.twitch_client_secret = os.getenv('TWITCH_CLIENT_SECRET')
@@ -41,9 +39,7 @@ class SocialMediaAPIs:
                 return cached_data['count']
         
         try:
-            if platform == 'instagram':
-                count = await self._get_instagram_followers(username)
-            elif platform in ['x', 'twitter']:
+            if platform in ['x', 'twitter']:
                 count = await self._get_twitter_followers(username)
             elif platform == 'youtube':
                 count = await self._get_youtube_subscribers(username)
@@ -71,68 +67,49 @@ class SocialMediaAPIs:
             logger.error(f"Error getting {platform} followers for {username}: {e}")
             return None
     
-    async def _get_instagram_followers(self, username: str) -> Optional[int]:
-        """Get Instagram follower count via web scraping"""
+    async def _get_twitter_followers(self, username: str) -> Optional[int]:
+        """Get Twitter/X follower count via web scraping only"""
         try:
             headers = {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
             }
             
-            # Instagram requires more sophisticated scraping - simplified version
-            async with aiohttp.ClientSession() as session:
-                url = f"https://www.instagram.com/{username}/"
-                async with session.get(url, headers=headers) as response:
-                    if response.status == 200:
-                        text = await response.text()
-                        # Look for follower count in various formats
-                        patterns = [
-                            r'"edge_followed_by":{"count":(\d+)}',
-                            r'"follower_count":(\d+)',
-                            r'followers.*?(\d+(?:,\d+)*)'
-                        ]
-                        
-                        for pattern in patterns:
-                            match = re.search(pattern, text)
-                            if match:
-                                return int(match.group(1).replace(',', ''))
-            return None
-            
-        except Exception as e:
-            logger.error(f"Instagram API error for {username}: {e}")
-            return None
-    
-    async def _get_twitter_followers(self, username: str) -> Optional[int]:
-        """Get Twitter/X follower count"""
-        # Twitter API v2 requires Bearer token
-        if not self.twitter_bearer_token:
-            logger.warning("Twitter Bearer token not configured")
-            return None
-        
-        try:
-            headers = {
-                'Authorization': f'Bearer {self.twitter_bearer_token}'
-            }
-            
-            # Use Twitter API v2
-            url = f"https://api.twitter.com/2/users/by/username/{username}"
-            params = {
-                'user.fields': 'public_metrics'
-            }
+            # Try both twitter.com and x.com
+            urls = [
+                f"https://x.com/{username}",
+                f"https://twitter.com/{username}"
+            ]
             
             async with aiohttp.ClientSession() as session:
-                async with session.get(url, headers=headers, params=params) as response:
-                    if response.status == 200:
-                        data = await response.json()
-                        user_data = data.get('data', {})
-                        public_metrics = user_data.get('public_metrics', {})
-                        return public_metrics.get('followers_count', 0)
-                    else:
-                        logger.warning(f"Twitter API returned status {response.status}")
+                for url in urls:
+                    try:
+                        async with session.get(url, headers=headers) as response:
+                            if response.status == 200:
+                                text = await response.text()
+                                patterns = [
+                                    r'"followers_count":(\d+)',
+                                    r'(\d+(?:,\d+)*)\s+Followers',
+                                    r'(\d+(?:\.\d+)?[KM]?)\s+Followers'
+                                ]
+                                
+                                for pattern in patterns:
+                                    match = re.search(pattern, text, re.IGNORECASE)
+                                    if match:
+                                        follower_str = match.group(1)
+                                        if 'K' in follower_str:
+                                            return int(float(follower_str.replace('K', '')) * 1000)
+                                        elif 'M' in follower_str:
+                                            return int(float(follower_str.replace('M', '')) * 1000000)
+                                        else:
+                                            return int(follower_str.replace(',', ''))
+                    except Exception as e:
+                        logger.debug(f"Failed to scrape {url}: {e}")
+                        continue
             
             return None
             
         except Exception as e:
-            logger.error(f"Twitter API error for {username}: {e}")
+            logger.error(f"Twitter web scraping error for {username}: {e}")
             return None
     
     async def _get_youtube_subscribers(self, username: str) -> Optional[int]:
@@ -245,9 +222,7 @@ class SocialMediaScrapingOnlyAPIs:
         try:
             count = None
             
-            if platform == 'instagram':
-                count = await self._scrape_instagram_followers(username)
-            elif platform in ['x', 'twitter']:
+            if platform in ['x', 'twitter']:
                 count = await self._scrape_twitter_followers(username)
             elif platform == 'youtube':
                 count = await self._scrape_youtube_subscribers(username)
@@ -270,34 +245,6 @@ class SocialMediaScrapingOnlyAPIs:
                 
         except Exception as e:
             logger.error(f"Error scraping {platform} followers for {username}: {e}")
-            return None
-    
-    async def _scrape_instagram_followers(self, username: str) -> Optional[int]:
-        """Scrape Instagram follower count"""
-        try:
-            headers = {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-            }
-            
-            async with aiohttp.ClientSession() as session:
-                url = f"https://www.instagram.com/{username}/"
-                async with session.get(url, headers=headers) as response:
-                    if response.status == 200:
-                        text = await response.text()
-                        patterns = [
-                            r'"edge_followed_by":{"count":(\d+)}',
-                            r'"follower_count":(\d+)',
-                            r'(\d+(?:,\d+)*)\s+followers'
-                        ]
-                        
-                        for pattern in patterns:
-                            match = re.search(pattern, text, re.IGNORECASE)
-                            if match:
-                                return int(match.group(1).replace(',', ''))
-            return None
-            
-        except Exception as e:
-            logger.error(f"Instagram scraping error for {username}: {e}")
             return None
     
     async def _scrape_twitter_followers(self, username: str) -> Optional[int]:

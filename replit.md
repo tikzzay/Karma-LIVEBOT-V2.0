@@ -9,12 +9,29 @@ KARMA-LiveBOT is a Discord bot designed to monitor and notify users about live s
 - Stats channels auto-update every 5 minutes - manual renaming will be overwritten
 
 ## Recent Changes
-- [2025-09-29] Fresh GitHub clone imported to Replit environment
-- [2025-09-29] All Python dependencies installed successfully (discord.py, aiohttp, tiktoklive, httpx, openai, etc.)
+- [2025-09-30] **Custom Commands System Implemented:**
+  - New `custom_commands` database table with guild-specific command storage
+  - `/custom create` - Modal-based command creation with embed and button support
+  - `/custom edit` - Edit existing custom commands with pre-filled Modal
+  - `/custom delete` - Remove custom commands with confirmation
+  - `/custom list` - Display all custom commands for the server
+  - Dynamic command registration on bot startup and after creation
+  - 50 commands per server limit
+  - Admin-only access via role-based permissions
+  - Button support with Label|URL format and URL validation
+  - Architect review: Pass with minor improvement suggestions
+- [2025-09-29] **Replit Environment Setup Complete:**
+  - Fresh GitHub clone successfully imported to Replit
+  - All Python dependencies installed via packager tool (discord.py, aiohttp, tiktoklive, httpx, openai, etc.)
+  - .gitignore file created for Python project
+  - Workflow configured: "KARMA-LiveBOT" running on port 5000 with health check server
+  - Health check endpoints active at http://0.0.0.0:5000/ and /health
+  - Bot successfully connected to Discord (2 guilds)
+  - All platform tasks running: Twitch, YouTube, TikTok, Stats, Social Media
+  - All required environment variables configured (DISCORD_TOKEN, API keys, etc.)
+  - SQLite database initialized successfully (karma_bot.db)
+  - Python 3.11.13 runtime confirmed
 - [2025-09-29] Fixed config.py type issue with DEV_CHANNEL_ID
-- [2025-09-29] Health check HTTP server configured on port 5000 for Replit
-- [2025-09-29] Workflow configured to run the Discord bot
-- [2025-09-29] .gitignore created for Python project
 - [2025-09-29] OpenAI Auto-Repair System fixed - API key and DEV_CHANNEL_ID now correctly passed
 - [2025-09-29] Database cleanup - removed 10 non-existent channels from stats_channels table
 - [2025-09-29] Improved event_commands.py tests: Instant Gaming (randomized), Log Upload (actual upload), Custom Message (cleaned up)
@@ -25,7 +42,7 @@ KARMA-LiveBOT is a Discord bot designed to monitor and notify users about live s
 The bot utilizes a modular, MEE6-style architecture, with specialized modules for each functional area. It is built on `discord.py` and uses `SQLite` for local data persistence.
 
 **Core Components:**
--   **Modular Structure:** Separated into `database`, `autorepair`, `instantgaming`, `event`, `social`, `twitch`, `youtube`, `tiktok`, ` `commands`, `event_commands`, and `main` modules for clean separation of concerns and maintainability.
+-   **Modular Structure:** Separated into `database`, `autorepair`, `instantgaming`, `event`, `social`, `twitch`, `youtube`, `tiktok`, `commands`, `event_commands`, `custom_commands`, and `main` modules for clean separation of concerns and maintainability.
 -   **Asynchronous Operations:** Leverages `asyncio` for concurrent processing of stream monitoring and Discord interactions.
 -   **Slash Commands:** Implements modern Discord slash commands (`app_commands`) with role-based permissions for both admin and user functionalities.
 -   **Tiered Stream Monitoring:**
@@ -41,11 +58,27 @@ The bot utilizes a modular, MEE6-style architecture, with specialized modules fo
 -   **Data Model:** Manages creator profiles, stream sessions, dual streak systems (daily and event), user subscriptions, and channel configurations within an SQLite database.
 -   **Authentication & Permissions:** Role-based access control for Discord commands and environment variable-based API key management for external services.
 
-## Setup Requirements
-- Discord bot token and app ID required
-- Optional: Twitch, YouTube, TikTok API keys for full functionality
-- SQLite database (local storage)
-- Python 3.11+ runtime
+## Replit Setup
+**Environment:** Fully configured and running on Replit
+- **Workflow:** KARMA-LiveBOT (python main.py) on port 5000
+- **Health Check:** HTTP server on 0.0.0.0:5000 with /health and /status endpoints
+- **Runtime:** Python 3.11.13
+- **Database:** SQLite (karma_bot.db) - local persistent storage
+- **Dependencies:** Managed via pyproject.toml and requirements.txt
+
+## Required Environment Variables
+All secrets are configured in Replit Secrets:
+- `DISCORD_TOKEN` - Discord bot authentication (required)
+- `DISCORD_APP_ID` - Discord application ID (required)
+- `TWITCH_CLIENT_ID` - Twitch API credentials (optional)
+- `TWITCH_CLIENT_SECRET` - Twitch API credentials (optional)
+- `YOUTUBE_API_KEY` - YouTube Data API v3 key (optional)
+- `OPENAI_API_KEY` - For auto-repair system (optional)
+- `DEV_CHANNEL_ID` - Developer notification channel (optional)
+- `MAIN_SERVER_ID` - Main Discord server ID (optional)
+- `BOT_DEVELOPER_ID` - Bot developer user ID (optional)
+- `TWITTER_BEARER_TOKEN` - Twitter API (optional)
+- `INSTAGRAM_SESSION_ID` - Instagram scraping (optional)
 
 ## External Dependencies
 -   **Discord Services:** Discord Bot API, Discord Webhooks.

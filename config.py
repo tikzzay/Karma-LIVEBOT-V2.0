@@ -25,8 +25,6 @@ class Config:
     TWITCH_CLIENT_ID = os.getenv('TWITCH_CLIENT_ID')
     TWITCH_CLIENT_SECRET = os.getenv('TWITCH_CLIENT_SECRET')
     YOUTUBE_API_KEY = os.getenv('YOUTUBE_API_KEY')
-    TWITTER_BEARER_TOKEN = os.getenv('TWITTER_BEARER_TOKEN')
-    INSTAGRAM_SESSION_ID = os.getenv('INSTAGRAM_SESSION_ID')
     
     # OpenAI Auto-Repair System
     OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
@@ -41,7 +39,6 @@ class Config:
         'twitch': 0x9146FF,
         'youtube': 0xFF0000,
         'tiktok': 0x00F2EA,
-        'instagram': 0xE4405F,
         'twitter': 0x1DA1F2,
         'x': 0x000000
     }

@@ -3134,6 +3134,7 @@ async def on_ready():
     
     from commands import CreatorManagement, UserCommands, ServerManagement
     from event_commands import EventCommands, UtilityCommands
+    from custom_commands import CustomCommands
     
     # Add cogs with debug logging
     logger.info("Adding CreatorManagement cog...")
@@ -3146,6 +3147,8 @@ async def on_ready():
     await bot.add_cog(EventCommands(bot, db))
     logger.info("Adding UtilityCommands cog...")
     await bot.add_cog(UtilityCommands(bot, db))
+    logger.info("Adding CustomCommands cog...")
+    await bot.add_cog(CustomCommands(bot, db))
     
     logger.info(f"Bot tree has {len(bot.tree.get_commands())} commands")
     
@@ -3159,6 +3162,12 @@ async def on_ready():
         for guild in bot.guilds:
             # Copy global commands to guild for immediate visibility
             bot.tree.copy_global_to(guild=guild)
+            
+            # Register custom commands for this guild
+            custom_commands_cog = bot.get_cog('CustomCommands')
+            if custom_commands_cog:
+                await custom_commands_cog.register_guild_commands(guild.id)
+            
             synced_guild = await bot.tree.sync(guild=guild)
             logger.info(f'✅ Guild sync successful for {guild.name} - {len(synced_guild)} command(s) - old commands overwritten')
             

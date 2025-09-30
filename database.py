@@ -242,6 +242,23 @@ class DatabaseManager:
             )
         ''')
         
+        # Custom Commands table (für Custom Slash Commands pro Server)
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS custom_commands (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                guild_id TEXT NOT NULL,
+                name TEXT NOT NULL,
+                response TEXT,
+                embed_title TEXT,
+                embed_description TEXT,
+                embed_color TEXT,
+                button_label TEXT,
+                button_url TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(guild_id, name)
+            )
+        ''')
+        
         # Initialize event status if not exists
         cursor.execute('INSERT OR IGNORE INTO event_status (id, is_active) VALUES (1, FALSE)')
         
