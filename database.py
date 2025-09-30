@@ -259,6 +259,48 @@ class DatabaseManager:
             )
         ''')
         
+        # Giveaways table (für Giveaway-Verwaltung)
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS giveaways (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                guild_id TEXT NOT NULL,
+                channel_id TEXT NOT NULL,
+                message_id TEXT,
+                description TEXT NOT NULL,
+                keys TEXT NOT NULL,
+                duration_minutes INTEGER NOT NULL,
+                winner_count INTEGER NOT NULL,
+                image_url TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                ends_at TIMESTAMP NOT NULL,
+                is_active BOOLEAN DEFAULT TRUE
+            )
+        ''')
+        
+        # Giveaway Participants table (Teilnehmer pro Giveaway)
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS giveaway_participants (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                giveaway_id INTEGER NOT NULL,
+                user_id TEXT NOT NULL,
+                joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (giveaway_id) REFERENCES giveaways (id),
+                UNIQUE(giveaway_id, user_id)
+            )
+        ''')
+        
+        # Past Winners table (Globale Gewinner-Historie)
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS past_winners (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id TEXT NOT NULL,
+                giveaway_id INTEGER NOT NULL,
+                won_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (giveaway_id) REFERENCES giveaways (id),
+                UNIQUE(user_id, giveaway_id)
+            )
+        ''')
+        
         # Initialize event status if not exists
         cursor.execute('INSERT OR IGNORE INTO event_status (id, is_active) VALUES (1, FALSE)')
         

@@ -41,12 +41,23 @@ KARMA-LiveBOT is a Discord bot designed to monitor and notify users about live s
   - **Enhanced Logging:** Detailed diagnostics for message deletion and role removal
   - **Embed Logic Fix:** Changed from truthiness to `is not None` so zero viewer counts display
   - Architect review: PASS - All fixes verified without regressions
+- [2025-09-30] **Giveaway-System Implementiert:**
+  - Neue Datei `giveaway_commands.py` mit komplettem Giveaway-Management
+  - `/startgiveaway` - Channel-Auswahl + Modal für Beschreibung, Keys, Timer, Gewinner-Anzahl, Bild
+  - Teilnahme-Button mit automatischer Gewinner-Prüfung (past_winners Datenbank)
+  - Timer-System mit automatischer Gewinner-Auswahl nach Ablauf
+  - `/resetgewinner` - Löscht alle gespeicherten Gewinner für neue Giveaways
+  - Live Teilnehmer-Zähler im Embed
+  - Giveaway-Wiederherstellung nach Bot-Neustart (Timer + Buttons)
+  - 3 neue Datenbank-Tabellen: giveaways, giveaway_participants, past_winners
+  - 20 Commands total (vorher 18) - 2 neue Giveaway-Commands
+  - Architect review: PASS - Vollständige Implementierung aller Features
 
 ## System Architecture
 The bot utilizes a modular, MEE6-style architecture, with specialized modules for each functional area. It is built on `discord.py` and uses `SQLite` for local data persistence.
 
 **Core Components:**
--   **Modular Structure:** Separated into `database`, `autorepair`, `instantgaming`, `event`, `social`, `twitch`, `youtube`, `tiktok`, `commands`, `event_commands`, `custom_commands`, and `main` modules for clean separation of concerns and maintainability.
+-   **Modular Structure:** Separated into `database`, `autorepair`, `instantgaming`, `event`, `social`, `twitch`, `youtube`, `tiktok`, `commands`, `event_commands`, `custom_commands`, `giveaway_commands`, and `main` modules for clean separation of concerns and maintainability.
 -   **Asynchronous Operations:** Leverages `asyncio` for concurrent processing of stream monitoring and Discord interactions.
 -   **Slash Commands:** Implements modern Discord slash commands (`app_commands`) with role-based permissions for both admin and user functionalities.
 -   **Tiered Stream Monitoring:**

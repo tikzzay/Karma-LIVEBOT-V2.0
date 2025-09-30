@@ -1,0 +1,62 @@
+Giveaway-System – Beschreibung für Replit
+🆕 Neue Datei: giveaway_commands.py
+Alle Befehle und Logik für Giveaways kommen in eine eigene Datei, die in der main.py beim Start als Cog geladen wird.
+Verwendet eine SQLite-Datenbank (karma_bot.db), um Gewinner zu speichern.
+Gewinner bleiben dort gespeichert, bis ein Admin /resetgewinner ausführt.
+Gewinner, die bereits gewonnen haben, können nicht nochmal teilnehmen, bis ein Reset gemacht wurde.
+
+🎮 Features
+1. /startgiveaway (Admin only)
+Öffnet Dropdown-Menü, um den Channel auszuwählen, in dem das Giveaway laufen soll.
+Danach öffnet sich ein Modal-Fenster mit folgenden Feldern:
+Beschreibung (Pflichtfeld)
+Keys (durch , getrennt – z. B. CODE1,CODE2,CODE3)
+Timer in Minuten (Pflichtfeld – z. B. 15)
+Anzahl Gewinner (Pflichtfeld – z. B. 2)
+Bild-URL (optional)
+Nach Absenden wird im ausgewählten Channel ein Embed erstellt:
+Enthält Beschreibung, Timer, Gewinneranzahl, Bild (falls angegeben).
+Button „🎟️ Teilnehmen“ wird angehängt.
+
+2. Teilnahme-System
+User drücken den Button „🎟️ Teilnehmen“.
+
+Der Bot prüft:
+Ist User bereits in past_winners gespeichert? → Teilnahme abgelehnt.
+Sonst: User wird als Teilnehmer gespeichert.
+Teilnehmer werden im Embed live gezählt (z. B. „👥 Teilnehmer: 5“).
+
+3. Timer Ablauf
+Nach Ablauf des Timers wählt der Bot zufällig Gewinner aus den Teilnehmern.
+Anzahl Gewinner = Eingabe im Modal (z. B. 2).
+Gewinner werden in der DB gespeichert (past_winners), sodass sie nicht mehr bei neuen Giveaways teilnehmen können.
+
+Im Channel wird eine Nachricht gepostet:
+„🎉 Gewinner: @User1, @User2“
+Keys werden nicht automatisch verschickt → Admin vergibt sie manuell.
+
+4. /resetgewinner (Admin only)
+Löscht alle gespeicherten Gewinner aus der DB.
+Danach können diese wieder an Giveaways teilnehmen.
+
+🔧 Technische Umsetzung
+
+Neue Datei: giveaway_commands.py
+
+Enthält:
+
+GiveawayModal (UI für Eingaben)
+ChannelSelect (UI für Channel-Auswahl)
+GiveawayView (Button „Teilnehmen“ + Teilnehmer-Logik)
+GiveawayCommands (Cog mit allen Slash-Befehlen)
+Embed wird live aktualisiert, wenn neue Teilnehmer hinzukommen.
+
+✅ Beispielablauf
+Admin: /startgiveaway
+Wählt Channel aus → Modal öffnet sich
+Füllt Beschreibung, Keys, Timer (z. B. 15), Gewinner (z. B. 2)
+Bot postet Embed in den Channel
+User drücken „🎟️ Teilnehmen“ → Bot zeigt live an, wie viele Teilnehmer drin sind
+Nach 15 Minuten → Bot lost zufällig Gewinner aus → postet „🎉 Gewinner: @User1, @User2“
+Admin vergibt Keys manuell
+Gewinner können erst wieder teilnehmen, wenn /resetgewinner ausgeführt wurde
