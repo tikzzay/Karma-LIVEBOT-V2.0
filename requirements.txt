@@ -20,3 +20,6 @@ python-dotenv
 requests
 schedule
 tiktoklive
+httpx
+openai
+PyNaCl

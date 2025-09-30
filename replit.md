@@ -9,6 +9,18 @@ KARMA-LiveBOT is a Discord bot designed to monitor and notify users about live s
 - Stats channels auto-update every 5 minutes - manual renaming will be overwritten
 
 ## Recent Changes
+- [2025-09-30] **Fresh GitHub Import to Replit Completed:**
+  - GitHub repository cloned and successfully configured for Replit environment
+  - All Python dependencies installed (discord.py, aiohttp, tiktoklive, httpx, openai, PyNaCl, etc.)
+  - .gitignore file created for Python project
+  - Workflow configured: "KARMA-LiveBOT" running with console output
+  - Bot successfully connected to Discord as "Karma LiveBOT#2866" (2 guilds)
+  - All platform tasks operational: Twitch, YouTube, TikTok, Stats, Social Media
+  - 18 slash commands registered and synced globally
+  - HTTP health check server running on port 5000
+  - OpenAI Auto-Repair System initialized successfully
+  - SQLite database (karma_bot.db) loaded with existing data
+  - All environment variables verified and working
 - [2025-09-30] **Custom Commands System Implemented:**
   - New `custom_commands` database table with guild-specific command storage
   - `/custom create` - Modal-based command creation with embed and button support
@@ -20,23 +32,15 @@ KARMA-LiveBOT is a Discord bot designed to monitor and notify users about live s
   - Admin-only access via role-based permissions
   - Button support with Label|URL format and URL validation
   - Architect review: Pass with minor improvement suggestions
-- [2025-09-29] **Replit Environment Setup Complete:**
-  - Fresh GitHub clone successfully imported to Replit
-  - All Python dependencies installed via packager tool (discord.py, aiohttp, tiktoklive, httpx, openai, etc.)
-  - .gitignore file created for Python project
-  - Workflow configured: "KARMA-LiveBOT" running on port 5000 with health check server
-  - Health check endpoints active at http://0.0.0.0:5000/ and /health
-  - Bot successfully connected to Discord (2 guilds)
-  - All platform tasks running: Twitch, YouTube, TikTok, Stats, Social Media
-  - All required environment variables configured (DISCORD_TOKEN, API keys, etc.)
-  - SQLite database initialized successfully (karma_bot.db)
-  - Python 3.11.13 runtime confirmed
-- [2025-09-29] Fixed config.py type issue with DEV_CHANNEL_ID
-- [2025-09-29] OpenAI Auto-Repair System fixed - API key and DEV_CHANNEL_ID now correctly passed
-- [2025-09-29] Database cleanup - removed 10 non-existent channels from stats_channels table
-- [2025-09-29] Improved event_commands.py tests: Instant Gaming (randomized), Log Upload (actual upload), Custom Message (cleaned up)
-- [2025-09-29] /help command updated with all new features (/customstreamermessage, /editigreftag, /setupstatschannel, etc.)
-- [2025-09-29] Procfile created for Railway deployment
+- [2025-09-30] **Railway.com Compatibility & Enhancements:**
+  - **Auto-Restart:** Re-enabled 12-hour auto-restart (os._exit) - Railway.com will automatically restart bot
+  - **Live-Rollen-Cleanup:** New background task (10min) checks all members with live role and removes if not live on any platform
+  - **Stream-Titel:** Live notifications now display stream title for Twitch, YouTube, and TikTok
+  - **Nachrichten-Cleanup:** New background task (15min) finds and deletes orphaned live notification messages
+  - **TikTok Fixes:** Now displays viewer count (even 0), thumbnail, profile image, and follower count
+  - **Enhanced Logging:** Detailed diagnostics for message deletion and role removal
+  - **Embed Logic Fix:** Changed from truthiness to `is not None` so zero viewer counts display
+  - Architect review: PASS - All fixes verified without regressions
 
 ## System Architecture
 The bot utilizes a modular, MEE6-style architecture, with specialized modules for each functional area. It is built on `discord.py` and uses `SQLite` for local data persistence.

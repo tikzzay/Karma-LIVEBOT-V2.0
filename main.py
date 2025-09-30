@@ -1889,6 +1889,7 @@ async def handle_stream_status(creator_id, discord_user_id, username, streamer_t
                 message_deleted = False
                 if message_data and message_data[0] and message_data[1]:
                     message_id, notification_channel_id = message_data
+                    logger.info(f"🔍 Attempting to delete message ID {message_id} in channel {notification_channel_id} for {username} on {platform}")
                     try:
                         # Get the channel and delete the message
                         notification_channel = bot.get_channel(int(notification_channel_id))
@@ -1896,8 +1897,9 @@ async def handle_stream_status(creator_id, discord_user_id, username, streamer_t
                             # Try to fetch channel as fallback for cache misses
                             try:
                                 notification_channel = await asyncio.wait_for(bot.fetch_channel(int(notification_channel_id)), timeout=10.0)
-                            except Exception:
-                                logger.warning(f"Could not fetch notification channel {notification_channel_id} for {username} on {platform}")
+                                logger.info(f"✅ Fetched notification channel {notification_channel_id} for {username} on {platform}")
+                            except Exception as fetch_error:
+                                logger.warning(f"Could not fetch notification channel {notification_channel_id} for {username} on {platform}: {fetch_error}")
                         
                         if notification_channel:
                             try:
@@ -1909,16 +1911,18 @@ async def handle_stream_status(creator_id, discord_user_id, username, streamer_t
                                 logger.info(f"🗑️ Deleted live notification for {username} on {platform} (Message ID: {message_id})")
                                 message_deleted = True
                             except discord.NotFound:
-                                logger.info(f"Live notification message for {username} on {platform} was already deleted")
+                                logger.info(f"Live notification message for {username} on {platform} was already deleted (Message ID: {message_id})")
                                 message_deleted = True  # Message doesn't exist, so consider it "deleted"
                             except asyncio.TimeoutError:
-                                logger.warning(f"Timeout while deleting live notification for {username} on {platform} - will retry later")
+                                logger.warning(f"Timeout while deleting live notification for {username} on {platform} (Message ID: {message_id}) - will retry later")
                             except Exception as delete_error:
-                                logger.error(f"Failed to delete live notification for {username} on {platform}: {delete_error} - will retry later")
+                                logger.error(f"Failed to delete live notification for {username} on {platform} (Message ID: {message_id}): {delete_error} - will retry later")
                         else:
                             logger.warning(f"Notification channel {notification_channel_id} not found for {username} on {platform} - will retry later")
                     except Exception as e:
                         logger.error(f"Error during message deletion for {username} on {platform}: {e} - will retry later")
+                else:
+                    logger.info(f"ℹ️ No message to delete for {username} on {platform} (message_id or channel_id missing)")
                 
                 # Update database: set offline and clear message IDs only if deletion succeeded or message not found
                 if message_deleted:
@@ -1941,8 +1945,12 @@ async def handle_stream_status(creator_id, discord_user_id, username, streamer_t
                     (creator_id,)
                 )
                 
-                if cursor.fetchone()[0] == 0:  # Not live on any platform
+                live_count = cursor.fetchone()[0]
+                logger.info(f"🔍 {username} is live on {live_count} platform(s)")
+                
+                if live_count == 0:  # Not live on any platform
                     # Remove live role
+                    logger.info(f"📍 Attempting to remove live role from {username} (Discord ID: {discord_user_id})")
                     try:
                         member = None
                         guild = None
@@ -1956,9 +1964,13 @@ async def handle_stream_status(creator_id, discord_user_id, username, streamer_t
                             live_role = guild.get_role(Config.LIVE_ROLE)
                             if live_role and live_role in member.roles:
                                 await member.remove_roles(live_role)
-                                logger.info(f"Removed live role from {username}")
+                                logger.info(f"✅ Removed live role from {username}")
+                            else:
+                                logger.info(f"ℹ️ {username} doesn't have live role or role not found")
+                        else:
+                            logger.warning(f"⚠️ Could not find guild member for {username} (Discord ID: {discord_user_id})")
                     except Exception as e:
-                        logger.error(f"Error removing live role from {username}: {e}")
+                        logger.error(f"❌ Error removing live role from {username}: {e}")
         
         conn.commit()
     
@@ -2113,19 +2125,26 @@ async def create_live_embed(creator_id, discord_user_id, username, streamer_type
         color=Config.COLORS[platform]
     )
     
-    # Add viewer count and game
-    if stream_info.get('viewer_count'):
-        embed.add_field(name="👀 Zuschauer", value=f"{stream_info['viewer_count']:,}", inline=True)
+    # Add stream title if available
+    stream_title = stream_info.get('title')
+    if stream_title:
+        embed.add_field(name="📝 Titel", value=stream_title, inline=False)
+    
+    # Add viewer count and game (check for None specifically, not truthiness, so 0 is displayed)
+    viewer_count = stream_info.get('viewer_count')
+    if viewer_count is not None:
+        embed.add_field(name="👀 Zuschauer", value=f"{viewer_count:,}", inline=True)
     
     if stream_info.get('game_name'):
         embed.add_field(name="🎮 Spiel", value=stream_info['game_name'], inline=True)
     
-    # Add follower/subscriber count for all platforms
-    if stream_info.get('follower_count'):
+    # Add follower/subscriber count for all platforms (check for None specifically, not truthiness)
+    follower_count = stream_info.get('follower_count')
+    if follower_count is not None and follower_count > 0:
         if platform == 'youtube':
-            embed.add_field(name="📺 Abonnenten", value=f"{stream_info['follower_count']:,}", inline=True)
+            embed.add_field(name="📺 Abonnenten", value=f"{follower_count:,}", inline=True)
         else:  # twitch, tiktok
-            embed.add_field(name="💖 Follower", value=f"{stream_info['follower_count']:,}", inline=True)
+            embed.add_field(name="💖 Follower", value=f"{follower_count:,}", inline=True)
     
     # Add daily streak for Karma streamers
     if streamer_type == 'karma':
@@ -2476,7 +2495,7 @@ async def auto_restart_task():
         logger.info("🔄 AUTO-RESTART: Closing connections...")
         # Cleanup removed - improved_tiktok_checker handles its own session management
         
-        # Exit - Replit/Railway will automatically restart the bot
+        # Exit - Railway.com will automatically restart the bot
         logger.info("🔄 AUTO-RESTART: Exiting for restart...")
         os._exit(0)
         
@@ -3008,6 +3027,164 @@ async def tiktok_recovery_task():
     except Exception as e:
         logger.error(f"🚨 TIKTOK-RECOVERY ERROR: {e}")
 
+# Live Notification Cleanup Task - Check every 15 minutes
+@tasks.loop(minutes=15)
+async def live_notification_cleanup_task():
+    """Check and delete orphaned live notification messages"""
+    try:
+        logger.info("🧹 NOTIFICATION-CLEANUP: Starting notification cleanup check...")
+        
+        conn = db.get_connection()
+        cursor = conn.cursor()
+        
+        # Find all live_status entries that are not live but still have message IDs
+        cursor.execute('''
+            SELECT ls.creator_id, ls.platform, ls.message_id, ls.notification_channel_id, c.discord_username
+            FROM live_status ls
+            JOIN creators c ON ls.creator_id = c.id
+            WHERE ls.is_live = FALSE 
+            AND ls.message_id IS NOT NULL 
+            AND ls.notification_channel_id IS NOT NULL
+        ''')
+        
+        orphaned_messages = cursor.fetchall()
+        
+        if not orphaned_messages:
+            logger.info("🧹 NOTIFICATION-CLEANUP: No orphaned messages found")
+            conn.close()
+            return
+        
+        logger.info(f"🧹 Found {len(orphaned_messages)} orphaned notification messages")
+        
+        deleted_count = 0
+        failed_count = 0
+        
+        for creator_id, platform, message_id, channel_id, username in orphaned_messages:
+            try:
+                # Try to fetch and delete the message
+                notification_channel = bot.get_channel(int(channel_id))
+                if not notification_channel:
+                    try:
+                        notification_channel = await asyncio.wait_for(
+                            bot.fetch_channel(int(channel_id)), 
+                            timeout=10.0
+                        )
+                    except Exception:
+                        logger.warning(f"🧹 Channel {channel_id} not found for {username} on {platform}")
+                        # Clear the message_id from database even if channel not found
+                        cursor.execute('''
+                            UPDATE live_status 
+                            SET message_id = NULL, notification_channel_id = NULL 
+                            WHERE creator_id = ? AND platform = ?
+                        ''', (creator_id, platform))
+                        conn.commit()
+                        continue
+                
+                if notification_channel:
+                    try:
+                        message_to_delete = await asyncio.wait_for(
+                            notification_channel.fetch_message(int(message_id)), 
+                            timeout=10.0
+                        )
+                        await asyncio.wait_for(message_to_delete.delete(), timeout=10.0)
+                        deleted_count += 1
+                        logger.info(f"✅ Deleted orphaned notification for {username} on {platform} (Message ID: {message_id})")
+                        
+                        # Clear message_id from database
+                        cursor.execute('''
+                            UPDATE live_status 
+                            SET message_id = NULL, notification_channel_id = NULL 
+                            WHERE creator_id = ? AND platform = ?
+                        ''', (creator_id, platform))
+                        conn.commit()
+                        
+                    except discord.NotFound:
+                        logger.info(f"🧹 Message already deleted for {username} on {platform}")
+                        # Clear message_id from database
+                        cursor.execute('''
+                            UPDATE live_status 
+                            SET message_id = NULL, notification_channel_id = NULL 
+                            WHERE creator_id = ? AND platform = ?
+                        ''', (creator_id, platform))
+                        conn.commit()
+                        deleted_count += 1
+                        
+                    except Exception as delete_error:
+                        logger.error(f"❌ Failed to delete notification for {username} on {platform}: {delete_error}")
+                        failed_count += 1
+            
+            except Exception as cleanup_error:
+                logger.error(f"❌ Error cleaning up notification for {username} on {platform}: {cleanup_error}")
+                failed_count += 1
+        
+        conn.close()
+        
+        logger.info(f"🧹 NOTIFICATION-CLEANUP: Completed - Deleted {deleted_count} messages, Failed {failed_count}")
+        
+    except Exception as e:
+        logger.error(f"🚨 NOTIFICATION-CLEANUP ERROR: {e}")
+
+# Live Role Cleanup Task - Check every 10 minutes
+@tasks.loop(minutes=10)
+async def live_role_cleanup_task():
+    """Check and remove live roles from users who are not actually live on any platform"""
+    try:
+        logger.info("🎭 LIVE-ROLE-CLEANUP: Starting live role cleanup check...")
+        
+        if not Config.LIVE_ROLE:
+            logger.info("🎭 LIVE-ROLE-CLEANUP: No live role configured - skipping")
+            return
+        
+        conn = db.get_connection()
+        cursor = conn.cursor()
+        
+        removed_roles = 0
+        checked_users = 0
+        
+        # Check each guild
+        for guild in bot.guilds:
+            try:
+                live_role = guild.get_role(Config.LIVE_ROLE)
+                if not live_role:
+                    continue
+                
+                # Get all members with live role
+                members_with_role = live_role.members
+                logger.info(f"🎭 Found {len(members_with_role)} members with live role in {guild.name}")
+                
+                for member in members_with_role:
+                    checked_users += 1
+                    try:
+                        # Check if user is actually live on any platform
+                        cursor.execute('''
+                            SELECT COUNT(*) FROM live_status ls
+                            JOIN creators c ON ls.creator_id = c.id
+                            WHERE c.discord_user_id = ? AND ls.is_live = TRUE
+                        ''', (str(member.id),))
+                        
+                        live_count = cursor.fetchone()[0]
+                        
+                        if live_count == 0:
+                            # User has role but is not live - remove role
+                            await member.remove_roles(live_role)
+                            removed_roles += 1
+                            logger.info(f"✅ Removed live role from {member.display_name} (not live on any platform)")
+                        else:
+                            logger.debug(f"✓ {member.display_name} has live role and is live on {live_count} platform(s)")
+                    
+                    except Exception as member_error:
+                        logger.error(f"❌ Error checking member {member.display_name}: {member_error}")
+            
+            except Exception as guild_error:
+                logger.error(f"❌ Error processing guild {guild.name}: {guild_error}")
+        
+        conn.close()
+        
+        logger.info(f"🎭 LIVE-ROLE-CLEANUP: Completed - Checked {checked_users} users, removed {removed_roles} stale roles")
+        
+    except Exception as e:
+        logger.error(f"🚨 LIVE-ROLE-CLEANUP ERROR: {e}")
+
 @bot.event
 async def on_ready():
     global bot_start_time
@@ -3109,6 +3286,14 @@ async def on_ready():
         await asyncio.sleep(30)  # 240s total delay
         log_cleanup_task.start()
         logger.info("🗑️ Log cleanup task started - cleaning logs every 6 hours (240s offset)")
+        
+        await asyncio.sleep(30)  # 270s total delay
+        live_role_cleanup_task.start()
+        logger.info("🎭 Live role cleanup task started - checking roles every 10 minutes (270s offset)")
+        
+        await asyncio.sleep(30)  # 300s total delay
+        live_notification_cleanup_task.start()
+        logger.info("🧹 Live notification cleanup task started - checking messages every 15 minutes (300s offset)")
         
         logger.info("⚡ All background tasks started with performance optimization (8 minutes total stagger)")
     

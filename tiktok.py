@@ -114,7 +114,7 @@ class TikTokLiveChecker:
             
             if response.status_code != 200:
                 logger.warning(f"TikTok {username}: HTTP Status {response.status_code}")
-                return {"is_live": False, "thumbnail_url": "", "profile_image_url": "", "follower_count": 0}
+                return {"is_live": False, "thumbnail_url": "", "profile_image_url": "", "follower_count": 0, "viewer_count": 0}
             
             html_content = response.text
             
@@ -122,7 +122,7 @@ class TikTokLiveChecker:
             match = re.search(r"window\['SIGI_STATE'\]\s*=\s*(.*?);</script>", html_content, re.DOTALL)
             if not match:
                 logger.warning(f"TikTok {username}: SIGI_STATE nicht gefunden")
-                return {"is_live": False, "thumbnail_url": "", "profile_image_url": "", "follower_count": 0}
+                return {"is_live": False, "thumbnail_url": "", "profile_image_url": "", "follower_count": 0, "viewer_count": 0}
             
             try:
                 data = json.loads(match.group(1))
@@ -179,7 +179,8 @@ class TikTokLiveChecker:
                                     follower_count = user_data.get("followerCount", 0)
                                     break
                 
-                # Extrahiere Thumbnail aus LiveRoom-Daten
+                # Extrahiere Thumbnail und Zuschauerzahl aus LiveRoom-Daten
+                viewer_count = 0
                 if "LiveRoom" in data and isinstance(data["LiveRoom"], dict):
                     live_room = data["LiveRoom"]
                     if "liveRoomInfo" in live_room and isinstance(live_room["liveRoomInfo"], dict):
@@ -191,14 +192,19 @@ class TikTokLiveChecker:
                                 if size in cover and isinstance(cover[size], list) and len(cover[size]) > 0:
                                     thumbnail_url = cover[size][0]
                                     break
+                        # Versuche Zuschauerzahl zu extrahieren
+                        viewer_count = live_room_info.get("userCount", 0)
+                        if viewer_count == 0:
+                            viewer_count = live_room_info.get("liveRoomUserInfo", {}).get("userCount", 0)
                 
                 is_live = live_status == 1
                 
                 if is_live:
                     logger.info(f"TikTok {username}: HTML-Parsing bestätigt - user LIVE ✅ (liveStatus: {live_status})")
-                    logger.info(f"TikTok {username}: Profilbild: {profile_image_url[:50]}...")
-                    logger.info(f"TikTok {username}: Thumbnail: {thumbnail_url[:50]}...")
+                    logger.info(f"TikTok {username}: Profilbild: {profile_image_url[:50] if profile_image_url else 'Keine'}")
+                    logger.info(f"TikTok {username}: Thumbnail: {thumbnail_url[:50] if thumbnail_url else 'Keine'}")
                     logger.info(f"TikTok {username}: Follower: {follower_count}")
+                    logger.info(f"TikTok {username}: Zuschauer: {viewer_count}")
                 else:
                     logger.info(f"TikTok {username}: HTML-Parsing bestätigt - user offline (liveStatus: {live_status})")
                 
@@ -206,16 +212,17 @@ class TikTokLiveChecker:
                     "is_live": is_live,
                     "thumbnail_url": thumbnail_url,
                     "profile_image_url": profile_image_url,
-                    "follower_count": follower_count
+                    "follower_count": follower_count,
+                    "viewer_count": viewer_count
                 }
                 
             except json.JSONDecodeError as e:
                 logger.error(f"TikTok {username}: JSON-Parsing Fehler: {e}")
-                return {"is_live": False, "thumbnail_url": "", "profile_image_url": "", "follower_count": 0}
+                return {"is_live": False, "thumbnail_url": "", "profile_image_url": "", "follower_count": 0, "viewer_count": 0}
                 
         except Exception as e:
             logger.error(f"TikTok {username}: HTML-Parsing Fehler: {e}")
-            return {"is_live": False, "thumbnail_url": "", "profile_image_url": "", "follower_count": 0}
+            return {"is_live": False, "thumbnail_url": "", "profile_image_url": "", "follower_count": 0, "viewer_count": 0}
     
     async def check_html_parsing(self, username: str) -> Dict[str, Any]:
         """Asynchrone Überprüfung mit HTML-Parsing (Event-Loop-sicher)"""
@@ -226,7 +233,7 @@ class TikTokLiveChecker:
             return result
         except Exception as e:
             logger.error(f"TikTok {username}: Async HTML-Parsing Fehler: {e}")
-            return {"is_live": False, "thumbnail_url": "", "profile_image_url": "", "follower_count": 0}
+            return {"is_live": False, "thumbnail_url": "", "profile_image_url": "", "follower_count": 0, "viewer_count": 0}
 
     async def is_user_live(self, username: str) -> Dict[str, Any]:
         """
@@ -279,12 +286,13 @@ class TikTokLiveChecker:
         thumbnail_url = html_data.get("thumbnail_url", "") or thumbnail_fallback
         profile_image_url = html_data.get("profile_image_url", "") or profile_fallback
         follower_count = html_data.get("follower_count", 0)
+        viewer_count = html_data.get("viewer_count", 0)
         
         # Rückgabe im Format, das der Bot erwartet
         if is_live:
             return {
                 'is_live': True,
-                'viewer_count': 0,
+                'viewer_count': viewer_count,
                 'game_name': 'TikTok Live',
                 'title': f'{username} Live Stream',
                 'thumbnail_url': thumbnail_url,
@@ -303,7 +311,8 @@ class TikTokLiveChecker:
                 'html_confirmed': html_result,
                 'thumbnail_url': thumbnail_url,
                 'profile_image_url': profile_image_url,
-                'follower_count': follower_count
+                'follower_count': follower_count,
+                'viewer_count': viewer_count
             }
 
 # Globale Instanz für den Bot
