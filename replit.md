@@ -9,18 +9,20 @@ KARMA-LiveBOT is a Discord bot designed to monitor and notify users about live s
 - Stats channels auto-update every 5 minutes - manual renaming will be overwritten
 
 ## Recent Changes
-- [2025-09-30] **Fresh GitHub Import to Replit Completed:**
-  - GitHub repository cloned and successfully configured for Replit environment
-  - All Python dependencies installed (discord.py, aiohttp, tiktoklive, httpx, openai, PyNaCl, etc.)
+- [2025-10-01] **Replit Environment Setup Completed:**
+  - Fresh GitHub clone successfully configured for Replit environment
+  - All Python dependencies installed via packager tool (discord.py, aiohttp, tiktoklive, httpx, openai, PyNaCl, etc.)
+  - requirements.txt cleaned up (removed duplicates)
   - .gitignore file created for Python project
-  - Workflow configured: "KARMA-LiveBOT" running with console output
+  - Workflow configured: "KARMA-LiveBOT" (python main.py) with webview output on port 5000
   - Bot successfully connected to Discord as "Karma LiveBOT#2866" (2 guilds)
   - All platform tasks operational: Twitch, YouTube, TikTok, Stats, Social Media
-  - 18 slash commands registered and synced globally
-  - HTTP health check server running on port 5000
+  - 20 slash commands registered and synced globally
+  - HTTP health check server running on 0.0.0.0:5000 with /health and /status endpoints
   - OpenAI Auto-Repair System initialized successfully
   - SQLite database (karma_bot.db) loaded with existing data
   - All environment variables verified and working
+  - Python runtime: 3.11.13
 - [2025-09-30] **Custom Commands System Implemented:**
   - New `custom_commands` database table with guild-specific command storage
   - `/custom create` - Modal-based command creation with embed and button support

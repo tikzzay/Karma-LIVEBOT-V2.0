@@ -13,16 +13,27 @@ from config import Config
 
 logger = logging.getLogger('KARMA-LiveBOT.CustomCommands')
 
-MAX_CUSTOM_COMMANDS = 50
+MAX_CUSTOM_COMMANDS = 300
 
 def has_admin_role():
-    """Check if user has admin permissions"""
-    def predicate(interaction: discord.Interaction) -> bool:
+    """Check if user has admin permissions (with fetch fallback)"""
+    async def predicate(interaction: discord.Interaction) -> bool:
         if not hasattr(interaction, 'guild') or not interaction.guild:
             return False
+        
+        # Try cache first
         member = interaction.guild.get_member(interaction.user.id)
+        
+        # Fallback to fetch if not in cache
+        if not member:
+            try:
+                member = await interaction.guild.fetch_member(interaction.user.id)
+            except:
+                return False
+        
         if not member or not member.roles:
             return False
+        
         user_roles = [role.id for role in member.roles]
         return any(role_id in Config.ADMIN_ROLES for role_id in user_roles)
     return app_commands.check(predicate)
@@ -31,24 +42,24 @@ class CreateCustomCommandModal(discord.ui.Modal, title='Custom Command erstellen
     """Modal for creating a custom command"""
     
     command_name = discord.ui.TextInput(
-        label='Command Name',
-        placeholder='z.B. teamspeak',
+        label='Command Name (a-z, 0-9, -, _)',
+        placeholder='z.B. teamspeak oder team-speak',
         required=True,
         max_length=32,
         style=discord.TextStyle.short
     )
     
     response_text = discord.ui.TextInput(
-        label='Antwort-Text (optional wenn Embed)',
-        placeholder='z.B. ts.meinserver.de',
+        label='Antwort als Text (optional)',
+        placeholder='Text der als Nachricht gesendet wird',
         required=False,
         max_length=2000,
         style=discord.TextStyle.paragraph
     )
     
     embed_title = discord.ui.TextInput(
-        label='Embed-Titel (optional)',
-        placeholder='z.B. 📡 Teamspeak',
+        label='Embed-Titel (optional, Emojis erlaubt)',
+        placeholder='z.B. 📡 Teamspeak Server',
         required=False,
         max_length=256,
         style=discord.TextStyle.short
@@ -56,15 +67,15 @@ class CreateCustomCommandModal(discord.ui.Modal, title='Custom Command erstellen
     
     embed_description = discord.ui.TextInput(
         label='Embed-Beschreibung (optional)',
-        placeholder='z.B. Unser Teamspeak Server',
+        placeholder='Ausführliche Beschreibung für das Embed',
         required=False,
         max_length=4000,
         style=discord.TextStyle.paragraph
     )
     
     button_info = discord.ui.TextInput(
-        label='Button (optional): Label|URL',
-        placeholder='z.B. Join TS|https://ts.meinserver.de',
+        label='Button (optional): Text|URL',
+        placeholder='z.B. Beitreten|https://ts.meinserver.de',
         required=False,
         max_length=500,
         style=discord.TextStyle.short
@@ -84,10 +95,19 @@ class CreateCustomCommandModal(discord.ui.Modal, title='Custom Command erstellen
             guild_id = str(interaction.guild.id)
             name = self.command_name.value.lower().strip()
             
-            # Validate command name (alphanumeric + underscore only)
-            if not name.replace('_', '').isalnum():
+            # Validate command name (alphanumeric + underscore + hyphen)
+            # Allow letters, numbers, hyphens and underscores
+            if not name.replace('_', '').replace('-', '').isalnum():
                 await interaction.response.send_message(
-                    "❌ Command Name darf nur Buchstaben, Zahlen und Unterstriche enthalten!",
+                    "❌ Command Name darf nur Buchstaben, Zahlen, Bindestriche (-) und Unterstriche (_) enthalten!",
+                    ephemeral=True
+                )
+                return
+            
+            # Discord command names must start with a letter/number
+            if name and not name[0].isalnum():
+                await interaction.response.send_message(
+                    "❌ Command Name muss mit einem Buchstaben oder einer Zahl beginnen!",
                     ephemeral=True
                 )
                 return
@@ -171,18 +191,21 @@ class CreateCustomCommandModal(discord.ui.Modal, title='Custom Command erstellen
             
             conn.commit()
             
-            # Register the command dynamically
-            await self.bot.get_cog('CustomCommands').register_guild_commands(interaction.guild.id)
+            # Register the command dynamically with proper sync
+            cog = self.bot.get_cog('CustomCommands')
+            if cog:
+                await cog.register_guild_commands(interaction.guild.id)
             
             embed = discord.Embed(
                 title="✅ Custom Command erstellt",
-                description=f"Command `/{name}` wurde erfolgreich erstellt!",
+                description=f"Command `/{name}` wurde erfolgreich erstellt und synchronisiert!",
                 color=discord.Color.green()
             )
             embed.add_field(name="Verwendung", value=f"Benutze `/{name}` um den Command auszuführen", inline=False)
+            embed.add_field(name="Hinweis", value="Der Command sollte in wenigen Sekunden verfügbar sein.", inline=False)
             
             await interaction.response.send_message(embed=embed, ephemeral=True)
-            logger.info(f"Custom command '{name}' created for guild {guild_id}")
+            logger.info(f"Custom command '{name}' created and synced for guild {guild_id}")
             
         except Exception as e:
             logger.error(f"Error creating custom command: {e}")
@@ -197,16 +220,16 @@ class EditCustomCommandModal(discord.ui.Modal, title='Custom Command bearbeiten'
     """Modal for editing a custom command"""
     
     response_text = discord.ui.TextInput(
-        label='Antwort-Text (optional wenn Embed)',
-        placeholder='z.B. ts.meinserver.de',
+        label='Antwort als Text (optional)',
+        placeholder='Text der als Nachricht gesendet wird',
         required=False,
         max_length=2000,
         style=discord.TextStyle.paragraph
     )
     
     embed_title = discord.ui.TextInput(
-        label='Embed-Titel (optional)',
-        placeholder='z.B. 📡 Teamspeak',
+        label='Embed-Titel (optional, Emojis erlaubt)',
+        placeholder='z.B. 📡 Teamspeak Server',
         required=False,
         max_length=256,
         style=discord.TextStyle.short
@@ -214,15 +237,15 @@ class EditCustomCommandModal(discord.ui.Modal, title='Custom Command bearbeiten'
     
     embed_description = discord.ui.TextInput(
         label='Embed-Beschreibung (optional)',
-        placeholder='z.B. Unser Teamspeak Server',
+        placeholder='Ausführliche Beschreibung für das Embed',
         required=False,
         max_length=4000,
         style=discord.TextStyle.paragraph
     )
     
     button_info = discord.ui.TextInput(
-        label='Button (optional): Label|URL',
-        placeholder='z.B. Join TS|https://ts.meinserver.de',
+        label='Button (optional): Text|URL',
+        placeholder='z.B. Beitreten|https://ts.meinserver.de',
         required=False,
         max_length=500,
         style=discord.TextStyle.short
