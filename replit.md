@@ -9,6 +9,17 @@ KARMA-LiveBOT is a Discord bot designed to monitor and notify users about live s
 - Stats channels auto-update every 5 minutes - manual renaming will be overwritten
 
 ## Recent Changes
+- [2025-10-01] **SSRF-Schutz für Welcome-System implementiert:**
+  - IP-Filterung für Banner-URLs hinzugefügt
+  - Blockiert private/interne IP-Bereiche:
+    - Localhost (127.0.0.0/8)
+    - Private Netzwerke (10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16)
+    - Link-Local (169.254.0.0/16)
+    - Reserved/Multicast (0.0.0.0/8, 224.0.0.0/4, 240.0.0.0/4)
+  - DNS-Auflösung vor Download mit IP-Validierung
+  - Nur öffentliche URLs werden akzeptiert
+  - Ausführliches Logging für blockierte Zugriffe
+  - ✅ SSRF-Risiko erfolgreich mitigiert
 - [2025-10-01] **Welcome System Implementiert:**
   - Neue Datei `welcome_commands.py` mit vollständigem Welcome-System
   - `/welcome` - Konfiguration von Welcome-Channel, Nachricht, Auto-Role und Banner-URL
@@ -25,10 +36,9 @@ KARMA-LiveBOT is a Discord bot designed to monitor and notify users about live s
     - PIL MAX_IMAGE_PIXELS safeguard gegen Decompression Bombs
     - Timeouts (5s total, 3s connect) für alle Downloads
     - ClientSession Wiederverwendung via cog_load/cog_unload
-  - 21 Commands total (vorher 20) - 1 neuer Welcome-Command
+    - SSRF-Schutz mit IP-Filterung (neu hinzugefügt)
+  - 22 Commands total (vorher 21) - 1 neuer Welcome-Command
   - Pillow für Bildbearbeitung hinzugefügt
-  - ⚠️ SSRF-Hinweis: Admin-supplied Banner-URLs können theoretisch interne IPs ansprechen (Design-Limitierung)
-  - Architect review: Fail (funktional vollständig, aber SSRF-Risiko verbleibt)
 - [2025-10-01] **Railway.com Auto-Restart Fix:**
   - Fixed Railway.com auto-restart issue: Changed `os._exit(0)` to `os._exit(1)` in auto_restart_task()
   - Exit-Code 0 = "successful exit" → Railway.com does NOT restart
@@ -43,19 +53,19 @@ KARMA-LiveBOT is a Discord bot designed to monitor and notify users about live s
   - All early return paths now include title and viewer_count for consistency
   - Fallback to "{username} Live Stream" when SIGI_STATE not found (normal TikTok HTML variation)
   - Architect review: Pass with minor improvements implemented
-- [2025-10-01] **Fresh GitHub Clone Setup on Replit:**
+- [2025-10-01] **Fresh GitHub Clone Setup on Replit (Updated):**
   - Successfully imported and configured GitHub clone for Replit environment
   - Created .gitignore file for Python project (preserving karma_bot.db with existing data)
-  - All Python dependencies installed: discord.py, aiohttp, tiktoklive, httpx, openai, PyNaCl, beautifulsoup4, brotli, schedule, requests
-  - Workflow configured: "KARMA-LiveBOT" (python main.py) with webview output on port 5000
+  - All Python dependencies installed: discord.py, aiohttp, tiktoklive, httpx, openai, PyNaCl, beautifulsoup4, brotli, schedule, requests, Pillow
+  - Workflow configured: "KARMA-LiveBOT" (python main.py) with console output type
   - Bot successfully connected to Discord as "Karma LiveBOT#2866" (2 guilds: KARMA COM. SERVER, ✨Sturmpelz✨)
   - All platform tasks operational: Twitch, YouTube, TikTok, Stats, Social Media
-  - 20 slash commands registered and synced globally
+  - 22 slash commands registered and synced globally
   - HTTP health check server running on 0.0.0.0:5000 with /health and /status endpoints
   - OpenAI Auto-Repair System initialized successfully
-  - SQLite database (karma_bot.db) loaded with 15 creators and existing configuration
+  - SQLite database (karma_bot.db) loaded with existing creators and configuration
   - All environment variables verified and working (DISCORD_TOKEN, DISCORD_APP_ID, etc.)
-  - Python runtime: 3.11.x
+  - Python runtime: 3.11.13
   - Project structure: Modular architecture with separate files for each platform and feature
   - Ready for deployment and production use
 - [2025-09-30] **Custom Commands System Implemented:**
@@ -112,11 +122,12 @@ The bot utilizes a modular, MEE6-style architecture, with specialized modules fo
 
 ## Replit Setup
 **Environment:** Fully configured and running on Replit
-- **Workflow:** KARMA-LiveBOT (python main.py) on port 5000
+- **Workflow:** KARMA-LiveBOT (python main.py) - console output type
 - **Health Check:** HTTP server on 0.0.0.0:5000 with /health and /status endpoints
 - **Runtime:** Python 3.11.13
 - **Database:** SQLite (karma_bot.db) - local persistent storage
 - **Dependencies:** Managed via pyproject.toml and requirements.txt
+- **Project Type:** Discord Bot (backend only, no frontend)
 
 ## Required Environment Variables
 All secrets are configured in Replit Secrets:

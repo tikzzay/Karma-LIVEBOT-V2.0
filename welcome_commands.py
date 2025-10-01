@@ -13,6 +13,9 @@ import asyncio
 import aiohttp
 from PIL import Image, ImageDraw, ImageFont
 from typing import Optional
+import socket
+from urllib.parse import urlparse
+import ipaddress
 
 logger = logging.getLogger('KARMA-LiveBOT.Welcome')
 
@@ -38,10 +41,94 @@ class WelcomeCommands(commands.Cog):
             await self.session.close()
             logger.info("Welcome system: ClientSession closed")
     
-    async def _safe_download_image(self, url: str, timeout: aiohttp.ClientTimeout, max_size: int) -> Optional[bytes]:
-        """Safely download image data with size limits and content-type validation"""
+    def _is_safe_url(self, url: str) -> bool:
+        """
+        Enhanced SSRF protection with IPv6 support and comprehensive IP validation
+        Blocks private/internal IPs, validates all resolved addresses, and restricts ports
+        Returns True if URL is safe to access, False otherwise
+        """
         try:
-            async with self.session.get(url, timeout=timeout) as resp:
+            parsed = urlparse(url)
+            
+            if parsed.scheme not in ('http', 'https'):
+                logger.warning(f"SSRF Protection: Invalid protocol '{parsed.scheme}'")
+                return False
+            
+            hostname = parsed.hostname
+            if not hostname:
+                logger.warning("SSRF Protection: No hostname found in URL")
+                return False
+            
+            port = parsed.port
+            if port and port not in (80, 443, None):
+                logger.warning(f"SSRF Protection: Non-standard port {port} blocked")
+                return False
+            
+            try:
+                addr_info = socket.getaddrinfo(hostname, port or (443 if parsed.scheme == 'https' else 80), 
+                                               family=socket.AF_UNSPEC, type=socket.SOCK_STREAM)
+            except (socket.gaierror, ValueError) as e:
+                logger.warning(f"SSRF Protection: DNS resolution failed for {hostname}: {e}")
+                return False
+            
+            if not addr_info:
+                logger.warning(f"SSRF Protection: No addresses resolved for {hostname}")
+                return False
+            
+            blocked_ipv4_ranges = [
+                ipaddress.ip_network('0.0.0.0/8'),
+                ipaddress.ip_network('10.0.0.0/8'),
+                ipaddress.ip_network('100.64.0.0/10'),
+                ipaddress.ip_network('127.0.0.0/8'),
+                ipaddress.ip_network('169.254.0.0/16'),
+                ipaddress.ip_network('172.16.0.0/12'),
+                ipaddress.ip_network('192.168.0.0/16'),
+                ipaddress.ip_network('224.0.0.0/4'),
+                ipaddress.ip_network('240.0.0.0/4'),
+            ]
+            
+            checked_ips = []
+            for family, socktype, proto, canonname, sockaddr in addr_info:
+                ip_str = sockaddr[0]
+                
+                try:
+                    ip = ipaddress.ip_address(ip_str)
+                except ValueError:
+                    logger.warning(f"SSRF Protection: Invalid IP format {ip_str}")
+                    return False
+                
+                if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved:
+                    logger.warning(f"SSRF Protection: Blocked private/internal IP {ip} for {hostname}")
+                    return False
+                
+                if isinstance(ip, ipaddress.IPv4Address):
+                    for blocked in blocked_ipv4_ranges:
+                        if ip in blocked:
+                            logger.warning(f"SSRF Protection: Blocked IPv4 {ip} in range {blocked}")
+                            return False
+                
+                if isinstance(ip, ipaddress.IPv6Address):
+                    if ip.is_site_local:
+                        logger.warning(f"SSRF Protection: Blocked site-local IPv6 {ip}")
+                        return False
+                
+                if not ip.is_global:
+                    logger.warning(f"SSRF Protection: Blocked non-global IP {ip}")
+                    return False
+                
+                checked_ips.append(str(ip))
+            
+            logger.info(f"SSRF Protection: URL {hostname} passed validation with {len(checked_ips)} global IPs: {', '.join(checked_ips)}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"SSRF Protection: Error validating URL: {e}")
+            return False
+    
+    async def _safe_download_image(self, url: str, timeout: aiohttp.ClientTimeout, max_size: int) -> Optional[bytes]:
+        """Safely download image data with size limits, content-type validation, and redirect protection"""
+        try:
+            async with self.session.get(url, timeout=timeout, allow_redirects=False) as resp:
                 if resp.status != 200:
                     return None
                 
@@ -79,6 +166,9 @@ class WelcomeCommands(commands.Cog):
             if banner_url:
                 if not banner_url.startswith(('http://', 'https://')):
                     logger.warning(f"Invalid banner URL protocol: {banner_url}")
+                    banner = Image.new('RGB', (width, height), color=(54, 57, 63))
+                elif not self._is_safe_url(banner_url):
+                    logger.warning(f"Banner URL failed SSRF validation: {banner_url}")
                     banner = Image.new('RGB', (width, height), color=(54, 57, 63))
                 else:
                     banner_data = await self._safe_download_image(banner_url, timeout, max_image_size)

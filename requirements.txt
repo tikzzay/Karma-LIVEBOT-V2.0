@@ -10,3 +10,7 @@ schedule>=1.2.2
 httpx>=0.25.0
 openai>=2.0.0
 Pillow>=11.3.0
+httpx
+openai
+Pillow
+PyNaCl
