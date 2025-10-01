@@ -9,6 +9,23 @@ KARMA-LiveBOT is a Discord bot designed to monitor and notify users about live s
 - Stats channels auto-update every 5 minutes - manual renaming will be overwritten
 
 ## Recent Changes
+- [2025-10-01] **Welcome Username-Farbe angepasst:**
+  - Username unter Profilbild jetzt in Lila (#8A2BE2, RGB: 138, 43, 226)
+  - Schwarze Umrandung verstärkt (3px Multi-Directional Stroke) für bessere Lesbarkeit
+  - Architect review: PASS - Farbe und dickere Umrandung korrekt implementiert
+- [2025-10-01] **Interaktive Welcome-Konfiguration implementiert:**
+  - `/welcome` Befehl komplett überarbeitet - öffnet jetzt ein interaktives Konfigurationsfenster
+  - Neue `WelcomeConfigView` mit benutzerfreundlicher UI:
+    - 📢 Channel-Select Dropdown (Text-Channels)
+    - 🎭 Role-Select Dropdown (Auto-Rolle für neue Member)
+    - 📝 "Text & Banner bearbeiten" Button (öffnet Modal)
+    - ⚡ Enable/Disable Toggle-Button
+    - 💾 Speichern-Button
+  - Neues `WelcomeTextModal` für Text und Banner-URL Eingabe
+  - Alle Einstellungen können in einem Fenster vorgenommen werden
+  - Vorhandene Konfiguration wird beim Öffnen geladen
+  - Ephemeral-Messages für bessere UX (nur Admin sieht Konfiguration)
+  - Architect review: PASS - Vollständige und sichere Implementierung
 - [2025-10-01] **SSRF-Schutz für Welcome-System implementiert:**
   - IP-Filterung für Banner-URLs hinzugefügt
   - Blockiert private/interne IP-Bereiche:

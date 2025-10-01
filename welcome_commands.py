@@ -21,6 +21,216 @@ logger = logging.getLogger('KARMA-LiveBOT.Welcome')
 
 Image.MAX_IMAGE_PIXELS = 178956970
 
+class WelcomeTextModal(discord.ui.Modal):
+    """Modal for configuring welcome text and banner URL"""
+    
+    def __init__(self, current_text: str, current_banner: Optional[str]):
+        super().__init__(title="Text & Banner Konfiguration")
+        
+        self.welcome_text = discord.ui.TextInput(
+            label="Willkommenstext",
+            placeholder="{user} = Mention, {username} = Name, {server} = Server",
+            default=current_text,
+            style=discord.TextStyle.paragraph,
+            max_length=500,
+            required=True
+        )
+        self.add_item(self.welcome_text)
+        
+        self.banner_url = discord.ui.TextInput(
+            label="Banner-URL (optional)",
+            placeholder="https://example.com/banner.png",
+            default=current_banner or "",
+            style=discord.TextStyle.short,
+            max_length=500,
+            required=False
+        )
+        self.add_item(self.banner_url)
+    
+    async def on_submit(self, interaction: discord.Interaction):
+        """Handle modal submission"""
+        await interaction.response.defer()
+        self.text_value = self.welcome_text.value
+        self.banner_value = self.banner_url.value if self.banner_url.value else None
+
+class WelcomeConfigView(discord.ui.View):
+    """Interactive view for configuring the welcome system"""
+    
+    def __init__(self, db, guild: discord.Guild, current_channel: Optional[str], 
+                 current_text: str, current_role: Optional[str], 
+                 current_banner: Optional[str], current_enabled: bool):
+        super().__init__(timeout=300)
+        self.db = db
+        self.guild = guild
+        self.channel_id = current_channel
+        self.text = current_text
+        self.role_id = current_role
+        self.banner = current_banner
+        self.enabled = current_enabled
+        
+        self.update_buttons()
+    
+    def update_buttons(self):
+        """Update button labels to reflect current state"""
+        self.clear_items()
+        
+        self.add_item(self.channel_select)
+        self.add_item(self.role_select)
+        
+        toggle_button = discord.ui.Button(
+            label=f"System: {'🟢 Aktiviert' if self.enabled else '🔴 Deaktiviert'}",
+            style=discord.ButtonStyle.success if self.enabled else discord.ButtonStyle.danger,
+            custom_id="toggle_enabled"
+        )
+        toggle_button.callback = self.toggle_enabled_callback
+        self.add_item(toggle_button)
+        
+        text_button = discord.ui.Button(
+            label="📝 Text & Banner bearbeiten",
+            style=discord.ButtonStyle.primary,
+            custom_id="edit_text"
+        )
+        text_button.callback = self.edit_text_callback
+        self.add_item(text_button)
+        
+        save_button = discord.ui.Button(
+            label="💾 Speichern",
+            style=discord.ButtonStyle.success,
+            custom_id="save_config"
+        )
+        save_button.callback = self.save_callback
+        self.add_item(save_button)
+    
+    @discord.ui.select(
+        cls=discord.ui.ChannelSelect,
+        channel_types=[discord.ChannelType.text],
+        placeholder="📢 Wähle den Willkommens-Channel",
+        min_values=1,
+        max_values=1
+    )
+    async def channel_select(self, interaction: discord.Interaction, select: discord.ui.ChannelSelect):
+        """Handle channel selection"""
+        self.channel_id = str(select.values[0].id)
+        await interaction.response.send_message(
+            f"✅ Channel auf {select.values[0].mention} gesetzt!",
+            ephemeral=True,
+            delete_after=3
+        )
+        logger.info(f"Channel selected: {select.values[0].name}")
+    
+    @discord.ui.select(
+        cls=discord.ui.RoleSelect,
+        placeholder="🎭 Wähle die Auto-Rolle (optional)",
+        min_values=0,
+        max_values=1
+    )
+    async def role_select(self, interaction: discord.Interaction, select: discord.ui.RoleSelect):
+        """Handle role selection"""
+        if select.values:
+            self.role_id = str(select.values[0].id)
+            await interaction.response.send_message(
+                f"✅ Auto-Rolle auf {select.values[0].mention} gesetzt!",
+                ephemeral=True,
+                delete_after=3
+            )
+            logger.info(f"Role selected: {select.values[0].name}")
+        else:
+            self.role_id = None
+            await interaction.response.send_message(
+                "✅ Auto-Rolle entfernt!",
+                ephemeral=True,
+                delete_after=3
+            )
+    
+    async def toggle_enabled_callback(self, interaction: discord.Interaction):
+        """Toggle enabled/disabled state"""
+        self.enabled = not self.enabled
+        self.update_buttons()
+        
+        await interaction.response.edit_message(view=self)
+        await interaction.followup.send(
+            f"✅ System {'aktiviert' if self.enabled else 'deaktiviert'}!",
+            ephemeral=True,
+            delete_after=3
+        )
+        logger.info(f"Welcome system toggled: {self.enabled}")
+    
+    async def edit_text_callback(self, interaction: discord.Interaction):
+        """Open modal for text and banner editing"""
+        modal = WelcomeTextModal(self.text, self.banner)
+        await interaction.response.send_modal(modal)
+        
+        await modal.wait()
+        
+        if hasattr(modal, 'text_value'):
+            self.text = modal.text_value
+            self.banner = modal.banner_value
+            logger.info(f"Text and banner updated via modal")
+    
+    async def save_callback(self, interaction: discord.Interaction):
+        """Save configuration to database"""
+        await interaction.response.defer(ephemeral=True)
+        
+        try:
+            conn = self.db.get_connection()
+            cursor = conn.cursor()
+            
+            cursor.execute('''
+                SELECT guild_id FROM welcome_config WHERE guild_id = ?
+            ''', (str(self.guild.id),))
+            
+            existing = cursor.fetchone()
+            
+            if existing:
+                cursor.execute('''
+                    UPDATE welcome_config
+                    SET channel_id = ?, welcome_text = ?, role_id = ?, banner_url = ?, enabled = ?
+                    WHERE guild_id = ?
+                ''', (self.channel_id, self.text, self.role_id, self.banner, self.enabled, str(self.guild.id)))
+            else:
+                cursor.execute('''
+                    INSERT INTO welcome_config (guild_id, channel_id, welcome_text, role_id, banner_url, enabled)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                ''', (str(self.guild.id), self.channel_id, self.text, self.role_id, self.banner, self.enabled))
+            
+            conn.commit()
+            conn.close()
+            
+            embed = discord.Embed(
+                title="✅ Willkommens-System gespeichert!",
+                color=discord.Color.green()
+            )
+            
+            if self.channel_id:
+                channel = self.guild.get_channel(int(self.channel_id))
+                embed.add_field(name="📢 Channel", value=channel.mention if channel else "Nicht gesetzt", inline=False)
+            else:
+                embed.add_field(name="📢 Channel", value="❌ Nicht gesetzt", inline=False)
+            
+            embed.add_field(name="📝 Text", value=self.text[:100] + "..." if len(self.text) > 100 else self.text, inline=False)
+            
+            if self.role_id:
+                role = self.guild.get_role(int(self.role_id))
+                embed.add_field(name="🎭 Auto-Rolle", value=role.mention if role else "Nicht gesetzt", inline=False)
+            else:
+                embed.add_field(name="🎭 Auto-Rolle", value="❌ Keine Auto-Rolle", inline=False)
+            
+            if self.banner:
+                embed.add_field(name="🖼️ Banner", value="✅ Gesetzt", inline=False)
+            else:
+                embed.add_field(name="🖼️ Banner", value="Standard-Banner", inline=False)
+            
+            embed.add_field(name="⚡ Status", value="🟢 Aktiviert" if self.enabled else "🔴 Deaktiviert", inline=False)
+            
+            await interaction.followup.send(embed=embed, ephemeral=True)
+            
+            self.stop()
+            logger.info(f"Welcome config saved for {self.guild.name}")
+            
+        except Exception as e:
+            logger.error(f"Error saving welcome config: {e}")
+            await interaction.followup.send("❌ Fehler beim Speichern der Konfiguration.", ephemeral=True)
+
 class WelcomeCommands(commands.Cog):
     """Welcome system with custom banners and auto-roles"""
     
@@ -220,8 +430,12 @@ class WelcomeCommands(commands.Cog):
             text_x = (width - text_width) // 2
             text_y = avatar_position[1] + 220
             
-            draw.text((text_x + 2, text_y + 2), username, font=font, fill=(0, 0, 0))
-            draw.text((text_x, text_y), username, font=font, fill=(255, 255, 255))
+            for offset_x in [-3, -2, -1, 0, 1, 2, 3]:
+                for offset_y in [-3, -2, -1, 0, 1, 2, 3]:
+                    if offset_x != 0 or offset_y != 0:
+                        draw.text((text_x + offset_x, text_y + offset_y), username, font=font, fill=(0, 0, 0))
+            
+            draw.text((text_x, text_y), username, font=font, fill=(138, 43, 226))
             
             buffer = io.BytesIO()
             banner.save(buffer, format='PNG')
@@ -298,26 +512,9 @@ class WelcomeCommands(commands.Cog):
             logger.error(f"Error in on_member_join: {e}")
     
     @app_commands.command(name="welcome", description="Konfiguriere das Willkommens-System für diesen Server")
-    @app_commands.describe(
-        channel="Der Channel, in dem Willkommens-Nachrichten gesendet werden",
-        text="Der Willkommenstext ({user} = Mention, {username} = Name, {server} = Servername)",
-        role="Die Rolle, die neuen Mitgliedern automatisch zugewiesen wird",
-        banner="URL des Banner-Bildes für Willkommens-Nachrichten",
-        enabled="Aktiviere oder deaktiviere das Willkommens-System"
-    )
     @app_commands.checks.has_permissions(administrator=True)
-    async def welcome_config(
-        self,
-        interaction: discord.Interaction,
-        channel: Optional[discord.TextChannel] = None,
-        text: Optional[str] = None,
-        role: Optional[discord.Role] = None,
-        banner: Optional[str] = None,
-        enabled: Optional[bool] = None
-    ):
-        """Configure welcome system for this server"""
-        
-        await interaction.response.defer(ephemeral=True)
+    async def welcome_config(self, interaction: discord.Interaction):
+        """Configure welcome system for this server - opens interactive configuration window"""
         
         try:
             conn = self.db.get_connection()
@@ -330,6 +527,7 @@ class WelcomeCommands(commands.Cog):
             ''', (str(interaction.guild.id),))
             
             existing = cursor.fetchone()
+            conn.close()
             
             if existing:
                 current_channel = existing[0]
@@ -344,55 +542,34 @@ class WelcomeCommands(commands.Cog):
                 current_banner = None
                 current_enabled = True
             
-            new_channel = str(channel.id) if channel else current_channel
-            new_text = text if text else current_text
-            new_role = str(role.id) if role else current_role
-            new_banner = banner if banner else current_banner
-            new_enabled = enabled if enabled is not None else current_enabled
-            
-            if existing:
-                cursor.execute('''
-                    UPDATE welcome_config
-                    SET channel_id = ?, welcome_text = ?, role_id = ?, banner_url = ?, enabled = ?
-                    WHERE guild_id = ?
-                ''', (new_channel, new_text, new_role, new_banner, new_enabled, str(interaction.guild.id)))
-            else:
-                cursor.execute('''
-                    INSERT INTO welcome_config (guild_id, channel_id, welcome_text, role_id, banner_url, enabled)
-                    VALUES (?, ?, ?, ?, ?, ?)
-                ''', (str(interaction.guild.id), new_channel, new_text, new_role, new_banner, new_enabled))
-            
-            conn.commit()
-            conn.close()
-            
-            embed = discord.Embed(
-                title="✅ Willkommens-System konfiguriert",
-                color=discord.Color.green()
+            view = WelcomeConfigView(
+                self.db, 
+                interaction.guild, 
+                current_channel, 
+                current_text, 
+                current_role, 
+                current_banner, 
+                current_enabled
             )
             
-            if new_channel:
-                channel_obj = interaction.guild.get_channel(int(new_channel))
-                embed.add_field(name="Channel", value=channel_obj.mention if channel_obj else "Nicht gesetzt", inline=False)
+            embed = discord.Embed(
+                title="🎉 Willkommens-System Konfiguration",
+                description="Nutze die Buttons und Menüs unten, um das Willkommens-System einzurichten.",
+                color=discord.Color.blue()
+            )
             
-            embed.add_field(name="Text", value=new_text, inline=False)
+            embed.add_field(
+                name="📝 Verfügbare Platzhalter für Text:",
+                value="`{user}` - Erwähnt den neuen User\n`{username}` - Zeigt den Usernamen\n`{server}` - Zeigt den Servernamen",
+                inline=False
+            )
             
-            if new_role:
-                role_obj = interaction.guild.get_role(int(new_role))
-                embed.add_field(name="Auto-Rolle", value=role_obj.mention if role_obj else "Nicht gesetzt", inline=False)
-            
-            if new_banner:
-                embed.add_field(name="Banner", value="✅ Gesetzt", inline=False)
-            else:
-                embed.add_field(name="Banner", value="Standard-Banner", inline=False)
-            
-            embed.add_field(name="Status", value="🟢 Aktiviert" if new_enabled else "🔴 Deaktiviert", inline=False)
-            
-            await interaction.followup.send(embed=embed)
-            logger.info(f"Welcome system configured for {interaction.guild.name}")
+            await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
+            logger.info(f"Welcome config view opened for {interaction.guild.name}")
             
         except Exception as e:
-            logger.error(f"Error configuring welcome system: {e}")
-            await interaction.followup.send("❌ Fehler beim Konfigurieren des Willkommens-Systems.", ephemeral=True)
+            logger.error(f"Error opening welcome config: {e}")
+            await interaction.response.send_message("❌ Fehler beim Öffnen der Konfiguration.", ephemeral=True)
     
     @app_commands.command(name="welcome_status", description="Zeige die aktuelle Willkommens-System Konfiguration")
     @app_commands.checks.has_permissions(administrator=True)
