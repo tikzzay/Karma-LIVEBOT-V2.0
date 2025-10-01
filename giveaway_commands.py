@@ -27,14 +27,6 @@ class GiveawayModal(discord.ui.Modal, title='Giveaway erstellen'):
         style=discord.TextStyle.paragraph
     )
     
-    keys = discord.ui.TextInput(
-        label='Keys (durch Komma getrennt)',
-        placeholder='KEY1,KEY2,KEY3',
-        required=True,
-        max_length=1000,
-        style=discord.TextStyle.paragraph
-    )
-    
     duration = discord.ui.TextInput(
         label='Dauer in Minuten',
         placeholder='z.B. 15',
@@ -74,14 +66,6 @@ class GiveawayModal(discord.ui.Modal, title='Giveaway erstellen'):
                 )
                 return
             
-            keys_list = [k.strip() for k in self.keys.value.split(',')]
-            if len(keys_list) < winner_count:
-                await interaction.response.send_message(
-                    f'❌ Du hast nur {len(keys_list)} Keys angegeben, aber {winner_count} Gewinner!',
-                    ephemeral=True
-                )
-                return
-            
             await interaction.response.defer(ephemeral=True)
             
             ends_at = datetime.now() + timedelta(minutes=duration_minutes)
@@ -117,7 +101,7 @@ class GiveawayModal(discord.ui.Modal, title='Giveaway erstellen'):
                 str(self.selected_channel.id),
                 str(message.id),
                 self.description.value,
-                self.keys.value,
+                '',
                 duration_minutes,
                 winner_count,
                 self.image_url.value if self.image_url.value else None,
@@ -180,6 +164,13 @@ class GiveawayModal(discord.ui.Modal, title='Giveaway erstellen'):
                 try:
                     embed = message.embeds[0]
                     embed.color = discord.Color.red()
+                    
+                    # Ändere das "⏰ Endet" Feld zu "🏁 Giveaway Beendet"
+                    for i, field in enumerate(embed.fields):
+                        if field.name == '⏰ Endet':
+                            embed.set_field_at(i, name='🏁 Status', value='Giveaway Beendet', inline=True)
+                            break
+                    
                     embed.set_footer(text='Giveaway beendet - Keine Teilnehmer')
                     await message.edit(embed=embed, view=None)
                 except:
@@ -206,6 +197,13 @@ class GiveawayModal(discord.ui.Modal, title='Giveaway erstellen'):
             try:
                 embed = message.embeds[0]
                 embed.color = discord.Color.green()
+                
+                # Ändere das "⏰ Endet" Feld zu "🏁 Giveaway Beendet"
+                for i, field in enumerate(embed.fields):
+                    if field.name == '⏰ Endet':
+                        embed.set_field_at(i, name='🏁 Status', value='Giveaway Beendet', inline=True)
+                        break
+                
                 embed.set_footer(text=f'Giveaway beendet - Gewinner: {len(winners)}')
                 await message.edit(embed=embed, view=None)
             except:
@@ -279,7 +277,7 @@ class GiveawayView(discord.ui.View):
             if has_won:
                 conn.close()
                 await interaction.response.send_message(
-                    '❌ Du hast bereits bei einem Giveaway gewonnen und kannst erst wieder teilnehmen, wenn ein Admin `/resetgewinner` ausführt!',
+                    '💖 Oh nein… du kannst heute leider nicht erneut teilnehmen 😢 Pro Person ist nur ein Gewinn pro Tag möglich.🍀 Der Veranstalter wird sich privat bei dir melden, um dir deinen Gewinn zu übergeben. Danke für dein Verständnis und dass du ein Teil meiner Community bist! #EhrenMann / #EhrenFrau ✨💎',
                     ephemeral=True
                 )
                 return
@@ -438,6 +436,13 @@ class GiveawayCommands(commands.Cog):
             try:
                 embed = message.embeds[0]
                 embed.color = discord.Color.green()
+                
+                # Ändere das "⏰ Endet" Feld zu "🏁 Giveaway Beendet"
+                for i, field in enumerate(embed.fields):
+                    if field.name == '⏰ Endet':
+                        embed.set_field_at(i, name='🏁 Status', value='Giveaway Beendet', inline=True)
+                        break
+                
                 embed.set_footer(text=f'Giveaway beendet - Gewinner: {len(winners)}')
                 await message.edit(embed=embed, view=None)
             except:

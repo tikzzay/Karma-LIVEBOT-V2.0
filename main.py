@@ -2803,7 +2803,7 @@ async def stats_updater():
                         elif counter_type == 'peak_online':
                             new_name = f"📈DAILY PEAK ONLINE: {current_count}"
                         elif counter_type == 'members':
-                            new_name = f"👥DISCORD MEMBER: {current_count}"
+                            new_name = f"👤DISCORD MEMBER: {current_count}"
                         elif counter_type == 'channels':
                             new_name = f"📝DISCORD CHANNEL: {current_count}"
                         elif counter_type == 'roles':

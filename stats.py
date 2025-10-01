@@ -462,17 +462,17 @@ async def stats_platform_task(db, bot):
                             
                             if channel_data['counter_type'] == 'members':
                                 current_count = guild.member_count
-                                new_name = f"👥 Members: {current_count}"
+                                new_name = f"👤 𝗗𝗜𝗦𝗖𝗢𝗥𝗗 𝗠𝗘𝗠𝗕𝗘𝗥: {current_count}"
                             elif channel_data['counter_type'] == 'online':
                                 online_members = sum(1 for member in guild.members if member.status != discord.Status.offline)
                                 current_count = online_members
-                                new_name = f"🟢 Online: {current_count}"
+                                new_name = f"🟢 𝗢𝗡𝗟𝗜𝗡𝗘 𝗠𝗘𝗠𝗕𝗘𝗥: {current_count}"
                             elif channel_data['counter_type'] == 'channels':
                                 current_count = len(guild.channels)
-                                new_name = f"📺 Channels: {current_count}"
+                                new_name = f"📺 𝗗𝗜𝗦𝗖𝗢𝗥𝗗 𝗖𝗛𝗔𝗡𝗡𝗘𝗟: {current_count}"
                             elif channel_data['counter_type'] == 'roles':
                                 current_count = len(guild.roles)
-                                new_name = f"🏷️ Roles: {current_count}"
+                                new_name = f"🏷️ 𝗗𝗜𝗦𝗖𝗢𝗥𝗗 𝗥𝗢𝗟𝗘𝗦: {current_count}"
                             elif channel_data['counter_type'] == 'role_count' and channel_data['role_id']:
                                 role = guild.get_role(int(channel_data['role_id']))
                                 if role:

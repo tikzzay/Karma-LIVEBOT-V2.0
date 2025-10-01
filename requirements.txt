@@ -26,3 +26,6 @@ PyNaCl
 httpx
 openai
 PyNaCl
+httpx
+openai
+PyNaCl
