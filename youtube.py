@@ -27,7 +27,60 @@ class YouTubeAPI:
         self.scrape_cache_duration = 60  # 1 Minute Cache für Scraping
         self.quota_backoff = {}  # Backoff für Quota-exceeded per user
         self.quota_backoff_duration = 1800  # 30 Minuten Backoff
+        self.headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept-Language': 'en-US,en;q=0.9'
+        }
     
+    async def _scrape_channel_profile_image(self, username: str) -> str:
+        """Scrape channel profile image from YouTube page"""
+        try:
+            # Try multiple URL formats
+            urls = [
+                f'https://www.youtube.com/@{username}',
+                f'https://www.youtube.com/c/{username}',
+                f'https://www.youtube.com/user/{username}'
+            ]
+            
+            timeout = aiohttp.ClientTimeout(total=5)
+            async with aiohttp.ClientSession(timeout=timeout) as session:
+                for url in urls:
+                    try:
+                        async with session.get(url, headers=self.headers) as response:
+                            if response.status == 200:
+                                html = await response.text()
+                                
+                                # Try to extract channel avatar from meta tags or JSON data
+                                patterns = [
+                                    r'"avatar":\{"thumbnails":\[\{"url":"([^"]+)"',
+                                    r'<link itemprop="thumbnailUrl" href="([^"]+)"',
+                                    r'<meta property="og:image" content="([^"]+)"',
+                                    r'"channelMetadataRenderer":\{[^}]*"avatar":\{"thumbnails":\[\{"url":"([^"]+)"'
+                                ]
+                                
+                                for pattern in patterns:
+                                    match = re.search(pattern, html)
+                                    if match:
+                                        profile_url = match.group(1)
+                                        # Clean up URL if needed
+                                        if profile_url.startswith('//'):
+                                            profile_url = 'https:' + profile_url
+                                        logger.info(f"YouTube {username}: Found profile image via scraping")
+                                        return profile_url
+                    
+                    except asyncio.TimeoutError:
+                        continue
+                    except Exception as e:
+                        logger.debug(f"YouTube {username}: Error scraping profile from {url}: {e}")
+                        continue
+            
+            # No profile image found
+            return 'https://yt3.ggpht.com/a/default-user'
+            
+        except Exception as e:
+            logger.error(f"YouTube {username}: Profile image scraping error: {e}")
+            return 'https://yt3.ggpht.com/a/default-user'
+
     async def quick_live_check(self, username: str) -> bool:
         """Quick live check via web scraping - saves API quota"""
         # Check scraping cache first
@@ -66,31 +119,45 @@ class YouTubeAPI:
                                 html = await response.text()
                                 
                                 # Look for ytInitialData first (most reliable)
-                                ytdata_pattern = r'ytInitialData"]\s*=\s*({.+?});'
-                                ytdata_match = re.search(ytdata_pattern, html)
+                                # Try multiple patterns as YouTube changes their format
+                                ytdata_patterns = [
+                                    r'var\s+ytInitialData\s*=\s*(\{.+?\});',  # var ytInitialData = {...};
+                                    r'ytInitialData"]\s*=\s*(\{.+?\});',       # ytInitialData"] = {...};
+                                    r'ytInitialData\s*=\s*(\{.+?\});',         # ytInitialData = {...};
+                                    r'window\["ytInitialData"\]\s*=\s*(\{.+?\});'  # window["ytInitialData"] = {...};
+                                ]
                                 
                                 live_indicators_found = 0
+                                yt_data = None
                                 
-                                if ytdata_match:
-                                    try:
-                                        yt_data = json.loads(ytdata_match.group(1))
-                                        # Search for live indicators in the data
-                                        yt_data_str = json.dumps(yt_data).lower()
-                                        
-                                        live_patterns = [
-                                            '"isbadgelive":true',
-                                            '"style":"LIVE"',
-                                            '"liveBadge"',
-                                            '"isLive":true',
-                                            '"liveBroadcastContent":"live"'
-                                        ]
-                                        
-                                        for pattern in live_patterns:
-                                            if pattern in yt_data_str:
-                                                live_indicators_found += 1
-                                                logger.debug(f"YouTube {username}: Found live indicator: {pattern}")
-                                    except json.JSONDecodeError:
-                                        logger.debug(f"YouTube {username}: Failed to parse ytInitialData")
+                                # Try each pattern until one matches
+                                for ytdata_pattern in ytdata_patterns:
+                                    ytdata_match = re.search(ytdata_pattern, html)
+                                    if ytdata_match:
+                                        try:
+                                            yt_data = json.loads(ytdata_match.group(1))
+                                            logger.debug(f"YouTube {username}: Found ytInitialData with pattern {ytdata_pattern[:30]}...")
+                                            break
+                                        except json.JSONDecodeError:
+                                            logger.debug(f"YouTube {username}: Failed to parse ytInitialData with pattern {ytdata_pattern[:30]}...")
+                                            continue
+                                
+                                if yt_data:
+                                    # Search for live indicators in the data
+                                    yt_data_str = json.dumps(yt_data).lower()
+                                    
+                                    live_patterns = [
+                                        '"isbadgelive":true',
+                                        '"style":"live"',
+                                        '"livebadge"',
+                                        '"islive":true',
+                                        '"livebroadcastcontent":"live"'
+                                    ]
+                                    
+                                    for pattern in live_patterns:
+                                        if pattern in yt_data_str:
+                                            live_indicators_found += 1
+                                            logger.debug(f"YouTube {username}: Found live indicator: {pattern}")
                                 
                                 # Fallback: direct HTML pattern matching
                                 if live_indicators_found == 0:
@@ -161,14 +228,18 @@ class YouTubeAPI:
         # Phase 2: User appears live via scraping, use API for details
         if not self.api_key:
             logger.warning(f"YouTube API key missing for {username} - using scraping result only")
+            # Scrape channel profile image
+            profile_image_url = await self._scrape_channel_profile_image(username)
+            
             return {
                 'is_live': True,
                 'method': 'scraping_only',
                 'viewer_count': 0,
                 'title': f'{username} Live Stream',
-                'thumbnail_url': '',
-                'profile_image_url': '',
-                'platform_url': f'https://www.youtube.com/@{username}/live'
+                'thumbnail_url': f'https://i.ytimg.com/vi/live/hqdefault_live.jpg',
+                'profile_image_url': profile_image_url,
+                'platform_url': f'https://www.youtube.com/@{username}/live',
+                'follower_count': 0
             }
         
         # Check cache
@@ -218,12 +289,18 @@ class YouTubeAPI:
                             # Get additional details
                             video_details = await self._get_video_details(video_id)
                             
+                            # Get real channel profile image
+                            profile_image_url = await self._get_channel_profile_image(channel_id)
+                            if not profile_image_url:
+                                # Fallback to default if channel profile image fetch failed
+                                profile_image_url = 'https://yt3.ggpht.com/a/default-user'
+                            
                             result = {
                                 'is_live': True,
                                 'viewer_count': video_details.get('concurrent_viewers', 0),
                                 'title': video['snippet']['title'],
                                 'thumbnail_url': video['snippet']['thumbnails'].get('high', {}).get('url', ''),
-                                'profile_image_url': video['snippet']['thumbnails'].get('default', {}).get('url', ''),
+                                'profile_image_url': profile_image_url,
                                 'platform_url': f'https://www.youtube.com/watch?v={video_id}',
                                 'method': 'api_confirmed'
                             }
@@ -313,6 +390,33 @@ class YouTubeAPI:
         except Exception as e:
             logger.error(f"Error getting video details for {video_id}: {e}")
             return {}
+
+    async def _get_channel_profile_image(self, channel_id: str) -> str:
+        """Get channel profile image URL from channel ID"""
+        if not self.api_key:
+            return ''
+        
+        try:
+            url = 'https://www.googleapis.com/youtube/v3/channels'
+            params = {
+                'part': 'snippet',
+                'id': channel_id,
+                'key': self.api_key
+            }
+            
+            async with aiohttp.ClientSession() as session:
+                async with session.get(url, params=params) as response:
+                    if response.status == 200:
+                        data = await response.json()
+                        if data.get('items'):
+                            thumbnails = data['items'][0]['snippet']['thumbnails']
+                            return thumbnails.get('high', thumbnails.get('default', {})).get('url', '')
+            
+            return ''
+            
+        except Exception as e:
+            logger.error(f"Error getting channel profile image for {channel_id}: {e}")
+            return ''
 
 async def validate_youtube_username(username: str) -> bool:
     """Validate if a YouTube username exists"""

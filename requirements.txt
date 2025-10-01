@@ -18,3 +18,7 @@ httpx
 openai
 Pillow
 PyNaCl
+httpx
+openai
+Pillow
+PyNaCl

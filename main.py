@@ -1804,9 +1804,46 @@ async def handle_stream_status(creator_id, discord_user_id, username, streamer_t
                 was_live, last_notif_date = current_status
                 last_notif_date = datetime.strptime(last_notif_date, '%Y-%m-%d').date() if last_notif_date else None
                 
-                # Send notification if not live before OR if it's a new day (stream restart)
-                should_notify = not was_live or last_notif_date != today
-                logger.info(f"Creator {username} on {platform}: was_live={was_live}, last_notif={last_notif_date}, today={today}, should_notify={should_notify}")
+                # Check if notification message still exists (in case it was deleted)
+                message_still_exists = False
+                if was_live and last_notif_date == today:
+                    # Get message_id to check if it still exists
+                    cursor.execute(
+                        'SELECT message_id, notification_channel_id FROM live_status WHERE creator_id = ? AND platform = ?',
+                        (creator_id, platform)
+                    )
+                    message_data = cursor.fetchone()
+                    
+                    if message_data and message_data[0] and message_data[1]:
+                        message_id, notification_channel_id = message_data
+                        try:
+                            # Check if the message still exists
+                            notification_channel = bot.get_channel(int(notification_channel_id))
+                            if notification_channel:
+                                try:
+                                    await asyncio.wait_for(
+                                        notification_channel.fetch_message(int(message_id)),
+                                        timeout=5.0
+                                    )
+                                    message_still_exists = True
+                                    logger.debug(f"✅ Notification message {message_id} still exists for {username} on {platform}")
+                                except discord.NotFound:
+                                    logger.info(f"🗑️ Notification message {message_id} was deleted for {username} on {platform} - will resend")
+                                    message_still_exists = False
+                                except Exception as check_error:
+                                    logger.warning(f"Could not check message {message_id} for {username} on {platform}: {check_error}")
+                                    # Assume message exists to avoid spam if check fails
+                                    message_still_exists = True
+                        except Exception as e:
+                            logger.warning(f"Error checking notification message for {username} on {platform}: {e}")
+                            message_still_exists = True
+                
+                # Send notification if:
+                # 1. Not live before (first time going live)
+                # 2. OR it's a new day (stream restart)
+                # 3. OR the notification message was deleted (manual deletion by admin)
+                should_notify = not was_live or last_notif_date != today or (last_notif_date == today and not message_still_exists)
+                logger.info(f"Creator {username} on {platform}: was_live={was_live}, last_notif={last_notif_date}, today={today}, message_exists={message_still_exists}, should_notify={should_notify}")
             else:
                 should_notify = True
                 logger.info(f"Creator {username} on {platform}: first time live, should_notify={should_notify}")
@@ -1924,10 +1961,11 @@ async def handle_stream_status(creator_id, discord_user_id, username, streamer_t
                 else:
                     logger.info(f"ℹ️ No message to delete for {username} on {platform} (message_id or channel_id missing)")
                 
-                # Update database: set offline and clear message IDs only if deletion succeeded or message not found
+                # Update database: set offline and clear message IDs AND last_notification_date only if deletion succeeded or message not found
+                # This ensures a new notification will be sent if the user goes live again
                 if message_deleted:
                     cursor.execute(
-                        'UPDATE live_status SET is_live = FALSE, message_id = NULL, notification_channel_id = NULL WHERE creator_id = ? AND platform = ?',
+                        'UPDATE live_status SET is_live = FALSE, message_id = NULL, notification_channel_id = NULL, last_notification_date = NULL WHERE creator_id = ? AND platform = ?',
                         (creator_id, platform)
                     )
                 else:
@@ -2152,12 +2190,18 @@ async def create_live_embed(creator_id, discord_user_id, username, streamer_type
         embed.add_field(name="🔥 Daily Streak", value=f"{streak} Tage", inline=True)
     
     # Add thumbnail/preview if available
-    if stream_info.get('thumbnail_url'):
-        embed.set_image(url=stream_info['thumbnail_url'])
+    thumbnail_url = stream_info.get('thumbnail_url', '')
+    if thumbnail_url and thumbnail_url.strip():
+        # Add cache-buster for Twitch to prevent cached thumbnails
+        import uuid
+        if platform == 'twitch':
+            thumbnail_url = f"{thumbnail_url}?t={uuid.uuid4().hex[:8]}"
+        embed.set_image(url=thumbnail_url)
     
     # Add profile image for Karma streamers
-    if streamer_type == 'karma' and stream_info.get('profile_image_url'):
-        embed.set_thumbnail(url=stream_info['profile_image_url'])
+    profile_image_url = stream_info.get('profile_image_url', '')
+    if streamer_type == 'karma' and profile_image_url and profile_image_url.strip():
+        embed.set_thumbnail(url=profile_image_url)
     
     embed.timestamp = datetime.utcnow()
     
@@ -3073,10 +3117,10 @@ async def live_notification_cleanup_task():
                         )
                     except Exception:
                         logger.warning(f"🧹 Channel {channel_id} not found for {username} on {platform}")
-                        # Clear the message_id from database even if channel not found
+                        # Clear the message_id and last_notification_date from database even if channel not found
                         cursor.execute('''
                             UPDATE live_status 
-                            SET message_id = NULL, notification_channel_id = NULL 
+                            SET message_id = NULL, notification_channel_id = NULL, last_notification_date = NULL 
                             WHERE creator_id = ? AND platform = ?
                         ''', (creator_id, platform))
                         conn.commit()
@@ -3092,20 +3136,20 @@ async def live_notification_cleanup_task():
                         deleted_count += 1
                         logger.info(f"✅ Deleted orphaned notification for {username} on {platform} (Message ID: {message_id})")
                         
-                        # Clear message_id from database
+                        # Clear message_id and last_notification_date from database to allow new notification
                         cursor.execute('''
                             UPDATE live_status 
-                            SET message_id = NULL, notification_channel_id = NULL 
+                            SET message_id = NULL, notification_channel_id = NULL, last_notification_date = NULL 
                             WHERE creator_id = ? AND platform = ?
                         ''', (creator_id, platform))
                         conn.commit()
                         
                     except discord.NotFound:
                         logger.info(f"🧹 Message already deleted for {username} on {platform}")
-                        # Clear message_id from database
+                        # Clear message_id and last_notification_date from database to allow new notification
                         cursor.execute('''
                             UPDATE live_status 
-                            SET message_id = NULL, notification_channel_id = NULL 
+                            SET message_id = NULL, notification_channel_id = NULL, last_notification_date = NULL 
                             WHERE creator_id = ? AND platform = ?
                         ''', (creator_id, platform))
                         conn.commit()
