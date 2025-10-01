@@ -9,3 +9,4 @@ brotli>=1.1.0
 schedule>=1.2.2
 httpx>=0.25.0
 openai
+httpx

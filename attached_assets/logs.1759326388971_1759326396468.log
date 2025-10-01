@@ -1,0 +1,1001 @@
+2025-10-01T12:20:04.752221027Z [inf]  2025-10-01 12:20:00,483 - KARMA-LiveBOT - DEBUG - 📺 Checking 1 YouTube creators
+2025-10-01T12:20:04.752231495Z [inf]  2025-10-01 12:20:00,649 - KARMA-LiveBOT - INFO - YouTube scraping for tikzzay: OFFLINE (indicators: 0)
+2025-10-01T12:20:04.752237887Z [inf]  2025-10-01 12:20:00,651 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on youtube: is_live=False
+2025-10-01T12:20:24.752901702Z [inf]  2025-10-01 12:20:21,558 - KARMA-LiveBOT - DEBUG - 🎵 Checking 2 TikTok creators
+2025-10-01T12:20:24.752907316Z [inf]  2025-10-01 12:20:21,558 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Starte intelligente Live-Verifikation...
+2025-10-01T12:20:24.752911328Z [inf]  2025-10-01 12:20:21,558 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Teste TikTokLive library...
+2025-10-01T12:20:24.752915489Z [inf]  2025-10-01 12:20:21,978 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive async call erfolgreich: True
+2025-10-01T12:20:24.752920183Z [inf]  2025-10-01 12:20:21,978 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive library bestätigt - user LIVE ✅
+2025-10-01T12:20:24.752924247Z [inf]  2025-10-01 12:20:21,978 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive library Ergebnis: True
+2025-10-01T12:20:24.752928020Z [inf]  2025-10-01 12:20:21,978 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Teste HTML-Parsing von https://www.tiktok.com/@sturmpelz11...
+2025-10-01T12:20:24.752933850Z [err]  2025-10-01 12:20:22,350 - KARMA-LiveBOT.TikTok - WARNING - TikTok sturmpelz11: SIGI_STATE nicht gefunden
+2025-10-01T12:20:24.752937889Z [inf]  2025-10-01 12:20:22,352 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: HTML-Parsing Ergebnis: False
+2025-10-01T12:20:24.752941975Z [inf]  2025-10-01 12:20:22,352 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: ✅ LIVE bestätigt via TikTokLive library (zuverlässig)!
+2025-10-01T12:20:24.752945753Z [inf]  2025-10-01 12:20:22,352 - KARMA-LiveBOT - INFO - 🎵 sturmpelz11 is LIVE on TikTok!
+2025-10-01T12:20:24.752949698Z [inf]  2025-10-01 12:20:22,353 - KARMA-LiveBOT - INFO - Handling stream status for ✨Sturmpelz✨ on tiktok: is_live=True
+2025-10-01T12:20:24.752953296Z [inf]  2025-10-01 12:20:22,354 - KARMA-LiveBOT - INFO - Creator ✨Sturmpelz✨ on tiktok: was_live=1, last_notif=2025-10-01, today=2025-10-01, should_notify=False
+2025-10-01T12:20:24.752972113Z [inf]  2025-10-01 12:20:24,355 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Starte intelligente Live-Verifikation...
+2025-10-01T12:20:24.752976840Z [inf]  2025-10-01 12:20:24,355 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Teste TikTokLive library...
+2025-10-01T12:20:24.789452526Z [inf]  2025-10-01 12:20:24,786 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive async call erfolgreich: False
+2025-10-01T12:20:24.789458990Z [inf]  2025-10-01 12:20:24,786 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive library bestätigt - user offline
+2025-10-01T12:20:24.789463668Z [inf]  2025-10-01 12:20:24,786 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive library Ergebnis: False
+2025-10-01T12:20:24.789467435Z [inf]  2025-10-01 12:20:24,786 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Teste HTML-Parsing von https://www.tiktok.com/@tikzzay...
+2025-10-01T12:20:25.177997916Z [err]  2025-10-01 12:20:25,176 - KARMA-LiveBOT.TikTok - WARNING - TikTok tikzzay: SIGI_STATE nicht gefunden
+2025-10-01T12:20:25.180247775Z [inf]  2025-10-01 12:20:25,177 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: HTML-Parsing Ergebnis: False
+2025-10-01T12:20:25.180256425Z [inf]  2025-10-01 12:20:25,177 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: ❌ Beide Methoden bestätigen - User offline
+2025-10-01T12:20:25.180262211Z [inf]  2025-10-01 12:20:25,178 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on tiktok: is_live=False
+2025-10-01T12:20:45.181541071Z [inf]  2025-10-01 12:20:39,088 - KARMA-LiveBOT - DEBUG - 🎮 Checking 1 Twitch creators
+2025-10-01T12:20:45.181547497Z [inf]  2025-10-01 12:20:39,416 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on twitch: is_live=False
+2025-10-01T12:21:45.192836645Z [inf]  2025-10-01 12:21:41,436 - KARMA-LiveBOT - DEBUG - 🎮 Checking 1 Twitch creators
+2025-10-01T12:21:45.192844718Z [inf]  2025-10-01 12:21:41,767 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on twitch: is_live=False
+2025-10-01T12:21:48.215830114Z [inf]  2025-10-01 12:21:48,213 - KARMA-LiveBOT - INFO - 🤖 Bot status updated: 🧟‍♂️💜Watching Twitch: 1
+2025-10-01T12:22:48.224847741Z [inf]  2025-10-01 12:22:43,807 - KARMA-LiveBOT - DEBUG - 🎮 Checking 1 Twitch creators
+2025-10-01T12:22:48.224856878Z [inf]  2025-10-01 12:22:44,132 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on twitch: is_live=False
+2025-10-01T12:23:28.228031115Z [inf]  2025-10-01 12:23:18,332 - KARMA-LiveBOT - INFO - 🧹 NOTIFICATION-CLEANUP: Starting notification cleanup check...
+2025-10-01T12:23:28.228039043Z [inf]  2025-10-01 12:23:18,333 - KARMA-LiveBOT - INFO - 🧹 NOTIFICATION-CLEANUP: No orphaned messages found
+2025-10-01T12:23:28.228044534Z [inf]  2025-10-01 12:23:19,155 - KARMA-LiveBOT.Stats - INFO - 📊 Running server stats update...
+2025-10-01T12:23:28.228049407Z [inf]  2025-10-01 12:23:19,156 - KARMA-LiveBOT.Stats - INFO - 📊 No server stats channels configured
+2025-10-01T12:23:28.228058133Z [inf]  2025-10-01 12:23:27,180 - KARMA-LiveBOT - DEBUG - 🎵 Checking 2 TikTok creators
+2025-10-01T12:23:28.228069821Z [inf]  2025-10-01 12:23:27,180 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Starte intelligente Live-Verifikation...
+2025-10-01T12:23:28.228075477Z [inf]  2025-10-01 12:23:27,180 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Teste TikTokLive library...
+2025-10-01T12:23:28.228081021Z [inf]  2025-10-01 12:23:27,561 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive async call erfolgreich: True
+2025-10-01T12:23:28.228090158Z [inf]  2025-10-01 12:23:27,561 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive library bestätigt - user LIVE ✅
+2025-10-01T12:23:28.228099029Z [inf]  2025-10-01 12:23:27,561 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive library Ergebnis: True
+2025-10-01T12:23:28.228105209Z [inf]  2025-10-01 12:23:27,561 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Teste HTML-Parsing von https://www.tiktok.com/@sturmpelz11...
+2025-10-01T12:23:28.228110948Z [err]  2025-10-01 12:23:27,874 - KARMA-LiveBOT.TikTok - WARNING - TikTok sturmpelz11: SIGI_STATE nicht gefunden
+2025-10-01T12:23:28.228116882Z [inf]  2025-10-01 12:23:27,876 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: HTML-Parsing Ergebnis: False
+2025-10-01T12:23:28.228131774Z [inf]  2025-10-01 12:23:27,876 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: ✅ LIVE bestätigt via TikTokLive library (zuverlässig)!
+2025-10-01T12:23:28.228149591Z [inf]  2025-10-01 12:23:27,876 - KARMA-LiveBOT - INFO - 🎵 sturmpelz11 is LIVE on TikTok!
+2025-10-01T12:23:28.228154604Z [inf]  2025-10-01 12:23:27,877 - KARMA-LiveBOT - INFO - Handling stream status for ✨Sturmpelz✨ on tiktok: is_live=True
+2025-10-01T12:23:28.228159753Z [inf]  2025-10-01 12:23:27,877 - KARMA-LiveBOT - INFO - Creator ✨Sturmpelz✨ on tiktok: was_live=1, last_notif=2025-10-01, today=2025-10-01, should_notify=False
+2025-10-01T12:23:29.883013552Z [inf]  2025-10-01 12:23:29,879 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Starte intelligente Live-Verifikation...
+2025-10-01T12:23:29.883019902Z [inf]  2025-10-01 12:23:29,879 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Teste TikTokLive library...
+2025-10-01T12:23:30.307192194Z [inf]  2025-10-01 12:23:30,298 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive async call erfolgreich: False
+2025-10-01T12:23:30.307203842Z [inf]  2025-10-01 12:23:30,299 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive library bestätigt - user offline
+2025-10-01T12:23:30.307211685Z [inf]  2025-10-01 12:23:30,299 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive library Ergebnis: False
+2025-10-01T12:23:30.307220252Z [inf]  2025-10-01 12:23:30,299 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Teste HTML-Parsing von https://www.tiktok.com/@tikzzay...
+2025-10-01T12:23:30.639359711Z [err]  2025-10-01 12:23:30,636 - KARMA-LiveBOT.TikTok - WARNING - TikTok tikzzay: SIGI_STATE nicht gefunden
+2025-10-01T12:23:30.639365133Z [inf]  2025-10-01 12:23:30,638 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: HTML-Parsing Ergebnis: False
+2025-10-01T12:23:30.639369570Z [inf]  2025-10-01 12:23:30,638 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: ❌ Beide Methoden bestätigen - User offline
+2025-10-01T12:23:30.642639520Z [inf]  2025-10-01 12:23:30,639 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on tiktok: is_live=False
+2025-10-01T12:23:50.642814321Z [inf]  2025-10-01 12:23:46,136 - KARMA-LiveBOT - DEBUG - 🎮 Checking 1 Twitch creators
+2025-10-01T12:23:50.642822467Z [inf]  2025-10-01 12:23:46,473 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on twitch: is_live=False
+2025-10-01T12:24:20.649361457Z [inf]  2025-10-01 12:24:18,239 - KARMA-LiveBOT - INFO - 📊 STATS-UPDATE: Starting stats channels update...
+2025-10-01T12:24:20.649370874Z [inf]  2025-10-01 12:24:18,240 - KARMA-LiveBOT - INFO - 📊 STATS-UPDATE: No stats channels configured
+2025-10-01T12:24:50.648309826Z [inf]  2025-10-01 12:24:48,215 - KARMA-LiveBOT - INFO - 🤖 Bot status updated: 🧟‍♀️🩵Watching TikTok: 2
+2025-10-01T12:24:50.648319082Z [inf]  2025-10-01 12:24:48,241 - KARMA-LiveBOT - INFO - ✅ Keep-alive ping successful - preventing cloud sleep
+2025-10-01T12:24:50.648324511Z [inf]  2025-10-01 12:24:48,476 - KARMA-LiveBOT - DEBUG - 🎮 Checking 1 Twitch creators
+2025-10-01T12:24:50.648330331Z [inf]  2025-10-01 12:24:48,798 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on twitch: is_live=False
+2025-10-01T12:25:10.656504503Z [inf]  2025-10-01 12:25:03,663 - KARMA-LiveBOT - DEBUG - 📺 Checking 1 YouTube creators
+2025-10-01T12:25:10.656513857Z [inf]  2025-10-01 12:25:03,784 - KARMA-LiveBOT - INFO - YouTube scraping for tikzzay: OFFLINE (indicators: 0)
+2025-10-01T12:25:10.656520215Z [inf]  2025-10-01 12:25:03,786 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on youtube: is_live=False
+2025-10-01T12:26:00.663776966Z [inf]  2025-10-01 12:25:50,819 - KARMA-LiveBOT - DEBUG - 🎮 Checking 1 Twitch creators
+2025-10-01T12:26:00.663785211Z [inf]  2025-10-01 12:25:51,148 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on twitch: is_live=False
+2025-10-01T12:26:40.657021276Z [inf]  2025-10-01 12:26:32,659 - KARMA-LiveBOT - DEBUG - 🎵 Checking 2 TikTok creators
+2025-10-01T12:26:40.657027857Z [inf]  2025-10-01 12:26:32,659 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Starte intelligente Live-Verifikation...
+2025-10-01T12:26:40.657032394Z [inf]  2025-10-01 12:26:32,659 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Teste TikTokLive library...
+2025-10-01T12:26:40.657036594Z [inf]  2025-10-01 12:26:33,134 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive async call erfolgreich: True
+2025-10-01T12:26:40.657040976Z [inf]  2025-10-01 12:26:33,134 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive library bestätigt - user LIVE ✅
+2025-10-01T12:26:40.657044996Z [inf]  2025-10-01 12:26:33,134 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive library Ergebnis: True
+2025-10-01T12:26:40.657049458Z [inf]  2025-10-01 12:26:33,134 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Teste HTML-Parsing von https://www.tiktok.com/@sturmpelz11...
+2025-10-01T12:26:40.657053468Z [err]  2025-10-01 12:26:33,470 - KARMA-LiveBOT.TikTok - WARNING - TikTok sturmpelz11: SIGI_STATE nicht gefunden
+2025-10-01T12:26:40.657057406Z [inf]  2025-10-01 12:26:33,471 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: HTML-Parsing Ergebnis: False
+2025-10-01T12:26:40.657061594Z [inf]  2025-10-01 12:26:33,471 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: ✅ LIVE bestätigt via TikTokLive library (zuverlässig)!
+2025-10-01T12:26:40.657065390Z [inf]  2025-10-01 12:26:33,471 - KARMA-LiveBOT - INFO - 🎵 sturmpelz11 is LIVE on TikTok!
+2025-10-01T12:26:40.657069203Z [inf]  2025-10-01 12:26:33,472 - KARMA-LiveBOT - INFO - Handling stream status for ✨Sturmpelz✨ on tiktok: is_live=True
+2025-10-01T12:26:40.657073406Z [inf]  2025-10-01 12:26:33,472 - KARMA-LiveBOT - INFO - Creator ✨Sturmpelz✨ on tiktok: was_live=1, last_notif=2025-10-01, today=2025-10-01, should_notify=False
+2025-10-01T12:26:40.657083932Z [inf]  2025-10-01 12:26:35,473 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Starte intelligente Live-Verifikation...
+2025-10-01T12:26:40.657087654Z [inf]  2025-10-01 12:26:35,473 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Teste TikTokLive library...
+2025-10-01T12:26:40.657093018Z [inf]  2025-10-01 12:26:35,935 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive async call erfolgreich: False
+2025-10-01T12:26:40.657097562Z [inf]  2025-10-01 12:26:35,935 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive library bestätigt - user offline
+2025-10-01T12:26:40.657101984Z [inf]  2025-10-01 12:26:35,935 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive library Ergebnis: False
+2025-10-01T12:26:40.657105980Z [inf]  2025-10-01 12:26:35,935 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Teste HTML-Parsing von https://www.tiktok.com/@tikzzay...
+2025-10-01T12:26:40.657110490Z [err]  2025-10-01 12:26:36,338 - KARMA-LiveBOT.TikTok - WARNING - TikTok tikzzay: SIGI_STATE nicht gefunden
+2025-10-01T12:26:40.657114771Z [inf]  2025-10-01 12:26:36,340 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: HTML-Parsing Ergebnis: False
+2025-10-01T12:26:40.657118913Z [inf]  2025-10-01 12:26:36,340 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: ❌ Beide Methoden bestätigen - User offline
+2025-10-01T12:26:40.657123031Z [inf]  2025-10-01 12:26:36,341 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on tiktok: is_live=False
+2025-10-01T12:27:00.660687666Z [inf]  2025-10-01 12:26:53,151 - KARMA-LiveBOT - DEBUG - 🎮 Checking 1 Twitch creators
+2025-10-01T12:27:00.660693468Z [inf]  2025-10-01 12:26:53,481 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on twitch: is_live=False
+2025-10-01T12:27:50.669865098Z [inf]  2025-10-01 12:27:48,216 - KARMA-LiveBOT - INFO - 🤖 Bot status updated: 🧟❤️Watching Youtube: 1
+2025-10-01T12:27:50.669870470Z [inf]  2025-10-01 12:27:48,329 - KARMA-LiveBOT - INFO - 🎭 LIVE-ROLE-CLEANUP: Starting live role cleanup check...
+2025-10-01T12:27:50.669875888Z [inf]  2025-10-01 12:27:48,329 - KARMA-LiveBOT - INFO - 🎭 Found 1 members with live role in KARMA COM. SERVER
+2025-10-01T12:27:50.669881599Z [inf]  2025-10-01 12:27:48,330 - KARMA-LiveBOT - DEBUG - ✓ ✨Sturmpelz✨ has live role and is live on 1 platform(s)
+2025-10-01T12:27:50.669887064Z [inf]  2025-10-01 12:27:48,330 - KARMA-LiveBOT - INFO - 🎭 LIVE-ROLE-CLEANUP: Completed - Checked 1 users, removed 0 stale roles
+2025-10-01T12:27:55.493900709Z [inf]  2025-10-01 12:27:55,490 - KARMA-LiveBOT - DEBUG - 🎮 Checking 1 Twitch creators
+2025-10-01T12:27:55.819787468Z [inf]  2025-10-01 12:27:55,816 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on twitch: is_live=False
+2025-10-01T12:28:25.819169326Z [inf]  2025-10-01 12:28:19,160 - KARMA-LiveBOT.Stats - INFO - 📊 Running server stats update...
+2025-10-01T12:28:25.819173143Z [inf]  2025-10-01 12:28:19,161 - KARMA-LiveBOT.Stats - INFO - 📊 No server stats channels configured
+2025-10-01T12:29:05.822595778Z [inf]  2025-10-01 12:28:57,822 - KARMA-LiveBOT - DEBUG - 🎮 Checking 1 Twitch creators
+2025-10-01T12:29:05.822600253Z [inf]  2025-10-01 12:28:58,160 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on twitch: is_live=False
+2025-10-01T12:29:45.832620603Z [inf]  2025-10-01 12:29:38,345 - KARMA-LiveBOT - DEBUG - 🎵 Checking 2 TikTok creators
+2025-10-01T12:29:45.832628746Z [inf]  2025-10-01 12:29:38,345 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Starte intelligente Live-Verifikation...
+2025-10-01T12:29:45.832633769Z [inf]  2025-10-01 12:29:38,345 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Teste TikTokLive library...
+2025-10-01T12:29:45.832637856Z [inf]  2025-10-01 12:29:38,741 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive async call erfolgreich: True
+2025-10-01T12:29:45.832641858Z [inf]  2025-10-01 12:29:38,741 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive library bestätigt - user LIVE ✅
+2025-10-01T12:29:45.832646094Z [inf]  2025-10-01 12:29:38,741 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive library Ergebnis: True
+2025-10-01T12:29:45.832650274Z [inf]  2025-10-01 12:29:38,741 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Teste HTML-Parsing von https://www.tiktok.com/@sturmpelz11...
+2025-10-01T12:29:45.832655962Z [err]  2025-10-01 12:29:39,181 - KARMA-LiveBOT.TikTok - WARNING - TikTok sturmpelz11: SIGI_STATE nicht gefunden
+2025-10-01T12:29:45.832660638Z [inf]  2025-10-01 12:29:39,183 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: HTML-Parsing Ergebnis: False
+2025-10-01T12:29:45.832664842Z [inf]  2025-10-01 12:29:39,183 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: ✅ LIVE bestätigt via TikTokLive library (zuverlässig)!
+2025-10-01T12:29:45.832668658Z [inf]  2025-10-01 12:29:39,183 - KARMA-LiveBOT - INFO - 🎵 sturmpelz11 is LIVE on TikTok!
+2025-10-01T12:29:45.832673164Z [inf]  2025-10-01 12:29:39,184 - KARMA-LiveBOT - INFO - Handling stream status for ✨Sturmpelz✨ on tiktok: is_live=True
+2025-10-01T12:29:45.832677012Z [inf]  2025-10-01 12:29:39,184 - KARMA-LiveBOT - INFO - Creator ✨Sturmpelz✨ on tiktok: was_live=1, last_notif=2025-10-01, today=2025-10-01, should_notify=False
+2025-10-01T12:29:45.832694229Z [inf]  2025-10-01 12:29:41,187 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Starte intelligente Live-Verifikation...
+2025-10-01T12:29:45.832697970Z [inf]  2025-10-01 12:29:41,187 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Teste TikTokLive library...
+2025-10-01T12:29:45.832701922Z [inf]  2025-10-01 12:29:41,646 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive async call erfolgreich: False
+2025-10-01T12:29:45.832707042Z [inf]  2025-10-01 12:29:41,646 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive library bestätigt - user offline
+2025-10-01T12:29:45.832710660Z [inf]  2025-10-01 12:29:41,646 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive library Ergebnis: False
+2025-10-01T12:29:45.832714301Z [inf]  2025-10-01 12:29:41,646 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Teste HTML-Parsing von https://www.tiktok.com/@tikzzay...
+2025-10-01T12:29:45.832718084Z [err]  2025-10-01 12:29:42,017 - KARMA-LiveBOT.TikTok - WARNING - TikTok tikzzay: SIGI_STATE nicht gefunden
+2025-10-01T12:29:45.832722151Z [inf]  2025-10-01 12:29:42,019 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: HTML-Parsing Ergebnis: False
+2025-10-01T12:29:45.832726529Z [inf]  2025-10-01 12:29:42,019 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: ❌ Beide Methoden bestätigen - User offline
+2025-10-01T12:29:45.832730630Z [inf]  2025-10-01 12:29:42,020 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on tiktok: is_live=False
+2025-10-01T12:30:05.828480657Z [inf]  2025-10-01 12:30:00,166 - KARMA-LiveBOT - DEBUG - 🎮 Checking 1 Twitch creators
+2025-10-01T12:30:05.828487093Z [inf]  2025-10-01 12:30:00,518 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on twitch: is_live=False
+2025-10-01T12:30:06.794441764Z [inf]  2025-10-01 12:30:06,792 - KARMA-LiveBOT - DEBUG - 📺 Checking 1 YouTube creators
+2025-10-01T12:30:06.944286159Z [inf]  2025-10-01 12:30:06,920 - KARMA-LiveBOT - INFO - YouTube scraping for tikzzay: OFFLINE (indicators: 0)
+2025-10-01T12:30:06.944292681Z [inf]  2025-10-01 12:30:06,922 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on youtube: is_live=False
+2025-10-01T12:30:56.933473747Z [inf]  2025-10-01 12:30:48,241 - KARMA-LiveBOT - INFO - 🤖 Bot status updated: 🤖Discord Member: 116
+2025-10-01T12:31:02.524162176Z [inf]  2025-10-01 12:31:02,522 - KARMA-LiveBOT - DEBUG - 🎮 Checking 1 Twitch creators
+2025-10-01T12:31:03.122512241Z [inf]  2025-10-01 12:31:03,119 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on twitch: is_live=False
+2025-10-01T12:32:13.219712494Z [inf]  2025-10-01 12:32:05,145 - KARMA-LiveBOT - DEBUG - 🎮 Checking 1 Twitch creators
+2025-10-01T12:32:13.219719695Z [inf]  2025-10-01 12:32:05,737 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on twitch: is_live=False
+2025-10-01T12:32:53.205799185Z [inf]  2025-10-01 12:32:44,041 - KARMA-LiveBOT - DEBUG - 🎵 Checking 2 TikTok creators
+2025-10-01T12:32:53.205805911Z [inf]  2025-10-01 12:32:44,041 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Starte intelligente Live-Verifikation...
+2025-10-01T12:32:53.205810267Z [inf]  2025-10-01 12:32:44,041 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Teste TikTokLive library...
+2025-10-01T12:32:53.205815068Z [inf]  2025-10-01 12:32:44,445 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive async call erfolgreich: True
+2025-10-01T12:32:53.205820189Z [inf]  2025-10-01 12:32:44,445 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive library bestätigt - user LIVE ✅
+2025-10-01T12:32:53.205826473Z [inf]  2025-10-01 12:32:44,445 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive library Ergebnis: True
+2025-10-01T12:32:53.205831903Z [inf]  2025-10-01 12:32:44,445 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Teste HTML-Parsing von https://www.tiktok.com/@sturmpelz11...
+2025-10-01T12:32:53.205837849Z [err]  2025-10-01 12:32:44,792 - KARMA-LiveBOT.TikTok - WARNING - TikTok sturmpelz11: SIGI_STATE nicht gefunden
+2025-10-01T12:32:53.205843778Z [inf]  2025-10-01 12:32:44,794 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: HTML-Parsing Ergebnis: False
+2025-10-01T12:32:53.205847988Z [inf]  2025-10-01 12:32:44,794 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: ✅ LIVE bestätigt via TikTokLive library (zuverlässig)!
+2025-10-01T12:32:53.205852230Z [inf]  2025-10-01 12:32:44,794 - KARMA-LiveBOT - INFO - 🎵 sturmpelz11 is LIVE on TikTok!
+2025-10-01T12:32:53.205856562Z [inf]  2025-10-01 12:32:44,795 - KARMA-LiveBOT - INFO - Handling stream status for ✨Sturmpelz✨ on tiktok: is_live=True
+2025-10-01T12:32:53.205863560Z [inf]  2025-10-01 12:32:44,795 - KARMA-LiveBOT - INFO - Creator ✨Sturmpelz✨ on tiktok: was_live=1, last_notif=2025-10-01, today=2025-10-01, should_notify=False
+2025-10-01T12:32:53.205868602Z [inf]  2025-10-01 12:32:46,797 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Starte intelligente Live-Verifikation...
+2025-10-01T12:32:53.205873756Z [inf]  2025-10-01 12:32:46,797 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Teste TikTokLive library...
+2025-10-01T12:32:53.205879499Z [inf]  2025-10-01 12:32:47,217 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive async call erfolgreich: False
+2025-10-01T12:32:53.205885408Z [inf]  2025-10-01 12:32:47,217 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive library bestätigt - user offline
+2025-10-01T12:32:53.205891073Z [inf]  2025-10-01 12:32:47,217 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive library Ergebnis: False
+2025-10-01T12:32:53.205897590Z [inf]  2025-10-01 12:32:47,217 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Teste HTML-Parsing von https://www.tiktok.com/@tikzzay...
+2025-10-01T12:32:53.205903862Z [err]  2025-10-01 12:32:47,590 - KARMA-LiveBOT.TikTok - WARNING - TikTok tikzzay: SIGI_STATE nicht gefunden
+2025-10-01T12:32:53.205909612Z [inf]  2025-10-01 12:32:47,592 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: HTML-Parsing Ergebnis: False
+2025-10-01T12:32:53.205914218Z [inf]  2025-10-01 12:32:47,592 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: ❌ Beide Methoden bestätigen - User offline
+2025-10-01T12:32:53.205918456Z [inf]  2025-10-01 12:32:47,592 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on tiktok: is_live=False
+2025-10-01T12:33:13.205357057Z [inf]  2025-10-01 12:33:07,744 - KARMA-LiveBOT - INFO - ✅ Refreshed creators cache: 2 creators
+2025-10-01T12:33:13.205363780Z [inf]  2025-10-01 12:33:07,744 - KARMA-LiveBOT - DEBUG - 🎮 Checking 1 Twitch creators
+2025-10-01T12:33:13.205367882Z [inf]  2025-10-01 12:33:08,072 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on twitch: is_live=False
+2025-10-01T12:33:18.387291342Z [inf]  2025-10-01 12:33:18,382 - KARMA-LiveBOT.Stats - INFO - 📱 Running social media stats update...
+2025-10-01T12:33:18.387301634Z [inf]  2025-10-01 12:33:18,383 - KARMA-LiveBOT.Stats - INFO - 📱 No social media stats channels configured
+2025-10-01T12:33:19.167313424Z [inf]  2025-10-01 12:33:19,163 - KARMA-LiveBOT.Stats - INFO - 📊 Running server stats update...
+2025-10-01T12:33:19.167322101Z [inf]  2025-10-01 12:33:19,164 - KARMA-LiveBOT.Stats - INFO - 📊 No server stats channels configured
+2025-10-01T12:33:49.170483952Z [inf]  2025-10-01 12:33:48,214 - KARMA-LiveBOT - INFO - 🤖 Bot status updated: 🧟‍♂️💜Watching Twitch: 1
+2025-10-01T12:34:19.171938675Z [inf]  2025-10-01 12:34:10,095 - KARMA-LiveBOT - DEBUG - 🎮 Checking 1 Twitch creators
+2025-10-01T12:34:19.171947023Z [inf]  2025-10-01 12:34:10,438 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on twitch: is_live=False
+2025-10-01T12:34:19.171956749Z [inf]  2025-10-01 12:34:18,235 - KARMA-LiveBOT - INFO - 📊 STATS-UPDATE: Starting stats channels update...
+2025-10-01T12:34:19.171962199Z [inf]  2025-10-01 12:34:18,237 - KARMA-LiveBOT - INFO - 📊 STATS-UPDATE: No stats channels configured
+2025-10-01T12:34:49.175718117Z [inf]  2025-10-01 12:34:48,258 - KARMA-LiveBOT - INFO - ✅ Keep-alive ping successful - preventing cloud sleep
+2025-10-01T12:35:19.179715327Z [inf]  2025-10-01 12:35:09,928 - KARMA-LiveBOT - DEBUG - 📺 Checking 1 YouTube creators
+2025-10-01T12:35:19.179725412Z [inf]  2025-10-01 12:35:10,057 - KARMA-LiveBOT - INFO - YouTube scraping for tikzzay: OFFLINE (indicators: 0)
+2025-10-01T12:35:19.179732121Z [inf]  2025-10-01 12:35:10,058 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on youtube: is_live=False
+2025-10-01T12:35:19.179738241Z [inf]  2025-10-01 12:35:12,443 - KARMA-LiveBOT - DEBUG - 🎮 Checking 1 Twitch creators
+2025-10-01T12:35:19.179746421Z [inf]  2025-10-01 12:35:12,763 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on twitch: is_live=False
+2025-10-01T12:35:19.179752027Z [inf]  2025-10-01 12:35:18,249 - KARMA-LiveBOT - INFO - 📱 SOCIAL-MEDIA-UPDATE: Starting social media stats channels update...
+2025-10-01T12:35:19.179757441Z [inf]  2025-10-01 12:35:18,250 - KARMA-LiveBOT - INFO - 📱 SOCIAL-MEDIA-UPDATE: No social media stats channels configured
+2025-10-01T12:35:49.183635717Z [inf]  2025-10-01 12:35:48,262 - KARMA-LiveBOT - INFO - 🔧 TIKTOK-RECOVERY: Starting TikTok task recovery check...
+2025-10-01T12:35:49.183642304Z [inf]  2025-10-01 12:35:48,263 - KARMA-LiveBOT - INFO - 🔧 TIKTOK-RECOVERY: Checking 2 TikTok creators...
+2025-10-01T12:35:49.183648207Z [inf]  2025-10-01 12:35:48,264 - KARMA-LiveBOT - INFO - 🔧 TIKTOK-RECOVERY: Using improved TikTok checker
+2025-10-01T12:35:49.183656040Z [inf]  2025-10-01 12:35:48,264 - KARMA-LiveBOT - INFO - 🔧 Testing TikTok connectivity for ✨Sturmpelz✨ (@sturmpelz11)...
+2025-10-01T12:35:49.183661903Z [inf]  2025-10-01 12:35:48,264 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Starte intelligente Live-Verifikation...
+2025-10-01T12:35:49.183667976Z [inf]  2025-10-01 12:35:48,264 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Teste TikTokLive library...
+2025-10-01T12:35:49.183674349Z [inf]  2025-10-01 12:35:48,689 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive async call erfolgreich: True
+2025-10-01T12:35:49.183681729Z [inf]  2025-10-01 12:35:48,689 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive library bestätigt - user LIVE ✅
+2025-10-01T12:35:49.183687835Z [inf]  2025-10-01 12:35:48,689 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive library Ergebnis: True
+2025-10-01T12:35:49.183693788Z [inf]  2025-10-01 12:35:48,689 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Teste HTML-Parsing von https://www.tiktok.com/@sturmpelz11...
+2025-10-01T12:35:49.183699827Z [err]  2025-10-01 12:35:49,037 - KARMA-LiveBOT.TikTok - WARNING - TikTok sturmpelz11: SIGI_STATE nicht gefunden
+2025-10-01T12:35:49.183705177Z [inf]  2025-10-01 12:35:49,040 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: HTML-Parsing Ergebnis: False
+2025-10-01T12:35:49.183711004Z [inf]  2025-10-01 12:35:49,040 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: ✅ LIVE bestätigt via TikTokLive library (zuverlässig)!
+2025-10-01T12:35:49.183739824Z [inf]  2025-10-01 12:35:49,040 - KARMA-LiveBOT - INFO - ✅ TikTok recovery successful for ✨Sturmpelz✨
+2025-10-01T12:35:49.183745366Z [inf]  2025-10-01 12:35:49,040 - KARMA-LiveBOT - INFO - 🔧 Testing TikTok connectivity for TikZ aka. Zay (@tikzzay)...
+2025-10-01T12:35:49.183750876Z [inf]  2025-10-01 12:35:49,040 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Starte intelligente Live-Verifikation...
+2025-10-01T12:35:49.183756472Z [inf]  2025-10-01 12:35:49,040 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Teste TikTokLive library...
+2025-10-01T12:35:49.540149805Z [inf]  2025-10-01 12:35:49,534 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive async call erfolgreich: False
+2025-10-01T12:35:49.540156575Z [inf]  2025-10-01 12:35:49,534 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive library bestätigt - user offline
+2025-10-01T12:35:49.540161221Z [inf]  2025-10-01 12:35:49,535 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive library Ergebnis: False
+2025-10-01T12:35:49.540167184Z [inf]  2025-10-01 12:35:49,535 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Teste HTML-Parsing von https://www.tiktok.com/@tikzzay...
+2025-10-01T12:35:49.599157160Z [inf]  2025-10-01 12:35:49,596 - KARMA-LiveBOT - DEBUG - 🎵 Checking 2 TikTok creators
+2025-10-01T12:35:49.599167200Z [inf]  2025-10-01 12:35:49,596 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Starte intelligente Live-Verifikation...
+2025-10-01T12:35:49.599174476Z [inf]  2025-10-01 12:35:49,596 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Teste TikTokLive library...
+2025-10-01T12:35:49.799966717Z [inf]  2025-10-01 12:35:49,748 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive async call erfolgreich: True
+2025-10-01T12:35:49.799978072Z [inf]  2025-10-01 12:35:49,748 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive library bestätigt - user LIVE ✅
+2025-10-01T12:35:49.799985410Z [inf]  2025-10-01 12:35:49,748 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive library Ergebnis: True
+2025-10-01T12:35:49.799993884Z [inf]  2025-10-01 12:35:49,748 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Teste HTML-Parsing von https://www.tiktok.com/@sturmpelz11...
+2025-10-01T12:35:49.885692578Z [err]  2025-10-01 12:35:49,874 - KARMA-LiveBOT.TikTok - WARNING - TikTok tikzzay: SIGI_STATE nicht gefunden
+2025-10-01T12:35:49.885702790Z [inf]  2025-10-01 12:35:49,877 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: HTML-Parsing Ergebnis: False
+2025-10-01T12:35:49.885714480Z [inf]  2025-10-01 12:35:49,877 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: ❌ Beide Methoden bestätigen - User offline
+2025-10-01T12:35:49.885719841Z [inf]  2025-10-01 12:35:49,877 - KARMA-LiveBOT - INFO - ✅ TikTok recovery successful for TikZ aka. Zay
+2025-10-01T12:35:49.885725341Z [inf]  2025-10-01 12:35:49,879 - KARMA-LiveBOT - INFO - 🔧 TIKTOK-RECOVERY: Cache management handled by improved checker
+2025-10-01T12:35:49.885731111Z [inf]  2025-10-01 12:35:49,879 - KARMA-LiveBOT - INFO - 🔧 TIKTOK-RECOVERY: Completed - Success: 2, Failed: 0
+2025-10-01T12:35:50.123789732Z [err]  2025-10-01 12:35:50,121 - KARMA-LiveBOT.TikTok - WARNING - TikTok sturmpelz11: SIGI_STATE nicht gefunden
+2025-10-01T12:35:50.133741445Z [inf]  2025-10-01 12:35:50,127 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: HTML-Parsing Ergebnis: False
+2025-10-01T12:35:50.133761189Z [inf]  2025-10-01 12:35:50,127 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: ✅ LIVE bestätigt via TikTokLive library (zuverlässig)!
+2025-10-01T12:35:50.133769017Z [inf]  2025-10-01 12:35:50,127 - KARMA-LiveBOT - INFO - 🎵 sturmpelz11 is LIVE on TikTok!
+2025-10-01T12:35:50.133776009Z [inf]  2025-10-01 12:35:50,129 - KARMA-LiveBOT - INFO - Handling stream status for ✨Sturmpelz✨ on tiktok: is_live=True
+2025-10-01T12:35:50.133782734Z [inf]  2025-10-01 12:35:50,129 - KARMA-LiveBOT - INFO - Creator ✨Sturmpelz✨ on tiktok: was_live=1, last_notif=2025-10-01, today=2025-10-01, should_notify=False
+2025-10-01T12:35:52.137728955Z [inf]  2025-10-01 12:35:52,131 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Starte intelligente Live-Verifikation...
+2025-10-01T12:35:52.137738893Z [inf]  2025-10-01 12:35:52,131 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Teste TikTokLive library...
+2025-10-01T12:35:52.285529884Z [inf]  2025-10-01 12:35:52,280 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive async call erfolgreich: False
+2025-10-01T12:35:52.285536948Z [inf]  2025-10-01 12:35:52,280 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive library bestätigt - user offline
+2025-10-01T12:35:52.285543597Z [inf]  2025-10-01 12:35:52,280 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive library Ergebnis: False
+2025-10-01T12:35:52.285547886Z [inf]  2025-10-01 12:35:52,280 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Teste HTML-Parsing von https://www.tiktok.com/@tikzzay...
+2025-10-01T12:35:52.630522807Z [err]  2025-10-01 12:35:52,626 - KARMA-LiveBOT.TikTok - WARNING - TikTok tikzzay: SIGI_STATE nicht gefunden
+2025-10-01T12:35:52.634091001Z [inf]  2025-10-01 12:35:52,630 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: HTML-Parsing Ergebnis: False
+2025-10-01T12:35:52.634111268Z [inf]  2025-10-01 12:35:52,630 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: ❌ Beide Methoden bestätigen - User offline
+2025-10-01T12:35:52.634119451Z [inf]  2025-10-01 12:35:52,631 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on tiktok: is_live=False
+2025-10-01T12:36:22.649170385Z [inf]  2025-10-01 12:36:14,775 - KARMA-LiveBOT - DEBUG - 🎮 Checking 1 Twitch creators
+2025-10-01T12:36:22.649177065Z [inf]  2025-10-01 12:36:15,095 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on twitch: is_live=False
+2025-10-01T12:36:52.648761373Z [inf]  2025-10-01 12:36:48,222 - KARMA-LiveBOT - INFO - 🤖 Bot status updated: 🧟‍♀️🩵Watching TikTok: 2
+2025-10-01T12:37:22.652059597Z [inf]  2025-10-01 12:37:17,103 - KARMA-LiveBOT - DEBUG - 🎮 Checking 1 Twitch creators
+2025-10-01T12:37:22.652065091Z [inf]  2025-10-01 12:37:17,427 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on twitch: is_live=False
+2025-10-01T12:37:52.653654445Z [inf]  2025-10-01 12:37:48,330 - KARMA-LiveBOT - INFO - 🎭 LIVE-ROLE-CLEANUP: Starting live role cleanup check...
+2025-10-01T12:37:52.653663663Z [inf]  2025-10-01 12:37:48,331 - KARMA-LiveBOT - INFO - 🎭 Found 2 members with live role in KARMA COM. SERVER
+2025-10-01T12:37:52.653669849Z [inf]  2025-10-01 12:37:48,332 - KARMA-LiveBOT - DEBUG - ✓ ✨Sturmpelz✨ has live role and is live on 1 platform(s)
+2025-10-01T12:37:52.653675502Z [inf]  2025-10-01 12:37:48,624 - KARMA-LiveBOT - INFO - ✅ Removed live role from TodesTod666 (not live on any platform)
+2025-10-01T12:37:52.653681051Z [inf]  2025-10-01 12:37:48,625 - KARMA-LiveBOT - INFO - 🎭 LIVE-ROLE-CLEANUP: Completed - Checked 2 users, removed 1 stale roles
+2025-10-01T12:38:22.653907372Z [inf]  2025-10-01 12:38:18,335 - KARMA-LiveBOT - INFO - 🧹 NOTIFICATION-CLEANUP: Starting notification cleanup check...
+2025-10-01T12:38:22.653915722Z [inf]  2025-10-01 12:38:18,336 - KARMA-LiveBOT - INFO - 🧹 NOTIFICATION-CLEANUP: No orphaned messages found
+2025-10-01T12:38:22.653921129Z [inf]  2025-10-01 12:38:19,167 - KARMA-LiveBOT.Stats - INFO - 📊 Running server stats update...
+2025-10-01T12:38:22.653926143Z [inf]  2025-10-01 12:38:19,169 - KARMA-LiveBOT.Stats - INFO - 📊 No server stats channels configured
+2025-10-01T12:38:22.653930954Z [inf]  2025-10-01 12:38:19,430 - KARMA-LiveBOT - DEBUG - 🎮 Checking 1 Twitch creators
+2025-10-01T12:38:22.653935542Z [inf]  2025-10-01 12:38:19,754 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on twitch: is_live=False
+2025-10-01T12:39:02.657228044Z [inf]  2025-10-01 12:38:54,654 - KARMA-LiveBOT - DEBUG - 🎵 Checking 2 TikTok creators
+2025-10-01T12:39:02.657235076Z [inf]  2025-10-01 12:38:54,654 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Starte intelligente Live-Verifikation...
+2025-10-01T12:39:02.657240283Z [inf]  2025-10-01 12:38:54,654 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Teste TikTokLive library...
+2025-10-01T12:39:02.657245811Z [inf]  2025-10-01 12:38:55,046 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive async call erfolgreich: True
+2025-10-01T12:39:02.657250325Z [inf]  2025-10-01 12:38:55,046 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive library bestätigt - user LIVE ✅
+2025-10-01T12:39:02.657256912Z [inf]  2025-10-01 12:38:55,046 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive library Ergebnis: True
+2025-10-01T12:39:02.657261670Z [inf]  2025-10-01 12:38:55,046 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Teste HTML-Parsing von https://www.tiktok.com/@sturmpelz11...
+2025-10-01T12:39:02.657266396Z [err]  2025-10-01 12:38:55,493 - KARMA-LiveBOT.TikTok - WARNING - TikTok sturmpelz11: SIGI_STATE nicht gefunden
+2025-10-01T12:39:02.657271138Z [inf]  2025-10-01 12:38:55,496 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: HTML-Parsing Ergebnis: False
+2025-10-01T12:39:02.657276318Z [inf]  2025-10-01 12:38:55,496 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: ✅ LIVE bestätigt via TikTokLive library (zuverlässig)!
+2025-10-01T12:39:02.657280916Z [inf]  2025-10-01 12:38:55,496 - KARMA-LiveBOT - INFO - 🎵 sturmpelz11 is LIVE on TikTok!
+2025-10-01T12:39:02.657285545Z [inf]  2025-10-01 12:38:55,497 - KARMA-LiveBOT - INFO - Handling stream status for ✨Sturmpelz✨ on tiktok: is_live=True
+2025-10-01T12:39:02.657290052Z [inf]  2025-10-01 12:38:55,498 - KARMA-LiveBOT - INFO - Creator ✨Sturmpelz✨ on tiktok: was_live=1, last_notif=2025-10-01, today=2025-10-01, should_notify=False
+2025-10-01T12:39:02.657294205Z [inf]  2025-10-01 12:38:57,500 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Starte intelligente Live-Verifikation...
+2025-10-01T12:39:02.657298419Z [inf]  2025-10-01 12:38:57,500 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Teste TikTokLive library...
+2025-10-01T12:39:02.657302774Z [inf]  2025-10-01 12:38:57,949 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive async call erfolgreich: False
+2025-10-01T12:39:02.657307162Z [inf]  2025-10-01 12:38:57,949 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive library bestätigt - user offline
+2025-10-01T12:39:02.657313378Z [inf]  2025-10-01 12:38:57,949 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive library Ergebnis: False
+2025-10-01T12:39:02.657317447Z [inf]  2025-10-01 12:38:57,949 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Teste HTML-Parsing von https://www.tiktok.com/@tikzzay...
+2025-10-01T12:39:02.657323045Z [err]  2025-10-01 12:38:58,439 - KARMA-LiveBOT.TikTok - WARNING - TikTok tikzzay: SIGI_STATE nicht gefunden
+2025-10-01T12:39:02.657337671Z [inf]  2025-10-01 12:38:58,442 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: HTML-Parsing Ergebnis: False
+2025-10-01T12:39:02.657342140Z [inf]  2025-10-01 12:38:58,442 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: ❌ Beide Methoden bestätigen - User offline
+2025-10-01T12:39:02.657346450Z [inf]  2025-10-01 12:38:58,443 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on tiktok: is_live=False
+2025-10-01T12:39:22.661431353Z [inf]  2025-10-01 12:39:21,758 - KARMA-LiveBOT - DEBUG - 🎮 Checking 1 Twitch creators
+2025-10-01T12:39:22.661440570Z [inf]  2025-10-01 12:39:22,083 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on twitch: is_live=False
+2025-10-01T12:39:52.659209904Z [inf]  2025-10-01 12:39:48,232 - KARMA-LiveBOT - INFO - 🤖 Bot status updated: 🧟❤️Watching Youtube: 1
+2025-10-01T12:40:22.659446080Z [inf]  2025-10-01 12:40:13,070 - KARMA-LiveBOT - DEBUG - 📺 Checking 1 YouTube creators
+2025-10-01T12:40:22.659450285Z [inf]  2025-10-01 12:40:13,215 - KARMA-LiveBOT - INFO - YouTube scraping for tikzzay: OFFLINE (indicators: 0)
+2025-10-01T12:40:22.659454022Z [inf]  2025-10-01 12:40:13,217 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on youtube: is_live=False
+2025-10-01T12:40:24.095482091Z [inf]  2025-10-01 12:40:24,092 - KARMA-LiveBOT - DEBUG - 🎮 Checking 1 Twitch creators
+2025-10-01T12:40:24.429071432Z [inf]  2025-10-01 12:40:24,425 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on twitch: is_live=False
+2025-10-01T12:41:34.435199005Z [inf]  2025-10-01 12:41:26,436 - KARMA-LiveBOT - INFO - ✅ Refreshed creators cache: 2 creators
+2025-10-01T12:41:34.435208276Z [inf]  2025-10-01 12:41:26,437 - KARMA-LiveBOT - DEBUG - 🎮 Checking 1 Twitch creators
+2025-10-01T12:41:34.435214385Z [inf]  2025-10-01 12:41:26,762 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on twitch: is_live=False
+2025-10-01T12:42:04.432173967Z [inf]  2025-10-01 12:42:00,451 - KARMA-LiveBOT - DEBUG - 🎵 Checking 2 TikTok creators
+2025-10-01T12:42:04.432180947Z [inf]  2025-10-01 12:42:00,451 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Starte intelligente Live-Verifikation...
+2025-10-01T12:42:04.432185324Z [inf]  2025-10-01 12:42:00,452 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Teste TikTokLive library...
+2025-10-01T12:42:04.432189319Z [inf]  2025-10-01 12:42:00,901 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive async call erfolgreich: True
+2025-10-01T12:42:04.432194143Z [inf]  2025-10-01 12:42:00,901 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive library bestätigt - user LIVE ✅
+2025-10-01T12:42:04.432198004Z [inf]  2025-10-01 12:42:00,901 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive library Ergebnis: True
+2025-10-01T12:42:04.432201886Z [inf]  2025-10-01 12:42:00,901 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Teste HTML-Parsing von https://www.tiktok.com/@sturmpelz11...
+2025-10-01T12:42:04.432206304Z [err]  2025-10-01 12:42:01,307 - KARMA-LiveBOT.TikTok - WARNING - TikTok sturmpelz11: SIGI_STATE nicht gefunden
+2025-10-01T12:42:04.432210240Z [inf]  2025-10-01 12:42:01,309 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: HTML-Parsing Ergebnis: False
+2025-10-01T12:42:04.432215092Z [inf]  2025-10-01 12:42:01,309 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: ✅ LIVE bestätigt via TikTokLive library (zuverlässig)!
+2025-10-01T12:42:04.432218675Z [inf]  2025-10-01 12:42:01,309 - KARMA-LiveBOT - INFO - 🎵 sturmpelz11 is LIVE on TikTok!
+2025-10-01T12:42:04.432222484Z [inf]  2025-10-01 12:42:01,310 - KARMA-LiveBOT - INFO - Handling stream status for ✨Sturmpelz✨ on tiktok: is_live=True
+2025-10-01T12:42:04.432227337Z [inf]  2025-10-01 12:42:01,310 - KARMA-LiveBOT - INFO - Creator ✨Sturmpelz✨ on tiktok: was_live=1, last_notif=2025-10-01, today=2025-10-01, should_notify=False
+2025-10-01T12:42:04.432237714Z [inf]  2025-10-01 12:42:03,311 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Starte intelligente Live-Verifikation...
+2025-10-01T12:42:04.432241805Z [inf]  2025-10-01 12:42:03,311 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Teste TikTokLive library...
+2025-10-01T12:42:04.432245668Z [inf]  2025-10-01 12:42:03,762 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive async call erfolgreich: False
+2025-10-01T12:42:04.432249765Z [inf]  2025-10-01 12:42:03,762 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive library bestätigt - user offline
+2025-10-01T12:42:04.432255464Z [inf]  2025-10-01 12:42:03,762 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive library Ergebnis: False
+2025-10-01T12:42:04.432259731Z [inf]  2025-10-01 12:42:03,762 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Teste HTML-Parsing von https://www.tiktok.com/@tikzzay...
+2025-10-01T12:42:04.432263930Z [err]  2025-10-01 12:42:04,166 - KARMA-LiveBOT.TikTok - WARNING - TikTok tikzzay: SIGI_STATE nicht gefunden
+2025-10-01T12:42:04.432268054Z [inf]  2025-10-01 12:42:04,168 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: HTML-Parsing Ergebnis: False
+2025-10-01T12:42:04.432272145Z [inf]  2025-10-01 12:42:04,168 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: ❌ Beide Methoden bestätigen - User offline
+2025-10-01T12:42:04.432275942Z [inf]  2025-10-01 12:42:04,169 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on tiktok: is_live=False
+2025-10-01T12:42:34.434648506Z [inf]  2025-10-01 12:42:28,788 - KARMA-LiveBOT - INFO - ✅ Refreshed creators cache: 2 creators
+2025-10-01T12:42:34.434656890Z [inf]  2025-10-01 12:42:28,788 - KARMA-LiveBOT - DEBUG - 🎮 Checking 1 Twitch creators
+2025-10-01T12:42:34.434662945Z [inf]  2025-10-01 12:42:29,122 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on twitch: is_live=False
+2025-10-01T12:42:54.433071238Z [inf]  2025-10-01 12:42:48,216 - KARMA-LiveBOT - INFO - 🤖 Bot status updated: 🤖Discord Member: 116
+2025-10-01T12:43:24.435566475Z [inf]  2025-10-01 12:43:19,199 - KARMA-LiveBOT.Stats - INFO - 📊 Running server stats update...
+2025-10-01T12:43:24.435572784Z [inf]  2025-10-01 12:43:19,200 - KARMA-LiveBOT.Stats - INFO - 📊 No server stats channels configured
+2025-10-01T12:43:31.127652426Z [inf]  2025-10-01 12:43:31,125 - KARMA-LiveBOT - DEBUG - 🎮 Checking 1 Twitch creators
+2025-10-01T12:43:31.458648804Z [inf]  2025-10-01 12:43:31,454 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on twitch: is_live=False
+2025-10-01T12:44:21.464135692Z [inf]  2025-10-01 12:44:18,243 - KARMA-LiveBOT - INFO - 📊 STATS-UPDATE: Starting stats channels update...
+2025-10-01T12:44:21.464142181Z [inf]  2025-10-01 12:44:18,244 - KARMA-LiveBOT - INFO - 📊 STATS-UPDATE: No stats channels configured
+2025-10-01T12:44:41.463796790Z [inf]  2025-10-01 12:44:33,458 - KARMA-LiveBOT - DEBUG - 🎮 Checking 1 Twitch creators
+2025-10-01T12:44:41.463803951Z [inf]  2025-10-01 12:44:33,790 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on twitch: is_live=False
+2025-10-01T12:44:48.247592716Z [inf]  2025-10-01 12:44:48,243 - KARMA-LiveBOT - INFO - ✅ Keep-alive ping successful - preventing cloud sleep
+2025-10-01T12:45:08.251220744Z [inf]  2025-10-01 12:45:06,174 - KARMA-LiveBOT - DEBUG - 🎵 Checking 2 TikTok creators
+2025-10-01T12:45:08.251232215Z [inf]  2025-10-01 12:45:06,174 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Starte intelligente Live-Verifikation...
+2025-10-01T12:45:08.251238955Z [inf]  2025-10-01 12:45:06,174 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Teste TikTokLive library...
+2025-10-01T12:45:08.251244580Z [inf]  2025-10-01 12:45:06,567 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive async call erfolgreich: True
+2025-10-01T12:45:08.251255581Z [inf]  2025-10-01 12:45:06,567 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive library bestätigt - user LIVE ✅
+2025-10-01T12:45:08.251262760Z [inf]  2025-10-01 12:45:06,567 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive library Ergebnis: True
+2025-10-01T12:45:08.251270116Z [inf]  2025-10-01 12:45:06,567 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Teste HTML-Parsing von https://www.tiktok.com/@sturmpelz11...
+2025-10-01T12:45:08.251276410Z [err]  2025-10-01 12:45:06,907 - KARMA-LiveBOT.TikTok - WARNING - TikTok sturmpelz11: SIGI_STATE nicht gefunden
+2025-10-01T12:45:08.251282909Z [inf]  2025-10-01 12:45:06,908 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: HTML-Parsing Ergebnis: False
+2025-10-01T12:45:08.251288124Z [inf]  2025-10-01 12:45:06,908 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: ✅ LIVE bestätigt via TikTokLive library (zuverlässig)!
+2025-10-01T12:45:08.251293987Z [inf]  2025-10-01 12:45:06,908 - KARMA-LiveBOT - INFO - 🎵 sturmpelz11 is LIVE on TikTok!
+2025-10-01T12:45:08.251301156Z [inf]  2025-10-01 12:45:06,909 - KARMA-LiveBOT - INFO - Handling stream status for ✨Sturmpelz✨ on tiktok: is_live=True
+2025-10-01T12:45:08.251585165Z [inf]  2025-10-01 12:45:06,909 - KARMA-LiveBOT - INFO - Creator ✨Sturmpelz✨ on tiktok: was_live=1, last_notif=2025-10-01, today=2025-10-01, should_notify=False
+2025-10-01T12:45:08.912601332Z [inf]  2025-10-01 12:45:08,911 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Starte intelligente Live-Verifikation...
+2025-10-01T12:45:08.912609839Z [inf]  2025-10-01 12:45:08,911 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Teste TikTokLive library...
+2025-10-01T12:45:09.353373179Z [inf]  2025-10-01 12:45:09,349 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive async call erfolgreich: False
+2025-10-01T12:45:09.353380152Z [inf]  2025-10-01 12:45:09,350 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive library bestätigt - user offline
+2025-10-01T12:45:09.353386124Z [inf]  2025-10-01 12:45:09,350 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive library Ergebnis: False
+2025-10-01T12:45:09.353391586Z [inf]  2025-10-01 12:45:09,350 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Teste HTML-Parsing von https://www.tiktok.com/@tikzzay...
+2025-10-01T12:45:09.681902085Z [err]  2025-10-01 12:45:09,676 - KARMA-LiveBOT.TikTok - WARNING - TikTok tikzzay: SIGI_STATE nicht gefunden
+2025-10-01T12:45:09.681914295Z [inf]  2025-10-01 12:45:09,678 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: HTML-Parsing Ergebnis: False
+2025-10-01T12:45:09.681920787Z [inf]  2025-10-01 12:45:09,678 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: ❌ Beide Methoden bestätigen - User offline
+2025-10-01T12:45:09.681926459Z [inf]  2025-10-01 12:45:09,679 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on tiktok: is_live=False
+2025-10-01T12:45:16.228067034Z [inf]  2025-10-01 12:45:16,225 - KARMA-LiveBOT - DEBUG - 📺 Checking 1 YouTube creators
+2025-10-01T12:45:16.376014408Z [inf]  2025-10-01 12:45:16,373 - KARMA-LiveBOT - INFO - YouTube scraping for tikzzay: OFFLINE (indicators: 0)
+2025-10-01T12:45:16.379572657Z [inf]  2025-10-01 12:45:16,375 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on youtube: is_live=False
+2025-10-01T12:45:36.373171272Z [inf]  2025-10-01 12:45:35,799 - KARMA-LiveBOT - DEBUG - 🎮 Checking 1 Twitch creators
+2025-10-01T12:45:36.373184923Z [inf]  2025-10-01 12:45:36,127 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on twitch: is_live=False
+2025-10-01T12:45:56.376992879Z [inf]  2025-10-01 12:45:48,221 - KARMA-LiveBOT - INFO - 🤖 Bot status updated: 🧟‍♂️💜Watching Twitch: 1
+2025-10-01T12:46:46.381230688Z [inf]  2025-10-01 12:46:38,155 - KARMA-LiveBOT - DEBUG - 🎮 Checking 1 Twitch creators
+2025-10-01T12:46:46.381240076Z [inf]  2025-10-01 12:46:38,494 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on twitch: is_live=False
+2025-10-01T12:47:46.357496377Z [inf]  2025-10-01 12:47:40,503 - KARMA-LiveBOT - DEBUG - 🎮 Checking 1 Twitch creators
+2025-10-01T12:47:46.357504416Z [inf]  2025-10-01 12:47:40,827 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on twitch: is_live=False
+2025-10-01T12:47:48.335229500Z [inf]  2025-10-01 12:47:48,332 - KARMA-LiveBOT - INFO - 🎭 LIVE-ROLE-CLEANUP: Starting live role cleanup check...
+2025-10-01T12:47:48.335238015Z [inf]  2025-10-01 12:47:48,333 - KARMA-LiveBOT - INFO - 🎭 Found 1 members with live role in KARMA COM. SERVER
+2025-10-01T12:47:48.335243665Z [inf]  2025-10-01 12:47:48,333 - KARMA-LiveBOT - DEBUG - ✓ ✨Sturmpelz✨ has live role and is live on 1 platform(s)
+2025-10-01T12:47:48.335250317Z [inf]  2025-10-01 12:47:48,334 - KARMA-LiveBOT - INFO - 🎭 LIVE-ROLE-CLEANUP: Completed - Checked 1 users, removed 0 stale roles
+2025-10-01T12:48:18.337772515Z [inf]  2025-10-01 12:48:11,704 - KARMA-LiveBOT - INFO - ✅ Refreshed creators cache: 2 creators
+2025-10-01T12:48:18.337784733Z [inf]  2025-10-01 12:48:11,704 - KARMA-LiveBOT - DEBUG - 🎵 Checking 2 TikTok creators
+2025-10-01T12:48:18.337790984Z [inf]  2025-10-01 12:48:11,704 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Starte intelligente Live-Verifikation...
+2025-10-01T12:48:18.337797747Z [inf]  2025-10-01 12:48:11,704 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Teste TikTokLive library...
+2025-10-01T12:48:18.337804562Z [inf]  2025-10-01 12:48:12,082 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive async call erfolgreich: True
+2025-10-01T12:48:18.337809946Z [inf]  2025-10-01 12:48:12,082 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive library bestätigt - user LIVE ✅
+2025-10-01T12:48:18.337819610Z [inf]  2025-10-01 12:48:12,082 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive library Ergebnis: True
+2025-10-01T12:48:18.337826305Z [inf]  2025-10-01 12:48:12,082 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Teste HTML-Parsing von https://www.tiktok.com/@sturmpelz11...
+2025-10-01T12:48:18.337832899Z [err]  2025-10-01 12:48:12,431 - KARMA-LiveBOT.TikTok - WARNING - TikTok sturmpelz11: SIGI_STATE nicht gefunden
+2025-10-01T12:48:18.337839157Z [inf]  2025-10-01 12:48:12,433 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: HTML-Parsing Ergebnis: False
+2025-10-01T12:48:18.337845571Z [inf]  2025-10-01 12:48:12,433 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: ✅ LIVE bestätigt via TikTokLive library (zuverlässig)!
+2025-10-01T12:48:18.337852297Z [inf]  2025-10-01 12:48:12,433 - KARMA-LiveBOT - INFO - 🎵 sturmpelz11 is LIVE on TikTok!
+2025-10-01T12:48:18.337858147Z [inf]  2025-10-01 12:48:12,434 - KARMA-LiveBOT - INFO - Handling stream status for ✨Sturmpelz✨ on tiktok: is_live=True
+2025-10-01T12:48:18.337864991Z [inf]  2025-10-01 12:48:12,435 - KARMA-LiveBOT - INFO - Creator ✨Sturmpelz✨ on tiktok: was_live=1, last_notif=2025-10-01, today=2025-10-01, should_notify=False
+2025-10-01T12:48:18.337888854Z [inf]  2025-10-01 12:48:14,437 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Starte intelligente Live-Verifikation...
+2025-10-01T12:48:18.337893377Z [inf]  2025-10-01 12:48:14,437 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Teste TikTokLive library...
+2025-10-01T12:48:18.337898713Z [inf]  2025-10-01 12:48:14,881 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive async call erfolgreich: False
+2025-10-01T12:48:18.337904403Z [inf]  2025-10-01 12:48:14,881 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive library bestätigt - user offline
+2025-10-01T12:48:18.337909774Z [inf]  2025-10-01 12:48:14,881 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive library Ergebnis: False
+2025-10-01T12:48:18.337915606Z [inf]  2025-10-01 12:48:14,881 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Teste HTML-Parsing von https://www.tiktok.com/@tikzzay...
+2025-10-01T12:48:18.337920677Z [err]  2025-10-01 12:48:15,503 - KARMA-LiveBOT.TikTok - WARNING - TikTok tikzzay: SIGI_STATE nicht gefunden
+2025-10-01T12:48:18.337925541Z [inf]  2025-10-01 12:48:15,505 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: HTML-Parsing Ergebnis: False
+2025-10-01T12:48:18.337931040Z [inf]  2025-10-01 12:48:15,505 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: ❌ Beide Methoden bestätigen - User offline
+2025-10-01T12:48:18.337937053Z [inf]  2025-10-01 12:48:15,509 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on tiktok: is_live=False
+2025-10-01T12:48:19.207031162Z [inf]  2025-10-01 12:48:19,201 - KARMA-LiveBOT.Stats - INFO - 📊 Running server stats update...
+2025-10-01T12:48:19.207041262Z [inf]  2025-10-01 12:48:19,202 - KARMA-LiveBOT.Stats - INFO - 📊 No server stats channels configured
+2025-10-01T12:48:49.208002583Z [inf]  2025-10-01 12:48:42,852 - KARMA-LiveBOT - DEBUG - 🎮 Checking 1 Twitch creators
+2025-10-01T12:48:49.208015186Z [inf]  2025-10-01 12:48:43,192 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on twitch: is_live=False
+2025-10-01T12:48:49.208023564Z [inf]  2025-10-01 12:48:48,214 - KARMA-LiveBOT - INFO - 🤖 Bot status updated: 🧟‍♀️🩵Watching TikTok: 2
+2025-10-01T12:49:49.225505707Z [inf]  2025-10-01 12:49:45,199 - KARMA-LiveBOT - INFO - ✅ Refreshed creators cache: 2 creators
+2025-10-01T12:49:49.225513978Z [inf]  2025-10-01 12:49:45,199 - KARMA-LiveBOT - DEBUG - 🎮 Checking 1 Twitch creators
+2025-10-01T12:49:49.225519473Z [inf]  2025-10-01 12:49:45,526 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on twitch: is_live=False
+2025-10-01T12:50:29.226765778Z [inf]  2025-10-01 12:50:19,383 - KARMA-LiveBOT - DEBUG - 📺 Checking 1 YouTube creators
+2025-10-01T12:50:29.226783544Z [inf]  2025-10-01 12:50:19,531 - KARMA-LiveBOT - INFO - YouTube scraping for tikzzay: OFFLINE (indicators: 0)
+2025-10-01T12:50:29.226810311Z [inf]  2025-10-01 12:50:19,533 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on youtube: is_live=False
+2025-10-01T12:50:49.227398126Z [inf]  2025-10-01 12:50:47,553 - KARMA-LiveBOT - DEBUG - 🎮 Checking 1 Twitch creators
+2025-10-01T12:50:49.227408485Z [inf]  2025-10-01 12:50:47,907 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on twitch: is_live=False
+2025-10-01T12:51:19.230751110Z [inf]  2025-10-01 12:51:17,533 - KARMA-LiveBOT - DEBUG - 🎵 Checking 2 TikTok creators
+2025-10-01T12:51:19.230761438Z [inf]  2025-10-01 12:51:17,533 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Starte intelligente Live-Verifikation...
+2025-10-01T12:51:19.230768608Z [inf]  2025-10-01 12:51:17,533 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Teste TikTokLive library...
+2025-10-01T12:51:19.230775552Z [inf]  2025-10-01 12:51:17,570 - KARMA-LiveBOT.TikTok - DEBUG - TikTok sturmpelz11: Neuer Client erstellt (Cache: 2 Clients)
+2025-10-01T12:51:19.230782026Z [inf]  2025-10-01 12:51:17,950 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive async call erfolgreich: True
+2025-10-01T12:51:19.230786651Z [inf]  2025-10-01 12:51:17,950 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive library bestätigt - user LIVE ✅
+2025-10-01T12:51:19.230791023Z [inf]  2025-10-01 12:51:17,950 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive library Ergebnis: True
+2025-10-01T12:51:19.230795263Z [inf]  2025-10-01 12:51:17,950 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Teste HTML-Parsing von https://www.tiktok.com/@sturmpelz11...
+2025-10-01T12:51:19.230801506Z [err]  2025-10-01 12:51:18,293 - KARMA-LiveBOT.TikTok - WARNING - TikTok sturmpelz11: SIGI_STATE nicht gefunden
+2025-10-01T12:51:19.230805963Z [inf]  2025-10-01 12:51:18,295 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: HTML-Parsing Ergebnis: False
+2025-10-01T12:51:19.230810079Z [inf]  2025-10-01 12:51:18,295 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: ✅ LIVE bestätigt via TikTokLive library (zuverlässig)!
+2025-10-01T12:51:19.230814002Z [inf]  2025-10-01 12:51:18,295 - KARMA-LiveBOT - INFO - 🎵 sturmpelz11 is LIVE on TikTok!
+2025-10-01T12:51:19.230817951Z [inf]  2025-10-01 12:51:18,297 - KARMA-LiveBOT - INFO - Handling stream status for ✨Sturmpelz✨ on tiktok: is_live=True
+2025-10-01T12:51:19.230822080Z [inf]  2025-10-01 12:51:18,297 - KARMA-LiveBOT - INFO - Creator ✨Sturmpelz✨ on tiktok: was_live=1, last_notif=2025-10-01, today=2025-10-01, should_notify=False
+2025-10-01T12:51:20.303345640Z [inf]  2025-10-01 12:51:20,299 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Starte intelligente Live-Verifikation...
+2025-10-01T12:51:20.303357302Z [inf]  2025-10-01 12:51:20,299 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Teste TikTokLive library...
+2025-10-01T12:51:20.336863607Z [inf]  2025-10-01 12:51:20,333 - KARMA-LiveBOT.TikTok - DEBUG - TikTok tikzzay: Neuer Client erstellt (Cache: 2 Clients)
+2025-10-01T12:51:20.754057348Z [inf]  2025-10-01 12:51:20,752 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive async call erfolgreich: False
+2025-10-01T12:51:20.754068324Z [inf]  2025-10-01 12:51:20,752 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive library bestätigt - user offline
+2025-10-01T12:51:20.754076978Z [inf]  2025-10-01 12:51:20,752 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive library Ergebnis: False
+2025-10-01T12:51:20.754083158Z [inf]  2025-10-01 12:51:20,752 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Teste HTML-Parsing von https://www.tiktok.com/@tikzzay...
+2025-10-01T12:51:21.212254780Z [err]  2025-10-01 12:51:21,210 - KARMA-LiveBOT.TikTok - WARNING - TikTok tikzzay: SIGI_STATE nicht gefunden
+2025-10-01T12:51:21.215783178Z [inf]  2025-10-01 12:51:21,213 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: HTML-Parsing Ergebnis: False
+2025-10-01T12:51:21.215789698Z [inf]  2025-10-01 12:51:21,213 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: ❌ Beide Methoden bestätigen - User offline
+2025-10-01T12:51:21.215793820Z [inf]  2025-10-01 12:51:21,214 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on tiktok: is_live=False
+2025-10-01T12:51:51.244725897Z [inf]  2025-10-01 12:51:48,221 - KARMA-LiveBOT - INFO - 🤖 Bot status updated: 🧟❤️Watching Youtube: 1
+2025-10-01T12:51:51.244736371Z [inf]  2025-10-01 12:51:49,913 - KARMA-LiveBOT - INFO - ✅ Refreshed creators cache: 2 creators
+2025-10-01T12:51:51.244741971Z [inf]  2025-10-01 12:51:49,913 - KARMA-LiveBOT - DEBUG - 🎮 Checking 1 Twitch creators
+2025-10-01T12:51:51.244747306Z [inf]  2025-10-01 12:51:50,246 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on twitch: is_live=False
+2025-10-01T12:53:01.229314100Z [inf]  2025-10-01 12:52:52,278 - KARMA-LiveBOT - DEBUG - 🎮 Checking 1 Twitch creators
+2025-10-01T12:53:01.229321606Z [inf]  2025-10-01 12:52:52,603 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on twitch: is_live=False
+2025-10-01T12:53:21.229391797Z [inf]  2025-10-01 12:53:18,334 - KARMA-LiveBOT - INFO - 🧹 NOTIFICATION-CLEANUP: Starting notification cleanup check...
+2025-10-01T12:53:21.229398461Z [inf]  2025-10-01 12:53:18,335 - KARMA-LiveBOT - INFO - 🧹 NOTIFICATION-CLEANUP: No orphaned messages found
+2025-10-01T12:53:21.229402840Z [inf]  2025-10-01 12:53:19,205 - KARMA-LiveBOT.Stats - INFO - 📊 Running server stats update...
+2025-10-01T12:53:21.229407479Z [inf]  2025-10-01 12:53:19,206 - KARMA-LiveBOT.Stats - INFO - 📊 No server stats channels configured
+2025-10-01T12:54:01.233407097Z [inf]  2025-10-01 12:53:54,616 - KARMA-LiveBOT - INFO - ✅ Refreshed creators cache: 2 creators
+2025-10-01T12:54:01.233414459Z [inf]  2025-10-01 12:53:54,616 - KARMA-LiveBOT - DEBUG - 🎮 Checking 1 Twitch creators
+2025-10-01T12:54:01.233420697Z [inf]  2025-10-01 12:53:54,952 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on twitch: is_live=False
+2025-10-01T12:54:21.232367621Z [inf]  2025-10-01 12:54:18,251 - KARMA-LiveBOT - INFO - 📊 STATS-UPDATE: Starting stats channels update...
+2025-10-01T12:54:21.232374648Z [inf]  2025-10-01 12:54:18,252 - KARMA-LiveBOT - INFO - 📊 STATS-UPDATE: No stats channels configured
+2025-10-01T12:54:23.219744642Z [inf]  2025-10-01 12:54:23,217 - KARMA-LiveBOT - DEBUG - 🎵 Checking 2 TikTok creators
+2025-10-01T12:54:23.219752413Z [inf]  2025-10-01 12:54:23,218 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Starte intelligente Live-Verifikation...
+2025-10-01T12:54:23.219758671Z [inf]  2025-10-01 12:54:23,218 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Teste TikTokLive library...
+2025-10-01T12:54:23.649222856Z [inf]  2025-10-01 12:54:23,647 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive async call erfolgreich: True
+2025-10-01T12:54:23.649231963Z [inf]  2025-10-01 12:54:23,647 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive library bestätigt - user LIVE ✅
+2025-10-01T12:54:23.649237795Z [inf]  2025-10-01 12:54:23,647 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive library Ergebnis: True
+2025-10-01T12:54:23.649243395Z [inf]  2025-10-01 12:54:23,647 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Teste HTML-Parsing von https://www.tiktok.com/@sturmpelz11...
+2025-10-01T12:54:23.969580128Z [err]  2025-10-01 12:54:23,966 - KARMA-LiveBOT.TikTok - WARNING - TikTok sturmpelz11: SIGI_STATE nicht gefunden
+2025-10-01T12:54:23.969587179Z [inf]  2025-10-01 12:54:23,968 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: HTML-Parsing Ergebnis: False
+2025-10-01T12:54:23.969591600Z [inf]  2025-10-01 12:54:23,968 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: ✅ LIVE bestätigt via TikTokLive library (zuverlässig)!
+2025-10-01T12:54:23.969595647Z [inf]  2025-10-01 12:54:23,968 - KARMA-LiveBOT - INFO - 🎵 sturmpelz11 is LIVE on TikTok!
+2025-10-01T12:54:23.973055939Z [inf]  2025-10-01 12:54:23,970 - KARMA-LiveBOT - INFO - Handling stream status for ✨Sturmpelz✨ on tiktok: is_live=True
+2025-10-01T12:54:23.973062339Z [inf]  2025-10-01 12:54:23,971 - KARMA-LiveBOT - INFO - Creator ✨Sturmpelz✨ on tiktok: was_live=1, last_notif=2025-10-01, today=2025-10-01, should_notify=False
+2025-10-01T12:54:25.976754518Z [inf]  2025-10-01 12:54:25,972 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Starte intelligente Live-Verifikation...
+2025-10-01T12:54:25.976759376Z [inf]  2025-10-01 12:54:25,973 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Teste TikTokLive library...
+2025-10-01T12:54:26.371583735Z [inf]  2025-10-01 12:54:26,370 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive async call erfolgreich: False
+2025-10-01T12:54:26.371591514Z [inf]  2025-10-01 12:54:26,370 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive library bestätigt - user offline
+2025-10-01T12:54:26.371596502Z [inf]  2025-10-01 12:54:26,370 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive library Ergebnis: False
+2025-10-01T12:54:26.371601111Z [inf]  2025-10-01 12:54:26,370 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Teste HTML-Parsing von https://www.tiktok.com/@tikzzay...
+2025-10-01T12:54:26.779828281Z [err]  2025-10-01 12:54:26,778 - KARMA-LiveBOT.TikTok - WARNING - TikTok tikzzay: SIGI_STATE nicht gefunden
+2025-10-01T12:54:26.783568662Z [inf]  2025-10-01 12:54:26,780 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: HTML-Parsing Ergebnis: False
+2025-10-01T12:54:26.783577117Z [inf]  2025-10-01 12:54:26,780 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: ❌ Beide Methoden bestätigen - User offline
+2025-10-01T12:54:26.783583123Z [inf]  2025-10-01 12:54:26,781 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on tiktok: is_live=False
+2025-10-01T12:54:56.794120026Z [inf]  2025-10-01 12:54:48,214 - KARMA-LiveBOT - INFO - 🤖 Bot status updated: 🤖Discord Member: 116
+2025-10-01T12:54:56.794126841Z [inf]  2025-10-01 12:54:48,243 - KARMA-LiveBOT - INFO - ✅ Keep-alive ping successful - preventing cloud sleep
+2025-10-01T12:54:56.960724092Z [inf]  2025-10-01 12:54:56,957 - KARMA-LiveBOT - DEBUG - 🎮 Checking 1 Twitch creators
+2025-10-01T12:54:57.295650900Z [inf]  2025-10-01 12:54:57,290 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on twitch: is_live=False
+2025-10-01T12:55:27.287570612Z [inf]  2025-10-01 12:55:22,537 - KARMA-LiveBOT - DEBUG - 📺 Checking 1 YouTube creators
+2025-10-01T12:55:27.287576862Z [inf]  2025-10-01 12:55:22,698 - KARMA-LiveBOT - INFO - YouTube scraping for tikzzay: OFFLINE (indicators: 0)
+2025-10-01T12:55:27.287580864Z [inf]  2025-10-01 12:55:22,699 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on youtube: is_live=False
+2025-10-01T12:56:07.295006061Z [inf]  2025-10-01 12:55:59,306 - KARMA-LiveBOT - DEBUG - 🎮 Checking 1 Twitch creators
+2025-10-01T12:56:07.295012621Z [inf]  2025-10-01 12:55:59,632 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on twitch: is_live=False
+2025-10-01T12:57:07.306030390Z [inf]  2025-10-01 12:57:01,634 - KARMA-LiveBOT - DEBUG - 🎮 Checking 1 Twitch creators
+2025-10-01T12:57:07.306040613Z [inf]  2025-10-01 12:57:01,958 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on twitch: is_live=False
+2025-10-01T12:57:37.320472883Z [inf]  2025-10-01 12:57:28,791 - KARMA-LiveBOT - DEBUG - 🎵 Checking 2 TikTok creators
+2025-10-01T12:57:37.320483497Z [inf]  2025-10-01 12:57:28,791 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Starte intelligente Live-Verifikation...
+2025-10-01T12:57:37.320490377Z [inf]  2025-10-01 12:57:28,791 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Teste TikTokLive library...
+2025-10-01T12:57:37.320496820Z [inf]  2025-10-01 12:57:29,218 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive async call erfolgreich: True
+2025-10-01T12:57:37.320503380Z [inf]  2025-10-01 12:57:29,218 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive library bestätigt - user LIVE ✅
+2025-10-01T12:57:37.320510351Z [inf]  2025-10-01 12:57:29,218 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive library Ergebnis: True
+2025-10-01T12:57:37.320517606Z [inf]  2025-10-01 12:57:29,218 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Teste HTML-Parsing von https://www.tiktok.com/@sturmpelz11...
+2025-10-01T12:57:37.320523856Z [err]  2025-10-01 12:57:29,604 - KARMA-LiveBOT.TikTok - WARNING - TikTok sturmpelz11: SIGI_STATE nicht gefunden
+2025-10-01T12:57:37.320529810Z [inf]  2025-10-01 12:57:29,606 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: HTML-Parsing Ergebnis: False
+2025-10-01T12:57:37.320535802Z [inf]  2025-10-01 12:57:29,606 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: ✅ LIVE bestätigt via TikTokLive library (zuverlässig)!
+2025-10-01T12:57:37.320543781Z [inf]  2025-10-01 12:57:29,606 - KARMA-LiveBOT - INFO - 🎵 sturmpelz11 is LIVE on TikTok!
+2025-10-01T12:57:37.320549947Z [inf]  2025-10-01 12:57:29,607 - KARMA-LiveBOT - INFO - Handling stream status for ✨Sturmpelz✨ on tiktok: is_live=True
+2025-10-01T12:57:37.320555641Z [inf]  2025-10-01 12:57:29,607 - KARMA-LiveBOT - INFO - Creator ✨Sturmpelz✨ on tiktok: was_live=1, last_notif=2025-10-01, today=2025-10-01, should_notify=False
+2025-10-01T12:57:37.320584162Z [inf]  2025-10-01 12:57:31,610 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Starte intelligente Live-Verifikation...
+2025-10-01T12:57:37.320592102Z [inf]  2025-10-01 12:57:31,610 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Teste TikTokLive library...
+2025-10-01T12:57:37.320597676Z [inf]  2025-10-01 12:57:32,020 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive async call erfolgreich: False
+2025-10-01T12:57:37.320603957Z [inf]  2025-10-01 12:57:32,020 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive library bestätigt - user offline
+2025-10-01T12:57:37.320610475Z [inf]  2025-10-01 12:57:32,020 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive library Ergebnis: False
+2025-10-01T12:57:37.320620525Z [inf]  2025-10-01 12:57:32,020 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Teste HTML-Parsing von https://www.tiktok.com/@tikzzay...
+2025-10-01T12:57:37.320627204Z [err]  2025-10-01 12:57:32,380 - KARMA-LiveBOT.TikTok - WARNING - TikTok tikzzay: SIGI_STATE nicht gefunden
+2025-10-01T12:57:37.320633020Z [inf]  2025-10-01 12:57:32,381 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: HTML-Parsing Ergebnis: False
+2025-10-01T12:57:37.320638862Z [inf]  2025-10-01 12:57:32,381 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: ❌ Beide Methoden bestätigen - User offline
+2025-10-01T12:57:37.320645573Z [inf]  2025-10-01 12:57:32,382 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on tiktok: is_live=False
+2025-10-01T12:57:57.317734420Z [inf]  2025-10-01 12:57:48,216 - KARMA-LiveBOT - INFO - 🤖 Bot status updated: 🧟‍♂️💜Watching Twitch: 1
+2025-10-01T12:57:57.317742629Z [inf]  2025-10-01 12:57:48,329 - KARMA-LiveBOT - INFO - 🎭 LIVE-ROLE-CLEANUP: Starting live role cleanup check...
+2025-10-01T12:57:57.317748040Z [inf]  2025-10-01 12:57:48,330 - KARMA-LiveBOT - INFO - 🎭 Found 1 members with live role in KARMA COM. SERVER
+2025-10-01T12:57:57.317763781Z [inf]  2025-10-01 12:57:48,330 - KARMA-LiveBOT - DEBUG - ✓ ✨Sturmpelz✨ has live role and is live on 1 platform(s)
+2025-10-01T12:57:57.317770460Z [inf]  2025-10-01 12:57:48,330 - KARMA-LiveBOT - INFO - 🎭 LIVE-ROLE-CLEANUP: Completed - Checked 1 users, removed 0 stale roles
+2025-10-01T12:58:03.970250140Z [inf]  2025-10-01 12:58:03,966 - KARMA-LiveBOT - INFO - ✅ Refreshed creators cache: 2 creators
+2025-10-01T12:58:03.970257145Z [inf]  2025-10-01 12:58:03,966 - KARMA-LiveBOT - DEBUG - 🎮 Checking 1 Twitch creators
+2025-10-01T12:58:04.299545050Z [inf]  2025-10-01 12:58:04,296 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on twitch: is_live=False
+2025-10-01T12:58:24.294403162Z [inf]  2025-10-01 12:58:19,219 - KARMA-LiveBOT.Stats - INFO - 📊 Running server stats update...
+2025-10-01T12:58:24.294410391Z [inf]  2025-10-01 12:58:19,220 - KARMA-LiveBOT.Stats - INFO - 📊 No server stats channels configured
+2025-10-01T12:59:14.312402026Z [inf]  2025-10-01 12:59:06,307 - KARMA-LiveBOT - DEBUG - 🎮 Checking 1 Twitch creators
+2025-10-01T12:59:14.312409546Z [inf]  2025-10-01 12:59:06,640 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on twitch: is_live=False
+2025-10-01T13:00:14.314848447Z [inf]  2025-10-01 13:00:08,653 - KARMA-LiveBOT - DEBUG - 🎮 Checking 1 Twitch creators
+2025-10-01T13:00:14.314854795Z [inf]  2025-10-01 13:00:08,983 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on twitch: is_live=False
+2025-10-01T13:00:34.313609615Z [inf]  2025-10-01 13:00:25,707 - KARMA-LiveBOT - DEBUG - 📺 Checking 1 YouTube creators
+2025-10-01T13:00:34.313617183Z [inf]  2025-10-01 13:00:25,853 - KARMA-LiveBOT - INFO - YouTube scraping for tikzzay: OFFLINE (indicators: 0)
+2025-10-01T13:00:34.313621921Z [inf]  2025-10-01 13:00:25,855 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on youtube: is_live=False
+2025-10-01T13:00:34.393328687Z [inf]  2025-10-01 13:00:34,389 - KARMA-LiveBOT - DEBUG - 🎵 Checking 2 TikTok creators
+2025-10-01T13:00:34.393335505Z [inf]  2025-10-01 13:00:34,389 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Starte intelligente Live-Verifikation...
+2025-10-01T13:00:34.393340959Z [inf]  2025-10-01 13:00:34,390 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Teste TikTokLive library...
+2025-10-01T13:00:35.531287463Z [inf]  2025-10-01 13:00:35,528 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive async call erfolgreich: True
+2025-10-01T13:00:35.531297489Z [inf]  2025-10-01 13:00:35,528 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive library bestätigt - user LIVE ✅
+2025-10-01T13:00:35.531304296Z [inf]  2025-10-01 13:00:35,528 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive library Ergebnis: True
+2025-10-01T13:00:35.531309398Z [inf]  2025-10-01 13:00:35,528 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Teste HTML-Parsing von https://www.tiktok.com/@sturmpelz11...
+2025-10-01T13:00:36.164321535Z [err]  2025-10-01 13:00:36,162 - KARMA-LiveBOT.TikTok - WARNING - TikTok sturmpelz11: SIGI_STATE nicht gefunden
+2025-10-01T13:00:36.167164008Z [inf]  2025-10-01 13:00:36,164 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: HTML-Parsing Ergebnis: False
+2025-10-01T13:00:36.167170301Z [inf]  2025-10-01 13:00:36,164 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: ✅ LIVE bestätigt via TikTokLive library (zuverlässig)!
+2025-10-01T13:00:36.167175605Z [inf]  2025-10-01 13:00:36,164 - KARMA-LiveBOT - INFO - 🎵 sturmpelz11 is LIVE on TikTok!
+2025-10-01T13:00:36.167180697Z [inf]  2025-10-01 13:00:36,165 - KARMA-LiveBOT - INFO - Handling stream status for ✨Sturmpelz✨ on tiktok: is_live=True
+2025-10-01T13:00:36.167184874Z [inf]  2025-10-01 13:00:36,165 - KARMA-LiveBOT - INFO - Creator ✨Sturmpelz✨ on tiktok: was_live=1, last_notif=2025-10-01, today=2025-10-01, should_notify=False
+2025-10-01T13:00:38.168658668Z [inf]  2025-10-01 13:00:38,167 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Starte intelligente Live-Verifikation...
+2025-10-01T13:00:38.168670320Z [inf]  2025-10-01 13:00:38,167 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Teste TikTokLive library...
+2025-10-01T13:00:40.085629900Z [inf]  2025-10-01 13:00:40,084 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive async call erfolgreich: False
+2025-10-01T13:00:40.085636674Z [inf]  2025-10-01 13:00:40,084 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive library bestätigt - user offline
+2025-10-01T13:00:40.085642939Z [inf]  2025-10-01 13:00:40,084 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive library Ergebnis: False
+2025-10-01T13:00:40.085652151Z [inf]  2025-10-01 13:00:40,084 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Teste HTML-Parsing von https://www.tiktok.com/@tikzzay...
+2025-10-01T13:00:42.142267268Z [err]  2025-10-01 13:00:42,139 - KARMA-LiveBOT.TikTok - WARNING - TikTok tikzzay: SIGI_STATE nicht gefunden
+2025-10-01T13:00:42.145998921Z [inf]  2025-10-01 13:00:42,141 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: HTML-Parsing Ergebnis: False
+2025-10-01T13:00:42.146011168Z [inf]  2025-10-01 13:00:42,142 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: ❌ Beide Methoden bestätigen - User offline
+2025-10-01T13:00:42.146018653Z [inf]  2025-10-01 13:00:42,143 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on tiktok: is_live=False
+2025-10-01T13:00:48.221095558Z [inf]  2025-10-01 13:00:48,217 - KARMA-LiveBOT - INFO - 🤖 Bot status updated: 🧟‍♀️🩵Watching TikTok: 2
+2025-10-01T13:01:18.223029422Z [inf]  2025-10-01 13:01:11,007 - KARMA-LiveBOT - DEBUG - 🎮 Checking 1 Twitch creators
+2025-10-01T13:01:18.223038192Z [inf]  2025-10-01 13:01:11,330 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on twitch: is_live=False
+2025-10-01T13:02:18.227358393Z [inf]  2025-10-01 13:02:13,348 - KARMA-LiveBOT - DEBUG - 🎮 Checking 1 Twitch creators
+2025-10-01T13:02:18.227366486Z [inf]  2025-10-01 13:02:13,676 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on twitch: is_live=False
+2025-10-01T13:03:18.231856040Z [inf]  2025-10-01 13:03:15,681 - KARMA-LiveBOT - DEBUG - 🎮 Checking 1 Twitch creators
+2025-10-01T13:03:18.231861843Z [inf]  2025-10-01 13:03:16,009 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on twitch: is_live=False
+2025-10-01T13:03:18.389778880Z [inf]  2025-10-01 13:03:18,385 - KARMA-LiveBOT.Stats - INFO - 📱 Running social media stats update...
+2025-10-01T13:03:18.389786255Z [inf]  2025-10-01 13:03:18,386 - KARMA-LiveBOT.Stats - INFO - 📱 No social media stats channels configured
+2025-10-01T13:03:19.224022754Z [inf]  2025-10-01 13:03:19,222 - KARMA-LiveBOT.Stats - INFO - 📊 Running server stats update...
+2025-10-01T13:03:19.224031486Z [inf]  2025-10-01 13:03:19,223 - KARMA-LiveBOT.Stats - INFO - 📊 No server stats channels configured
+2025-10-01T13:03:49.221503214Z [inf]  2025-10-01 13:03:44,164 - KARMA-LiveBOT - DEBUG - 🎵 Checking 2 TikTok creators
+2025-10-01T13:03:49.221510705Z [inf]  2025-10-01 13:03:44,164 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Starte intelligente Live-Verifikation...
+2025-10-01T13:03:49.221516928Z [inf]  2025-10-01 13:03:44,164 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Teste TikTokLive library...
+2025-10-01T13:03:49.221523283Z [inf]  2025-10-01 13:03:44,558 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive async call erfolgreich: True
+2025-10-01T13:03:49.221527913Z [inf]  2025-10-01 13:03:44,558 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive library bestätigt - user LIVE ✅
+2025-10-01T13:03:49.221532086Z [inf]  2025-10-01 13:03:44,558 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive library Ergebnis: True
+2025-10-01T13:03:49.221536544Z [inf]  2025-10-01 13:03:44,558 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Teste HTML-Parsing von https://www.tiktok.com/@sturmpelz11...
+2025-10-01T13:03:49.221542140Z [err]  2025-10-01 13:03:44,875 - KARMA-LiveBOT.TikTok - WARNING - TikTok sturmpelz11: SIGI_STATE nicht gefunden
+2025-10-01T13:03:49.221558399Z [inf]  2025-10-01 13:03:44,877 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: HTML-Parsing Ergebnis: False
+2025-10-01T13:03:49.221563817Z [inf]  2025-10-01 13:03:44,877 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: ✅ LIVE bestätigt via TikTokLive library (zuverlässig)!
+2025-10-01T13:03:49.221567928Z [inf]  2025-10-01 13:03:44,877 - KARMA-LiveBOT - INFO - 🎵 sturmpelz11 is LIVE on TikTok!
+2025-10-01T13:03:49.221572608Z [inf]  2025-10-01 13:03:44,878 - KARMA-LiveBOT - INFO - Handling stream status for ✨Sturmpelz✨ on tiktok: is_live=True
+2025-10-01T13:03:49.221576779Z [inf]  2025-10-01 13:03:44,878 - KARMA-LiveBOT - INFO - Creator ✨Sturmpelz✨ on tiktok: was_live=1, last_notif=2025-10-01, today=2025-10-01, should_notify=False
+2025-10-01T13:03:49.221587394Z [inf]  2025-10-01 13:03:46,880 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Starte intelligente Live-Verifikation...
+2025-10-01T13:03:49.221591706Z [inf]  2025-10-01 13:03:46,880 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Teste TikTokLive library...
+2025-10-01T13:03:49.221595670Z [inf]  2025-10-01 13:03:47,286 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive async call erfolgreich: False
+2025-10-01T13:03:49.221599838Z [inf]  2025-10-01 13:03:47,286 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive library bestätigt - user offline
+2025-10-01T13:03:49.221605647Z [inf]  2025-10-01 13:03:47,286 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive library Ergebnis: False
+2025-10-01T13:03:49.221611394Z [inf]  2025-10-01 13:03:47,286 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Teste HTML-Parsing von https://www.tiktok.com/@tikzzay...
+2025-10-01T13:03:49.221617064Z [err]  2025-10-01 13:03:47,776 - KARMA-LiveBOT.TikTok - WARNING - TikTok tikzzay: SIGI_STATE nicht gefunden
+2025-10-01T13:03:49.221623137Z [inf]  2025-10-01 13:03:47,778 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: HTML-Parsing Ergebnis: False
+2025-10-01T13:03:49.221630098Z [inf]  2025-10-01 13:03:47,778 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: ❌ Beide Methoden bestätigen - User offline
+2025-10-01T13:03:49.221634668Z [inf]  2025-10-01 13:03:47,779 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on tiktok: is_live=False
+2025-10-01T13:03:49.221639640Z [inf]  2025-10-01 13:03:48,212 - KARMA-LiveBOT - INFO - 🤖 Bot status updated: 🧟❤️Watching Youtube: 1
+2025-10-01T13:04:19.228640075Z [inf]  2025-10-01 13:04:18,023 - KARMA-LiveBOT - DEBUG - 🎮 Checking 1 Twitch creators
+2025-10-01T13:04:19.228650134Z [inf]  2025-10-01 13:04:18,230 - KARMA-LiveBOT - INFO - 📊 STATS-UPDATE: Starting stats channels update...
+2025-10-01T13:04:19.228656736Z [inf]  2025-10-01 13:04:18,231 - KARMA-LiveBOT - INFO - 📊 STATS-UPDATE: No stats channels configured
+2025-10-01T13:04:19.228662689Z [inf]  2025-10-01 13:04:18,357 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on twitch: is_live=False
+2025-10-01T13:04:49.234516952Z [inf]  2025-10-01 13:04:48,247 - KARMA-LiveBOT - INFO - ✅ Keep-alive ping successful - preventing cloud sleep
+2025-10-01T13:05:29.236935691Z [inf]  2025-10-01 13:05:20,363 - KARMA-LiveBOT - DEBUG - 🎮 Checking 1 Twitch creators
+2025-10-01T13:05:29.236942565Z [inf]  2025-10-01 13:05:20,690 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on twitch: is_live=False
+2025-10-01T13:05:29.236948661Z [inf]  2025-10-01 13:05:28,864 - KARMA-LiveBOT - DEBUG - 📺 Checking 1 YouTube creators
+2025-10-01T13:05:29.236955168Z [inf]  2025-10-01 13:05:29,022 - KARMA-LiveBOT - INFO - YouTube scraping for tikzzay: OFFLINE (indicators: 0)
+2025-10-01T13:05:29.236961082Z [inf]  2025-10-01 13:05:29,024 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on youtube: is_live=False
+2025-10-01T13:05:49.237121001Z [inf]  2025-10-01 13:05:48,264 - KARMA-LiveBOT - INFO - 🔧 TIKTOK-RECOVERY: Starting TikTok task recovery check...
+2025-10-01T13:05:49.237129201Z [inf]  2025-10-01 13:05:48,265 - KARMA-LiveBOT - INFO - 🔧 TIKTOK-RECOVERY: Checking 2 TikTok creators...
+2025-10-01T13:05:49.237133947Z [inf]  2025-10-01 13:05:48,265 - KARMA-LiveBOT - INFO - 🔧 TIKTOK-RECOVERY: Using improved TikTok checker
+2025-10-01T13:05:49.237138982Z [inf]  2025-10-01 13:05:48,265 - KARMA-LiveBOT - INFO - 🔧 Testing TikTok connectivity for ✨Sturmpelz✨ (@sturmpelz11)...
+2025-10-01T13:05:49.237143156Z [inf]  2025-10-01 13:05:48,265 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Starte intelligente Live-Verifikation...
+2025-10-01T13:05:49.237147702Z [inf]  2025-10-01 13:05:48,265 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Teste TikTokLive library...
+2025-10-01T13:05:49.237151867Z [inf]  2025-10-01 13:05:48,847 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive async call erfolgreich: True
+2025-10-01T13:05:49.237155999Z [inf]  2025-10-01 13:05:48,848 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive library bestätigt - user LIVE ✅
+2025-10-01T13:05:49.237161684Z [inf]  2025-10-01 13:05:48,848 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive library Ergebnis: True
+2025-10-01T13:05:49.237167006Z [inf]  2025-10-01 13:05:48,848 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Teste HTML-Parsing von https://www.tiktok.com/@sturmpelz11...
+2025-10-01T13:05:49.335468812Z [err]  2025-10-01 13:05:49,326 - KARMA-LiveBOT.TikTok - WARNING - TikTok sturmpelz11: SIGI_STATE nicht gefunden
+2025-10-01T13:05:49.335477912Z [inf]  2025-10-01 13:05:49,328 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: HTML-Parsing Ergebnis: False
+2025-10-01T13:05:49.335483571Z [inf]  2025-10-01 13:05:49,328 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: ✅ LIVE bestätigt via TikTokLive library (zuverlässig)!
+2025-10-01T13:05:49.335489113Z [inf]  2025-10-01 13:05:49,328 - KARMA-LiveBOT - INFO - ✅ TikTok recovery successful for ✨Sturmpelz✨
+2025-10-01T13:05:49.335495562Z [inf]  2025-10-01 13:05:49,328 - KARMA-LiveBOT - INFO - 🔧 Testing TikTok connectivity for TikZ aka. Zay (@tikzzay)...
+2025-10-01T13:05:49.335503474Z [inf]  2025-10-01 13:05:49,328 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Starte intelligente Live-Verifikation...
+2025-10-01T13:05:49.335509331Z [inf]  2025-10-01 13:05:49,328 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Teste TikTokLive library...
+2025-10-01T13:05:49.965614298Z [inf]  2025-10-01 13:05:49,964 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive async call erfolgreich: False
+2025-10-01T13:05:49.965619244Z [inf]  2025-10-01 13:05:49,964 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive library bestätigt - user offline
+2025-10-01T13:05:49.965623719Z [inf]  2025-10-01 13:05:49,964 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive library Ergebnis: False
+2025-10-01T13:05:49.965630981Z [inf]  2025-10-01 13:05:49,964 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Teste HTML-Parsing von https://www.tiktok.com/@tikzzay...
+2025-10-01T13:05:50.332015762Z [err]  2025-10-01 13:05:50,328 - KARMA-LiveBOT.TikTok - WARNING - TikTok tikzzay: SIGI_STATE nicht gefunden
+2025-10-01T13:05:50.332024636Z [inf]  2025-10-01 13:05:50,329 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: HTML-Parsing Ergebnis: False
+2025-10-01T13:05:50.332031080Z [inf]  2025-10-01 13:05:50,329 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: ❌ Beide Methoden bestätigen - User offline
+2025-10-01T13:05:50.332037430Z [inf]  2025-10-01 13:05:50,330 - KARMA-LiveBOT - INFO - ✅ TikTok recovery successful for TikZ aka. Zay
+2025-10-01T13:05:50.332043362Z [inf]  2025-10-01 13:05:50,330 - KARMA-LiveBOT - INFO - 🔧 TIKTOK-RECOVERY: Cache management handled by improved checker
+2025-10-01T13:05:50.332050100Z [inf]  2025-10-01 13:05:50,330 - KARMA-LiveBOT - INFO - 🔧 TIKTOK-RECOVERY: Completed - Success: 2, Failed: 0
+2025-10-01T13:06:30.337555059Z [inf]  2025-10-01 13:06:22,711 - KARMA-LiveBOT - DEBUG - 🎮 Checking 1 Twitch creators
+2025-10-01T13:06:30.337561926Z [inf]  2025-10-01 13:06:23,036 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on twitch: is_live=False
+2025-10-01T13:06:50.299887829Z [inf]  2025-10-01 13:06:48,213 - KARMA-LiveBOT - INFO - 🤖 Bot status updated: 🤖Discord Member: 116
+2025-10-01T13:06:50.299894527Z [inf]  2025-10-01 13:06:49,783 - KARMA-LiveBOT - DEBUG - 🎵 Checking 2 TikTok creators
+2025-10-01T13:06:50.299898761Z [inf]  2025-10-01 13:06:49,783 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Starte intelligente Live-Verifikation...
+2025-10-01T13:06:50.299902474Z [inf]  2025-10-01 13:06:49,783 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Teste TikTokLive library...
+2025-10-01T13:06:50.299906450Z [inf]  2025-10-01 13:06:50,161 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive async call erfolgreich: True
+2025-10-01T13:06:50.299910955Z [inf]  2025-10-01 13:06:50,161 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive library bestätigt - user LIVE ✅
+2025-10-01T13:06:50.299915029Z [inf]  2025-10-01 13:06:50,161 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive library Ergebnis: True
+2025-10-01T13:06:50.299919421Z [inf]  2025-10-01 13:06:50,161 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Teste HTML-Parsing von https://www.tiktok.com/@sturmpelz11...
+2025-10-01T13:06:50.470335564Z [err]  2025-10-01 13:06:50,467 - KARMA-LiveBOT.TikTok - WARNING - TikTok sturmpelz11: SIGI_STATE nicht gefunden
+2025-10-01T13:06:50.470359532Z [inf]  2025-10-01 13:06:50,469 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: HTML-Parsing Ergebnis: False
+2025-10-01T13:06:50.470363492Z [inf]  2025-10-01 13:06:50,469 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: ✅ LIVE bestätigt via TikTokLive library (zuverlässig)!
+2025-10-01T13:06:50.470367616Z [inf]  2025-10-01 13:06:50,469 - KARMA-LiveBOT - INFO - 🎵 sturmpelz11 is LIVE on TikTok!
+2025-10-01T13:06:50.473642134Z [inf]  2025-10-01 13:06:50,470 - KARMA-LiveBOT - INFO - Handling stream status for ✨Sturmpelz✨ on tiktok: is_live=True
+2025-10-01T13:06:50.473651054Z [inf]  2025-10-01 13:06:50,470 - KARMA-LiveBOT - INFO - Creator ✨Sturmpelz✨ on tiktok: was_live=1, last_notif=2025-10-01, today=2025-10-01, should_notify=False
+2025-10-01T13:06:52.474341739Z [inf]  2025-10-01 13:06:52,472 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Starte intelligente Live-Verifikation...
+2025-10-01T13:06:52.474348416Z [inf]  2025-10-01 13:06:52,472 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Teste TikTokLive library...
+2025-10-01T13:06:52.889544049Z [inf]  2025-10-01 13:06:52,888 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive async call erfolgreich: False
+2025-10-01T13:06:52.889552191Z [inf]  2025-10-01 13:06:52,888 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive library bestätigt - user offline
+2025-10-01T13:06:52.889557744Z [inf]  2025-10-01 13:06:52,888 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive library Ergebnis: False
+2025-10-01T13:06:52.889564265Z [inf]  2025-10-01 13:06:52,888 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Teste HTML-Parsing von https://www.tiktok.com/@tikzzay...
+2025-10-01T13:06:53.291977642Z [err]  2025-10-01 13:06:53,284 - KARMA-LiveBOT.TikTok - WARNING - TikTok tikzzay: SIGI_STATE nicht gefunden
+2025-10-01T13:06:53.291983712Z [inf]  2025-10-01 13:06:53,285 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: HTML-Parsing Ergebnis: False
+2025-10-01T13:06:53.291987996Z [inf]  2025-10-01 13:06:53,285 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: ❌ Beide Methoden bestätigen - User offline
+2025-10-01T13:06:53.291992082Z [inf]  2025-10-01 13:06:53,287 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on tiktok: is_live=False
+2025-10-01T13:07:33.301390962Z [inf]  2025-10-01 13:07:25,040 - KARMA-LiveBOT - DEBUG - 🎮 Checking 1 Twitch creators
+2025-10-01T13:07:33.301398477Z [inf]  2025-10-01 13:07:25,382 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on twitch: is_live=False
+2025-10-01T13:07:53.297946967Z [inf]  2025-10-01 13:07:48,331 - KARMA-LiveBOT - INFO - 🎭 LIVE-ROLE-CLEANUP: Starting live role cleanup check...
+2025-10-01T13:07:53.297956199Z [inf]  2025-10-01 13:07:48,332 - KARMA-LiveBOT - INFO - 🎭 Found 1 members with live role in KARMA COM. SERVER
+2025-10-01T13:07:53.297961986Z [inf]  2025-10-01 13:07:48,332 - KARMA-LiveBOT - DEBUG - ✓ ✨Sturmpelz✨ has live role and is live on 1 platform(s)
+2025-10-01T13:07:53.297967068Z [inf]  2025-10-01 13:07:48,332 - KARMA-LiveBOT - INFO - 🎭 LIVE-ROLE-CLEANUP: Completed - Checked 1 users, removed 0 stale roles
+2025-10-01T13:08:23.294319013Z [inf]  2025-10-01 13:08:18,339 - KARMA-LiveBOT - INFO - 🧹 NOTIFICATION-CLEANUP: Starting notification cleanup check...
+2025-10-01T13:08:23.294325364Z [inf]  2025-10-01 13:08:18,340 - KARMA-LiveBOT - INFO - 🧹 NOTIFICATION-CLEANUP: No orphaned messages found
+2025-10-01T13:08:23.294330042Z [inf]  2025-10-01 13:08:19,224 - KARMA-LiveBOT.Stats - INFO - 📊 Running server stats update...
+2025-10-01T13:08:23.294335125Z [inf]  2025-10-01 13:08:19,225 - KARMA-LiveBOT.Stats - INFO - 📊 No server stats channels configured
+2025-10-01T13:08:27.394555551Z [inf]  2025-10-01 13:08:27,391 - KARMA-LiveBOT - DEBUG - 🎮 Checking 1 Twitch creators
+2025-10-01T13:08:27.729360422Z [inf]  2025-10-01 13:08:27,724 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on twitch: is_live=False
+2025-10-01T13:09:37.739702104Z [inf]  2025-10-01 13:09:29,734 - KARMA-LiveBOT - DEBUG - 🎮 Checking 1 Twitch creators
+2025-10-01T13:09:37.739708177Z [inf]  2025-10-01 13:09:30,058 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on twitch: is_live=False
+2025-10-01T13:09:57.740284804Z [inf]  2025-10-01 13:09:48,226 - KARMA-LiveBOT - INFO - 🤖 Bot status updated: 🧟‍♂️💜Watching Twitch: 1
+2025-10-01T13:09:57.740293138Z [inf]  2025-10-01 13:09:55,296 - KARMA-LiveBOT - INFO - ✅ Refreshed creators cache: 2 creators
+2025-10-01T13:09:57.740298607Z [inf]  2025-10-01 13:09:55,296 - KARMA-LiveBOT - DEBUG - 🎵 Checking 2 TikTok creators
+2025-10-01T13:09:57.740307135Z [inf]  2025-10-01 13:09:55,296 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Starte intelligente Live-Verifikation...
+2025-10-01T13:09:57.740312726Z [inf]  2025-10-01 13:09:55,296 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Teste TikTokLive library...
+2025-10-01T13:09:57.740318298Z [inf]  2025-10-01 13:09:55,681 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive async call erfolgreich: True
+2025-10-01T13:09:57.740323621Z [inf]  2025-10-01 13:09:55,681 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive library bestätigt - user LIVE ✅
+2025-10-01T13:09:57.740328643Z [inf]  2025-10-01 13:09:55,681 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive library Ergebnis: True
+2025-10-01T13:09:57.740333457Z [inf]  2025-10-01 13:09:55,681 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Teste HTML-Parsing von https://www.tiktok.com/@sturmpelz11...
+2025-10-01T13:09:57.740341103Z [err]  2025-10-01 13:09:56,235 - KARMA-LiveBOT.TikTok - WARNING - TikTok sturmpelz11: SIGI_STATE nicht gefunden
+2025-10-01T13:09:57.740346830Z [inf]  2025-10-01 13:09:56,236 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: HTML-Parsing Ergebnis: False
+2025-10-01T13:09:57.740352284Z [inf]  2025-10-01 13:09:56,237 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: ✅ LIVE bestätigt via TikTokLive library (zuverlässig)!
+2025-10-01T13:09:57.740357377Z [inf]  2025-10-01 13:09:56,237 - KARMA-LiveBOT - INFO - 🎵 sturmpelz11 is LIVE on TikTok!
+2025-10-01T13:09:57.740362223Z [inf]  2025-10-01 13:09:56,237 - KARMA-LiveBOT - INFO - Handling stream status for ✨Sturmpelz✨ on tiktok: is_live=True
+2025-10-01T13:09:57.740367141Z [inf]  2025-10-01 13:09:56,238 - KARMA-LiveBOT - INFO - Creator ✨Sturmpelz✨ on tiktok: was_live=1, last_notif=2025-10-01, today=2025-10-01, should_notify=False
+2025-10-01T13:09:58.243670333Z [inf]  2025-10-01 13:09:58,239 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Starte intelligente Live-Verifikation...
+2025-10-01T13:09:58.243677620Z [inf]  2025-10-01 13:09:58,239 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Teste TikTokLive library...
+2025-10-01T13:09:58.646656930Z [inf]  2025-10-01 13:09:58,642 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive async call erfolgreich: False
+2025-10-01T13:09:58.646665728Z [inf]  2025-10-01 13:09:58,642 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive library bestätigt - user offline
+2025-10-01T13:09:58.646673887Z [inf]  2025-10-01 13:09:58,642 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive library Ergebnis: False
+2025-10-01T13:09:58.646681354Z [inf]  2025-10-01 13:09:58,642 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Teste HTML-Parsing von https://www.tiktok.com/@tikzzay...
+2025-10-01T13:09:58.954914723Z [err]  2025-10-01 13:09:58,953 - KARMA-LiveBOT.TikTok - WARNING - TikTok tikzzay: SIGI_STATE nicht gefunden
+2025-10-01T13:09:58.958859942Z [inf]  2025-10-01 13:09:58,955 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: HTML-Parsing Ergebnis: False
+2025-10-01T13:09:58.958866411Z [inf]  2025-10-01 13:09:58,955 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: ❌ Beide Methoden bestätigen - User offline
+2025-10-01T13:09:58.958870958Z [inf]  2025-10-01 13:09:58,956 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on tiktok: is_live=False
+2025-10-01T13:10:38.969673584Z [inf]  2025-10-01 13:10:32,031 - KARMA-LiveBOT - DEBUG - 📺 Checking 1 YouTube creators
+2025-10-01T13:10:38.969683744Z [inf]  2025-10-01 13:10:32,061 - KARMA-LiveBOT - DEBUG - 🎮 Checking 1 Twitch creators
+2025-10-01T13:10:38.969691888Z [inf]  2025-10-01 13:10:32,201 - KARMA-LiveBOT - INFO - YouTube scraping for tikzzay: OFFLINE (indicators: 0)
+2025-10-01T13:10:38.969698437Z [inf]  2025-10-01 13:10:32,202 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on youtube: is_live=False
+2025-10-01T13:10:38.969704727Z [inf]  2025-10-01 13:10:32,389 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on twitch: is_live=False
+2025-10-01T13:11:38.976172254Z [inf]  2025-10-01 13:11:34,393 - KARMA-LiveBOT - DEBUG - 🎮 Checking 1 Twitch creators
+2025-10-01T13:11:38.976186533Z [inf]  2025-10-01 13:11:34,717 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on twitch: is_live=False
+2025-10-01T13:12:38.983832512Z [inf]  2025-10-01 13:12:36,730 - KARMA-LiveBOT - DEBUG - 🎮 Checking 1 Twitch creators
+2025-10-01T13:12:38.983843940Z [inf]  2025-10-01 13:12:37,058 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on twitch: is_live=False
+2025-10-01T13:12:48.219506778Z [inf]  2025-10-01 13:12:48,215 - KARMA-LiveBOT - INFO - 🤖 Bot status updated: 🧟‍♀️🩵Watching TikTok: 2
+2025-10-01T13:13:08.218164189Z [inf]  2025-10-01 13:13:00,961 - KARMA-LiveBOT - DEBUG - 🎵 Checking 2 TikTok creators
+2025-10-01T13:13:08.218174083Z [inf]  2025-10-01 13:13:00,961 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Starte intelligente Live-Verifikation...
+2025-10-01T13:13:08.218180309Z [inf]  2025-10-01 13:13:00,961 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Teste TikTokLive library...
+2025-10-01T13:13:08.218186029Z [inf]  2025-10-01 13:13:01,541 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive async call erfolgreich: True
+2025-10-01T13:13:08.218191361Z [inf]  2025-10-01 13:13:01,541 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive library bestätigt - user LIVE ✅
+2025-10-01T13:13:08.218197119Z [inf]  2025-10-01 13:13:01,541 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive library Ergebnis: True
+2025-10-01T13:13:08.218202639Z [inf]  2025-10-01 13:13:01,541 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Teste HTML-Parsing von https://www.tiktok.com/@sturmpelz11...
+2025-10-01T13:13:08.218208469Z [err]  2025-10-01 13:13:01,934 - KARMA-LiveBOT.TikTok - WARNING - TikTok sturmpelz11: SIGI_STATE nicht gefunden
+2025-10-01T13:13:08.218214370Z [inf]  2025-10-01 13:13:01,935 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: HTML-Parsing Ergebnis: False
+2025-10-01T13:13:08.218222411Z [inf]  2025-10-01 13:13:01,935 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: ✅ LIVE bestätigt via TikTokLive library (zuverlässig)!
+2025-10-01T13:13:08.218228621Z [inf]  2025-10-01 13:13:01,935 - KARMA-LiveBOT - INFO - 🎵 sturmpelz11 is LIVE on TikTok!
+2025-10-01T13:13:08.218234557Z [inf]  2025-10-01 13:13:01,936 - KARMA-LiveBOT - INFO - Handling stream status for ✨Sturmpelz✨ on tiktok: is_live=True
+2025-10-01T13:13:08.218239919Z [inf]  2025-10-01 13:13:01,937 - KARMA-LiveBOT - INFO - Creator ✨Sturmpelz✨ on tiktok: was_live=1, last_notif=2025-10-01, today=2025-10-01, should_notify=False
+2025-10-01T13:13:08.218259954Z [inf]  2025-10-01 13:13:03,939 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Starte intelligente Live-Verifikation...
+2025-10-01T13:13:08.218265526Z [inf]  2025-10-01 13:13:03,939 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Teste TikTokLive library...
+2025-10-01T13:13:08.218271907Z [inf]  2025-10-01 13:13:04,422 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive async call erfolgreich: False
+2025-10-01T13:13:08.218278071Z [inf]  2025-10-01 13:13:04,422 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive library bestätigt - user offline
+2025-10-01T13:13:08.218284116Z [inf]  2025-10-01 13:13:04,422 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive library Ergebnis: False
+2025-10-01T13:13:08.218289518Z [inf]  2025-10-01 13:13:04,422 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Teste HTML-Parsing von https://www.tiktok.com/@tikzzay...
+2025-10-01T13:13:08.218294882Z [err]  2025-10-01 13:13:04,750 - KARMA-LiveBOT.TikTok - WARNING - TikTok tikzzay: SIGI_STATE nicht gefunden
+2025-10-01T13:13:08.218304401Z [inf]  2025-10-01 13:13:04,752 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: HTML-Parsing Ergebnis: False
+2025-10-01T13:13:08.218310160Z [inf]  2025-10-01 13:13:04,752 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: ❌ Beide Methoden bestätigen - User offline
+2025-10-01T13:13:08.218315578Z [inf]  2025-10-01 13:13:04,752 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on tiktok: is_live=False
+2025-10-01T13:13:28.219723378Z [inf]  2025-10-01 13:13:19,239 - KARMA-LiveBOT.Stats - INFO - 📊 Running server stats update...
+2025-10-01T13:13:28.219729807Z [inf]  2025-10-01 13:13:19,240 - KARMA-LiveBOT.Stats - INFO - 📊 No server stats channels configured
+2025-10-01T13:13:48.219859402Z [inf]  2025-10-01 13:13:39,062 - KARMA-LiveBOT - DEBUG - 🎮 Checking 1 Twitch creators
+2025-10-01T13:13:48.219868306Z [inf]  2025-10-01 13:13:39,389 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on twitch: is_live=False
+2025-10-01T13:14:28.224729353Z [inf]  2025-10-01 13:14:18,262 - KARMA-LiveBOT - INFO - 📊 STATS-UPDATE: Starting stats channels update...
+2025-10-01T13:14:28.224738379Z [inf]  2025-10-01 13:14:18,263 - KARMA-LiveBOT - INFO - 📊 STATS-UPDATE: No stats channels configured
+2025-10-01T13:14:48.223623247Z [inf]  2025-10-01 13:14:41,401 - KARMA-LiveBOT - DEBUG - 🎮 Checking 1 Twitch creators
+2025-10-01T13:14:48.223630999Z [inf]  2025-10-01 13:14:41,737 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on twitch: is_live=False
+2025-10-01T13:14:48.247557289Z [inf]  2025-10-01 13:14:48,246 - KARMA-LiveBOT - INFO - ✅ Keep-alive ping successful - preventing cloud sleep
+2025-10-01T13:15:38.259293264Z [inf]  2025-10-01 13:15:35,211 - KARMA-LiveBOT - DEBUG - 📺 Checking 1 YouTube creators
+2025-10-01T13:15:38.259301972Z [inf]  2025-10-01 13:15:35,350 - KARMA-LiveBOT - INFO - YouTube scraping for tikzzay: OFFLINE (indicators: 0)
+2025-10-01T13:15:38.259307550Z [inf]  2025-10-01 13:15:35,352 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on youtube: is_live=False
+2025-10-01T13:15:43.745496757Z [inf]  2025-10-01 13:15:43,742 - KARMA-LiveBOT - DEBUG - 🎮 Checking 1 Twitch creators
+2025-10-01T13:15:44.067243709Z [inf]  2025-10-01 13:15:44,065 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on twitch: is_live=False
+2025-10-01T13:15:48.217905076Z [inf]  2025-10-01 13:15:48,213 - KARMA-LiveBOT - INFO - 🤖 Bot status updated: 🧟❤️Watching Youtube: 1
+2025-10-01T13:16:08.217970287Z [inf]  2025-10-01 13:16:06,771 - KARMA-LiveBOT - DEBUG - 🎵 Checking 2 TikTok creators
+2025-10-01T13:16:08.217979280Z [inf]  2025-10-01 13:16:06,771 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Starte intelligente Live-Verifikation...
+2025-10-01T13:16:08.217985544Z [inf]  2025-10-01 13:16:06,771 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Teste TikTokLive library...
+2025-10-01T13:16:08.217991031Z [inf]  2025-10-01 13:16:07,180 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive async call erfolgreich: True
+2025-10-01T13:16:08.217996749Z [inf]  2025-10-01 13:16:07,180 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive library bestätigt - user LIVE ✅
+2025-10-01T13:16:08.218002145Z [inf]  2025-10-01 13:16:07,180 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive library Ergebnis: True
+2025-10-01T13:16:08.218007719Z [inf]  2025-10-01 13:16:07,180 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Teste HTML-Parsing von https://www.tiktok.com/@sturmpelz11...
+2025-10-01T13:16:08.218012908Z [err]  2025-10-01 13:16:07,573 - KARMA-LiveBOT.TikTok - WARNING - TikTok sturmpelz11: SIGI_STATE nicht gefunden
+2025-10-01T13:16:08.218018119Z [inf]  2025-10-01 13:16:07,576 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: HTML-Parsing Ergebnis: False
+2025-10-01T13:16:08.218025327Z [inf]  2025-10-01 13:16:07,576 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: ✅ LIVE bestätigt via TikTokLive library (zuverlässig)!
+2025-10-01T13:16:08.218030611Z [inf]  2025-10-01 13:16:07,576 - KARMA-LiveBOT - INFO - 🎵 sturmpelz11 is LIVE on TikTok!
+2025-10-01T13:16:08.218036059Z [inf]  2025-10-01 13:16:07,576 - KARMA-LiveBOT - INFO - Handling stream status for ✨Sturmpelz✨ on tiktok: is_live=True
+2025-10-01T13:16:08.218041351Z [inf]  2025-10-01 13:16:07,577 - KARMA-LiveBOT - INFO - Creator ✨Sturmpelz✨ on tiktok: was_live=1, last_notif=2025-10-01, today=2025-10-01, should_notify=False
+2025-10-01T13:16:09.582603754Z [inf]  2025-10-01 13:16:09,579 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Starte intelligente Live-Verifikation...
+2025-10-01T13:16:09.582608967Z [inf]  2025-10-01 13:16:09,579 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Teste TikTokLive library...
+2025-10-01T13:16:10.001265912Z [inf]  2025-10-01 13:16:09,998 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive async call erfolgreich: False
+2025-10-01T13:16:10.001275279Z [inf]  2025-10-01 13:16:09,999 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive library bestätigt - user offline
+2025-10-01T13:16:10.001280780Z [inf]  2025-10-01 13:16:09,999 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive library Ergebnis: False
+2025-10-01T13:16:10.001287958Z [inf]  2025-10-01 13:16:09,999 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Teste HTML-Parsing von https://www.tiktok.com/@tikzzay...
+2025-10-01T13:16:10.443221179Z [err]  2025-10-01 13:16:10,442 - KARMA-LiveBOT.TikTok - WARNING - TikTok tikzzay: SIGI_STATE nicht gefunden
+2025-10-01T13:16:10.447197726Z [inf]  2025-10-01 13:16:10,443 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: HTML-Parsing Ergebnis: False
+2025-10-01T13:16:10.447205715Z [inf]  2025-10-01 13:16:10,443 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: ❌ Beide Methoden bestätigen - User offline
+2025-10-01T13:16:10.447211094Z [inf]  2025-10-01 13:16:10,444 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on tiktok: is_live=False
+2025-10-01T13:16:50.448706799Z [inf]  2025-10-01 13:16:46,092 - KARMA-LiveBOT - DEBUG - 🎮 Checking 1 Twitch creators
+2025-10-01T13:16:50.448711574Z [inf]  2025-10-01 13:16:46,445 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on twitch: is_live=False
+2025-10-01T13:17:50.456231225Z [inf]  2025-10-01 13:17:48,330 - KARMA-LiveBOT - INFO - 🎭 LIVE-ROLE-CLEANUP: Starting live role cleanup check...
+2025-10-01T13:17:50.456238975Z [inf]  2025-10-01 13:17:48,332 - KARMA-LiveBOT - INFO - 🎭 Found 1 members with live role in KARMA COM. SERVER
+2025-10-01T13:17:50.456244846Z [inf]  2025-10-01 13:17:48,332 - KARMA-LiveBOT - DEBUG - ✓ ✨Sturmpelz✨ has live role and is live on 1 platform(s)
+2025-10-01T13:17:50.456250139Z [inf]  2025-10-01 13:17:48,332 - KARMA-LiveBOT - INFO - 🎭 LIVE-ROLE-CLEANUP: Completed - Checked 1 users, removed 0 stale roles
+2025-10-01T13:17:50.456255083Z [inf]  2025-10-01 13:17:48,448 - KARMA-LiveBOT - DEBUG - 🎮 Checking 1 Twitch creators
+2025-10-01T13:17:50.456260116Z [inf]  2025-10-01 13:17:48,783 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on twitch: is_live=False
+2025-10-01T13:18:20.461125952Z [inf]  2025-10-01 13:18:19,269 - KARMA-LiveBOT.Stats - INFO - 📊 Running server stats update...
+2025-10-01T13:18:20.461130486Z [inf]  2025-10-01 13:18:19,271 - KARMA-LiveBOT.Stats - INFO - 📊 No server stats channels configured
+2025-10-01T13:18:50.466828348Z [inf]  2025-10-01 13:18:48,232 - KARMA-LiveBOT - INFO - 🤖 Bot status updated: 🤖Discord Member: 116
+2025-10-01T13:18:50.791911124Z [inf]  2025-10-01 13:18:50,789 - KARMA-LiveBOT - DEBUG - 🎮 Checking 1 Twitch creators
+2025-10-01T13:18:51.121640751Z [inf]  2025-10-01 13:18:51,117 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on twitch: is_live=False
+2025-10-01T13:19:21.123812684Z [inf]  2025-10-01 13:19:12,448 - KARMA-LiveBOT - DEBUG - 🎵 Checking 2 TikTok creators
+2025-10-01T13:19:21.123824133Z [inf]  2025-10-01 13:19:12,448 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Starte intelligente Live-Verifikation...
+2025-10-01T13:19:21.123833599Z [inf]  2025-10-01 13:19:12,448 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Teste TikTokLive library...
+2025-10-01T13:19:21.123841858Z [inf]  2025-10-01 13:19:12,878 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive async call erfolgreich: True
+2025-10-01T13:19:21.123850352Z [inf]  2025-10-01 13:19:12,878 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive library bestätigt - user LIVE ✅
+2025-10-01T13:19:21.123857542Z [inf]  2025-10-01 13:19:12,878 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive library Ergebnis: True
+2025-10-01T13:19:21.123864004Z [inf]  2025-10-01 13:19:12,878 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Teste HTML-Parsing von https://www.tiktok.com/@sturmpelz11...
+2025-10-01T13:19:21.123868646Z [err]  2025-10-01 13:19:13,355 - KARMA-LiveBOT.TikTok - WARNING - TikTok sturmpelz11: SIGI_STATE nicht gefunden
+2025-10-01T13:19:21.123873526Z [inf]  2025-10-01 13:19:13,356 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: HTML-Parsing Ergebnis: False
+2025-10-01T13:19:21.123878437Z [inf]  2025-10-01 13:19:13,356 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: ✅ LIVE bestätigt via TikTokLive library (zuverlässig)!
+2025-10-01T13:19:21.123884975Z [inf]  2025-10-01 13:19:13,357 - KARMA-LiveBOT - INFO - 🎵 sturmpelz11 is LIVE on TikTok!
+2025-10-01T13:19:21.123889947Z [inf]  2025-10-01 13:19:13,357 - KARMA-LiveBOT - INFO - Handling stream status for ✨Sturmpelz✨ on tiktok: is_live=True
+2025-10-01T13:19:21.123895222Z [inf]  2025-10-01 13:19:13,358 - KARMA-LiveBOT - INFO - Creator ✨Sturmpelz✨ on tiktok: was_live=1, last_notif=2025-10-01, today=2025-10-01, should_notify=False
+2025-10-01T13:19:21.124485376Z [inf]  2025-10-01 13:19:15,359 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Starte intelligente Live-Verifikation...
+2025-10-01T13:19:21.124502576Z [inf]  2025-10-01 13:19:15,359 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Teste TikTokLive library...
+2025-10-01T13:19:21.124512196Z [inf]  2025-10-01 13:19:15,766 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive async call erfolgreich: False
+2025-10-01T13:19:21.124521099Z [inf]  2025-10-01 13:19:15,766 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive library bestätigt - user offline
+2025-10-01T13:19:21.124529463Z [inf]  2025-10-01 13:19:15,766 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive library Ergebnis: False
+2025-10-01T13:19:21.124542513Z [inf]  2025-10-01 13:19:15,766 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Teste HTML-Parsing von https://www.tiktok.com/@tikzzay...
+2025-10-01T13:19:21.124551237Z [err]  2025-10-01 13:19:16,214 - KARMA-LiveBOT.TikTok - WARNING - TikTok tikzzay: SIGI_STATE nicht gefunden
+2025-10-01T13:19:21.124559618Z [inf]  2025-10-01 13:19:16,216 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: HTML-Parsing Ergebnis: False
+2025-10-01T13:19:21.124564666Z [inf]  2025-10-01 13:19:16,216 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: ❌ Beide Methoden bestätigen - User offline
+2025-10-01T13:19:21.124568883Z [inf]  2025-10-01 13:19:16,217 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on tiktok: is_live=False
+2025-10-01T13:20:01.124036687Z [inf]  2025-10-01 13:19:53,124 - KARMA-LiveBOT - DEBUG - 🎮 Checking 1 Twitch creators
+2025-10-01T13:20:01.124047500Z [inf]  2025-10-01 13:19:53,459 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on twitch: is_live=False
+2025-10-01T13:20:41.141223034Z [inf]  2025-10-01 13:20:38,359 - KARMA-LiveBOT - DEBUG - 📺 Checking 1 YouTube creators
+2025-10-01T13:20:41.141232593Z [inf]  2025-10-01 13:20:38,500 - KARMA-LiveBOT - INFO - YouTube scraping for tikzzay: OFFLINE (indicators: 0)
+2025-10-01T13:20:41.141240514Z [inf]  2025-10-01 13:20:38,501 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on youtube: is_live=False
+2025-10-01T13:21:01.140750741Z [inf]  2025-10-01 13:20:55,464 - KARMA-LiveBOT - DEBUG - 🎮 Checking 1 Twitch creators
+2025-10-01T13:21:01.140757491Z [inf]  2025-10-01 13:20:55,788 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on twitch: is_live=False
+2025-10-01T13:21:51.170464354Z [inf]  2025-10-01 13:21:48,238 - KARMA-LiveBOT - INFO - 🤖 Bot status updated: 🧟‍♂️💜Watching Twitch: 1
+2025-10-01T13:21:57.799246800Z [inf]  2025-10-01 13:21:57,795 - KARMA-LiveBOT - DEBUG - 🎮 Checking 1 Twitch creators
+2025-10-01T13:21:58.139694117Z [inf]  2025-10-01 13:21:58,127 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on twitch: is_live=False
+2025-10-01T13:22:28.141484022Z [inf]  2025-10-01 13:22:18,229 - KARMA-LiveBOT - DEBUG - 🎵 Checking 2 TikTok creators
+2025-10-01T13:22:28.141489111Z [inf]  2025-10-01 13:22:18,229 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Starte intelligente Live-Verifikation...
+2025-10-01T13:22:28.141493433Z [inf]  2025-10-01 13:22:18,229 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Teste TikTokLive library...
+2025-10-01T13:22:28.141497447Z [inf]  2025-10-01 13:22:18,636 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive async call erfolgreich: True
+2025-10-01T13:22:28.141501686Z [inf]  2025-10-01 13:22:18,636 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive library bestätigt - user LIVE ✅
+2025-10-01T13:22:28.141505939Z [inf]  2025-10-01 13:22:18,636 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive library Ergebnis: True
+2025-10-01T13:22:28.141509727Z [inf]  2025-10-01 13:22:18,636 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Teste HTML-Parsing von https://www.tiktok.com/@sturmpelz11...
+2025-10-01T13:22:28.141513497Z [err]  2025-10-01 13:22:19,058 - KARMA-LiveBOT.TikTok - WARNING - TikTok sturmpelz11: SIGI_STATE nicht gefunden
+2025-10-01T13:22:28.141517443Z [inf]  2025-10-01 13:22:19,059 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: HTML-Parsing Ergebnis: False
+2025-10-01T13:22:28.141521329Z [inf]  2025-10-01 13:22:19,060 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: ✅ LIVE bestätigt via TikTokLive library (zuverlässig)!
+2025-10-01T13:22:28.141525246Z [inf]  2025-10-01 13:22:19,060 - KARMA-LiveBOT - INFO - 🎵 sturmpelz11 is LIVE on TikTok!
+2025-10-01T13:22:28.141528908Z [inf]  2025-10-01 13:22:19,060 - KARMA-LiveBOT - INFO - Handling stream status for ✨Sturmpelz✨ on tiktok: is_live=True
+2025-10-01T13:22:28.141532610Z [inf]  2025-10-01 13:22:19,061 - KARMA-LiveBOT - INFO - Creator ✨Sturmpelz✨ on tiktok: was_live=1, last_notif=2025-10-01, today=2025-10-01, should_notify=False
+2025-10-01T13:22:28.141550877Z [inf]  2025-10-01 13:22:21,063 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Starte intelligente Live-Verifikation...
+2025-10-01T13:22:28.141554842Z [inf]  2025-10-01 13:22:21,063 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Teste TikTokLive library...
+2025-10-01T13:22:28.141558609Z [inf]  2025-10-01 13:22:21,442 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive async call erfolgreich: False
+2025-10-01T13:22:28.141562489Z [inf]  2025-10-01 13:22:21,442 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive library bestätigt - user offline
+2025-10-01T13:22:28.141567225Z [inf]  2025-10-01 13:22:21,442 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive library Ergebnis: False
+2025-10-01T13:22:28.141571065Z [inf]  2025-10-01 13:22:21,442 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Teste HTML-Parsing von https://www.tiktok.com/@tikzzay...
+2025-10-01T13:22:28.141574814Z [err]  2025-10-01 13:22:21,775 - KARMA-LiveBOT.TikTok - WARNING - TikTok tikzzay: SIGI_STATE nicht gefunden
+2025-10-01T13:22:28.141579098Z [inf]  2025-10-01 13:22:21,777 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: HTML-Parsing Ergebnis: False
+2025-10-01T13:22:28.141583146Z [inf]  2025-10-01 13:22:21,777 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: ❌ Beide Methoden bestätigen - User offline
+2025-10-01T13:22:28.141587105Z [inf]  2025-10-01 13:22:21,778 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on tiktok: is_live=False
+2025-10-01T13:23:08.142665201Z [inf]  2025-10-01 13:23:00,156 - KARMA-LiveBOT - INFO - ✅ Refreshed creators cache: 2 creators
+2025-10-01T13:23:08.142674231Z [inf]  2025-10-01 13:23:00,156 - KARMA-LiveBOT - DEBUG - 🎮 Checking 1 Twitch creators
+2025-10-01T13:23:08.142680935Z [inf]  2025-10-01 13:23:00,483 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on twitch: is_live=False
+2025-10-01T13:23:28.140222304Z [inf]  2025-10-01 13:23:18,331 - KARMA-LiveBOT - INFO - 🧹 NOTIFICATION-CLEANUP: Starting notification cleanup check...
+2025-10-01T13:23:28.140233231Z [inf]  2025-10-01 13:23:18,332 - KARMA-LiveBOT - INFO - 🧹 NOTIFICATION-CLEANUP: No orphaned messages found
+2025-10-01T13:23:28.140239026Z [inf]  2025-10-01 13:23:19,273 - KARMA-LiveBOT.Stats - INFO - 📊 Running server stats update...
+2025-10-01T13:23:28.140245917Z [inf]  2025-10-01 13:23:19,274 - KARMA-LiveBOT.Stats - INFO - 📊 No server stats channels configured
+2025-10-01T13:24:08.143201483Z [inf]  2025-10-01 13:24:02,491 - KARMA-LiveBOT - DEBUG - 🎮 Checking 1 Twitch creators
+2025-10-01T13:24:08.143211760Z [inf]  2025-10-01 13:24:02,825 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on twitch: is_live=False
+2025-10-01T13:24:28.142522654Z [inf]  2025-10-01 13:24:18,243 - KARMA-LiveBOT - INFO - 📊 STATS-UPDATE: Starting stats channels update...
+2025-10-01T13:24:28.142532306Z [inf]  2025-10-01 13:24:18,244 - KARMA-LiveBOT - INFO - 📊 STATS-UPDATE: No stats channels configured
+2025-10-01T13:24:58.146293004Z [inf]  2025-10-01 13:24:48,214 - KARMA-LiveBOT - INFO - 🤖 Bot status updated: 🧟‍♀️🩵Watching TikTok: 2
+2025-10-01T13:24:58.146300362Z [inf]  2025-10-01 13:24:48,241 - KARMA-LiveBOT - INFO - ✅ Keep-alive ping successful - preventing cloud sleep
+2025-10-01T13:25:04.830827711Z [inf]  2025-10-01 13:25:04,829 - KARMA-LiveBOT - DEBUG - 🎮 Checking 1 Twitch creators
+2025-10-01T13:25:05.157532463Z [inf]  2025-10-01 13:25:05,156 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on twitch: is_live=False
+2025-10-01T13:25:25.156185351Z [inf]  2025-10-01 13:25:23,784 - KARMA-LiveBOT - INFO - ✅ Refreshed creators cache: 2 creators
+2025-10-01T13:25:25.156189694Z [inf]  2025-10-01 13:25:23,784 - KARMA-LiveBOT - DEBUG - 🎵 Checking 2 TikTok creators
+2025-10-01T13:25:25.156193720Z [inf]  2025-10-01 13:25:23,784 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Starte intelligente Live-Verifikation...
+2025-10-01T13:25:25.156198701Z [inf]  2025-10-01 13:25:23,784 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Teste TikTokLive library...
+2025-10-01T13:25:25.156204970Z [inf]  2025-10-01 13:25:24,254 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive async call erfolgreich: True
+2025-10-01T13:25:25.156211611Z [inf]  2025-10-01 13:25:24,254 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive library bestätigt - user LIVE ✅
+2025-10-01T13:25:25.156217691Z [inf]  2025-10-01 13:25:24,255 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive library Ergebnis: True
+2025-10-01T13:25:25.156224129Z [inf]  2025-10-01 13:25:24,255 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Teste HTML-Parsing von https://www.tiktok.com/@sturmpelz11...
+2025-10-01T13:25:25.156230374Z [err]  2025-10-01 13:25:24,561 - KARMA-LiveBOT.TikTok - WARNING - TikTok sturmpelz11: SIGI_STATE nicht gefunden
+2025-10-01T13:25:25.156236183Z [inf]  2025-10-01 13:25:24,563 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: HTML-Parsing Ergebnis: False
+2025-10-01T13:25:25.156242583Z [inf]  2025-10-01 13:25:24,563 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: ✅ LIVE bestätigt via TikTokLive library (zuverlässig)!
+2025-10-01T13:25:25.156248578Z [inf]  2025-10-01 13:25:24,563 - KARMA-LiveBOT - INFO - 🎵 sturmpelz11 is LIVE on TikTok!
+2025-10-01T13:25:25.156254475Z [inf]  2025-10-01 13:25:24,564 - KARMA-LiveBOT - INFO - Handling stream status for ✨Sturmpelz✨ on tiktok: is_live=True
+2025-10-01T13:25:25.156260539Z [inf]  2025-10-01 13:25:24,564 - KARMA-LiveBOT - INFO - Creator ✨Sturmpelz✨ on tiktok: was_live=1, last_notif=2025-10-01, today=2025-10-01, should_notify=False
+2025-10-01T13:25:26.567507526Z [inf]  2025-10-01 13:25:26,565 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Starte intelligente Live-Verifikation...
+2025-10-01T13:25:26.567514494Z [inf]  2025-10-01 13:25:26,565 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Teste TikTokLive library...
+2025-10-01T13:25:27.039883473Z [inf]  2025-10-01 13:25:27,037 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive async call erfolgreich: False
+2025-10-01T13:25:27.039890058Z [inf]  2025-10-01 13:25:27,037 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive library bestätigt - user offline
+2025-10-01T13:25:27.039894036Z [inf]  2025-10-01 13:25:27,037 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive library Ergebnis: False
+2025-10-01T13:25:27.039898158Z [inf]  2025-10-01 13:25:27,037 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Teste HTML-Parsing von https://www.tiktok.com/@tikzzay...
+2025-10-01T13:25:27.366774729Z [err]  2025-10-01 13:25:27,363 - KARMA-LiveBOT.TikTok - WARNING - TikTok tikzzay: SIGI_STATE nicht gefunden
+2025-10-01T13:25:27.366782888Z [inf]  2025-10-01 13:25:27,365 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: HTML-Parsing Ergebnis: False
+2025-10-01T13:25:27.366788664Z [inf]  2025-10-01 13:25:27,365 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: ❌ Beide Methoden bestätigen - User offline
+2025-10-01T13:25:27.366838604Z [inf]  2025-10-01 13:25:27,366 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on tiktok: is_live=False
+2025-10-01T13:25:47.367204344Z [inf]  2025-10-01 13:25:41,509 - KARMA-LiveBOT - DEBUG - 📺 Checking 1 YouTube creators
+2025-10-01T13:25:47.367215031Z [inf]  2025-10-01 13:25:41,632 - KARMA-LiveBOT - INFO - YouTube scraping for tikzzay: OFFLINE (indicators: 0)
+2025-10-01T13:25:47.367219817Z [inf]  2025-10-01 13:25:41,633 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on youtube: is_live=False
+2025-10-01T13:26:07.362931722Z [inf]  2025-10-01 13:26:07,164 - KARMA-LiveBOT - INFO - ✅ Refreshed creators cache: 2 creators
+2025-10-01T13:26:07.362940552Z [inf]  2025-10-01 13:26:07,164 - KARMA-LiveBOT - DEBUG - 🎮 Checking 1 Twitch creators
+2025-10-01T13:26:07.503822241Z [inf]  2025-10-01 13:26:07,498 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on twitch: is_live=False
+2025-10-01T13:27:17.519325015Z [inf]  2025-10-01 13:27:09,516 - KARMA-LiveBOT - DEBUG - 🎮 Checking 1 Twitch creators
+2025-10-01T13:27:17.519334259Z [inf]  2025-10-01 13:27:09,850 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on twitch: is_live=False
+2025-10-01T13:27:57.509443354Z [inf]  2025-10-01 13:27:48,214 - KARMA-LiveBOT - INFO - 🤖 Bot status updated: 🧟❤️Watching Youtube: 1
+2025-10-01T13:27:57.509450058Z [inf]  2025-10-01 13:27:48,329 - KARMA-LiveBOT - INFO - 🎭 LIVE-ROLE-CLEANUP: Starting live role cleanup check...
+2025-10-01T13:27:57.509457573Z [inf]  2025-10-01 13:27:48,330 - KARMA-LiveBOT - INFO - 🎭 Found 1 members with live role in KARMA COM. SERVER
+2025-10-01T13:27:57.509464811Z [inf]  2025-10-01 13:27:48,330 - KARMA-LiveBOT - DEBUG - ✓ ✨Sturmpelz✨ has live role and is live on 1 platform(s)
+2025-10-01T13:27:57.509472398Z [inf]  2025-10-01 13:27:48,330 - KARMA-LiveBOT - INFO - 🎭 LIVE-ROLE-CLEANUP: Completed - Checked 1 users, removed 0 stale roles
+2025-10-01T13:28:17.508158917Z [inf]  2025-10-01 13:28:11,859 - KARMA-LiveBOT - DEBUG - 🎮 Checking 1 Twitch creators
+2025-10-01T13:28:17.508165820Z [inf]  2025-10-01 13:28:12,186 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on twitch: is_live=False
+2025-10-01T13:28:19.279333931Z [inf]  2025-10-01 13:28:19,276 - KARMA-LiveBOT.Stats - INFO - 📊 Running server stats update...
+2025-10-01T13:28:19.279348256Z [inf]  2025-10-01 13:28:19,277 - KARMA-LiveBOT.Stats - INFO - 📊 No server stats channels configured
+2025-10-01T13:28:39.273162323Z [inf]  2025-10-01 13:28:29,378 - KARMA-LiveBOT - DEBUG - 🎵 Checking 2 TikTok creators
+2025-10-01T13:28:39.273171615Z [inf]  2025-10-01 13:28:29,378 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Starte intelligente Live-Verifikation...
+2025-10-01T13:28:39.273176514Z [inf]  2025-10-01 13:28:29,378 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Teste TikTokLive library...
+2025-10-01T13:28:39.273180720Z [inf]  2025-10-01 13:28:29,871 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive async call erfolgreich: True
+2025-10-01T13:28:39.273184759Z [inf]  2025-10-01 13:28:29,871 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive library bestätigt - user LIVE ✅
+2025-10-01T13:28:39.273188845Z [inf]  2025-10-01 13:28:29,871 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive library Ergebnis: True
+2025-10-01T13:28:39.273193331Z [inf]  2025-10-01 13:28:29,871 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Teste HTML-Parsing von https://www.tiktok.com/@sturmpelz11...
+2025-10-01T13:28:39.273197193Z [err]  2025-10-01 13:28:30,353 - KARMA-LiveBOT.TikTok - WARNING - TikTok sturmpelz11: SIGI_STATE nicht gefunden
+2025-10-01T13:28:39.273202832Z [inf]  2025-10-01 13:28:30,355 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: HTML-Parsing Ergebnis: False
+2025-10-01T13:28:39.273206917Z [inf]  2025-10-01 13:28:30,355 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: ✅ LIVE bestätigt via TikTokLive library (zuverlässig)!
+2025-10-01T13:28:39.273210635Z [inf]  2025-10-01 13:28:30,355 - KARMA-LiveBOT - INFO - 🎵 sturmpelz11 is LIVE on TikTok!
+2025-10-01T13:28:39.273214996Z [inf]  2025-10-01 13:28:30,356 - KARMA-LiveBOT - INFO - Handling stream status for ✨Sturmpelz✨ on tiktok: is_live=True
+2025-10-01T13:28:39.273219253Z [inf]  2025-10-01 13:28:30,357 - KARMA-LiveBOT - INFO - Creator ✨Sturmpelz✨ on tiktok: was_live=1, last_notif=2025-10-01, today=2025-10-01, should_notify=False
+2025-10-01T13:28:39.273223359Z [inf]  2025-10-01 13:28:32,359 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Starte intelligente Live-Verifikation...
+2025-10-01T13:28:39.273226985Z [inf]  2025-10-01 13:28:32,359 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Teste TikTokLive library...
+2025-10-01T13:28:39.273230918Z [inf]  2025-10-01 13:28:32,833 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive async call erfolgreich: False
+2025-10-01T13:28:39.273234598Z [inf]  2025-10-01 13:28:32,833 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive library bestätigt - user offline
+2025-10-01T13:28:39.273239471Z [inf]  2025-10-01 13:28:32,833 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive library Ergebnis: False
+2025-10-01T13:28:39.273243127Z [inf]  2025-10-01 13:28:32,833 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Teste HTML-Parsing von https://www.tiktok.com/@tikzzay...
+2025-10-01T13:28:39.273246856Z [err]  2025-10-01 13:28:33,173 - KARMA-LiveBOT.TikTok - WARNING - TikTok tikzzay: SIGI_STATE nicht gefunden
+2025-10-01T13:28:39.273250614Z [inf]  2025-10-01 13:28:33,175 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: HTML-Parsing Ergebnis: False
+2025-10-01T13:28:39.273262550Z [inf]  2025-10-01 13:28:33,175 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: ❌ Beide Methoden bestätigen - User offline
+2025-10-01T13:28:39.273267539Z [inf]  2025-10-01 13:28:33,176 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on tiktok: is_live=False
+2025-10-01T13:29:19.292499786Z [inf]  2025-10-01 13:29:14,215 - KARMA-LiveBOT - INFO - ✅ Refreshed creators cache: 2 creators
+2025-10-01T13:29:19.292513900Z [inf]  2025-10-01 13:29:14,216 - KARMA-LiveBOT - DEBUG - 🎮 Checking 1 Twitch creators
+2025-10-01T13:29:19.292523953Z [inf]  2025-10-01 13:29:14,562 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on twitch: is_live=False
+2025-10-01T13:30:19.285114258Z [inf]  2025-10-01 13:30:16,570 - KARMA-LiveBOT - DEBUG - 🎮 Checking 1 Twitch creators
+2025-10-01T13:30:19.285120482Z [inf]  2025-10-01 13:30:16,914 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on twitch: is_live=False
+2025-10-01T13:30:49.286427058Z [inf]  2025-10-01 13:30:44,640 - KARMA-LiveBOT - DEBUG - 📺 Checking 1 YouTube creators
+2025-10-01T13:30:49.286433491Z [inf]  2025-10-01 13:30:44,767 - KARMA-LiveBOT - INFO - YouTube scraping for tikzzay: OFFLINE (indicators: 0)
+2025-10-01T13:30:49.286440040Z [inf]  2025-10-01 13:30:44,769 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on youtube: is_live=False
+2025-10-01T13:30:49.286446290Z [inf]  2025-10-01 13:30:48,212 - KARMA-LiveBOT - INFO - 🤖 Bot status updated: 🤖Discord Member: 116
+2025-10-01T13:31:19.290226231Z [inf]  2025-10-01 13:31:18,942 - KARMA-LiveBOT - DEBUG - 🎮 Checking 1 Twitch creators
+2025-10-01T13:31:19.290236019Z [inf]  2025-10-01 13:31:19,267 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on twitch: is_live=False
+2025-10-01T13:31:39.286680320Z [inf]  2025-10-01 13:31:35,181 - KARMA-LiveBOT - DEBUG - 🎵 Checking 2 TikTok creators
+2025-10-01T13:31:39.286689655Z [inf]  2025-10-01 13:31:35,181 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Starte intelligente Live-Verifikation...
+2025-10-01T13:31:39.286697477Z [inf]  2025-10-01 13:31:35,181 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Teste TikTokLive library...
+2025-10-01T13:31:39.286703730Z [inf]  2025-10-01 13:31:35,582 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive async call erfolgreich: True
+2025-10-01T13:31:39.286711625Z [inf]  2025-10-01 13:31:35,582 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive library bestätigt - user LIVE ✅
+2025-10-01T13:31:39.286718415Z [inf]  2025-10-01 13:31:35,582 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive library Ergebnis: True
+2025-10-01T13:31:39.286724973Z [inf]  2025-10-01 13:31:35,582 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Teste HTML-Parsing von https://www.tiktok.com/@sturmpelz11...
+2025-10-01T13:31:39.286731737Z [err]  2025-10-01 13:31:35,898 - KARMA-LiveBOT.TikTok - WARNING - TikTok sturmpelz11: SIGI_STATE nicht gefunden
+2025-10-01T13:31:39.286737975Z [inf]  2025-10-01 13:31:35,900 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: HTML-Parsing Ergebnis: False
+2025-10-01T13:31:39.286745228Z [inf]  2025-10-01 13:31:35,900 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: ✅ LIVE bestätigt via TikTokLive library (zuverlässig)!
+2025-10-01T13:31:39.286751848Z [inf]  2025-10-01 13:31:35,900 - KARMA-LiveBOT - INFO - 🎵 sturmpelz11 is LIVE on TikTok!
+2025-10-01T13:31:39.286758578Z [inf]  2025-10-01 13:31:35,901 - KARMA-LiveBOT - INFO - Handling stream status for ✨Sturmpelz✨ on tiktok: is_live=True
+2025-10-01T13:31:39.286764853Z [inf]  2025-10-01 13:31:35,901 - KARMA-LiveBOT - INFO - Creator ✨Sturmpelz✨ on tiktok: was_live=1, last_notif=2025-10-01, today=2025-10-01, should_notify=False
+2025-10-01T13:31:39.286771102Z [inf]  2025-10-01 13:31:37,904 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Starte intelligente Live-Verifikation...
+2025-10-01T13:31:39.286777115Z [inf]  2025-10-01 13:31:37,904 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Teste TikTokLive library...
+2025-10-01T13:31:39.286782886Z [inf]  2025-10-01 13:31:38,374 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive async call erfolgreich: False
+2025-10-01T13:31:39.286789551Z [inf]  2025-10-01 13:31:38,374 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive library bestätigt - user offline
+2025-10-01T13:31:39.286795864Z [inf]  2025-10-01 13:31:38,374 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive library Ergebnis: False
+2025-10-01T13:31:39.286801850Z [inf]  2025-10-01 13:31:38,374 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Teste HTML-Parsing von https://www.tiktok.com/@tikzzay...
+2025-10-01T13:31:39.286807969Z [err]  2025-10-01 13:31:38,796 - KARMA-LiveBOT.TikTok - WARNING - TikTok tikzzay: SIGI_STATE nicht gefunden
+2025-10-01T13:31:39.286814243Z [inf]  2025-10-01 13:31:38,799 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: HTML-Parsing Ergebnis: False
+2025-10-01T13:31:39.286820268Z [inf]  2025-10-01 13:31:38,799 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: ❌ Beide Methoden bestätigen - User offline
+2025-10-01T13:31:39.286826009Z [inf]  2025-10-01 13:31:38,800 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on tiktok: is_live=False
+2025-10-01T13:32:29.294360380Z [inf]  2025-10-01 13:32:21,275 - KARMA-LiveBOT - DEBUG - 🎮 Checking 1 Twitch creators
+2025-10-01T13:32:29.294367666Z [inf]  2025-10-01 13:32:21,609 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on twitch: is_live=False
+2025-10-01T13:33:19.302389658Z [inf]  2025-10-01 13:33:18,399 - KARMA-LiveBOT.Stats - INFO - 📱 Running social media stats update...
+2025-10-01T13:33:19.302399601Z [inf]  2025-10-01 13:33:18,400 - KARMA-LiveBOT.Stats - INFO - 📱 No social media stats channels configured
+2025-10-01T13:33:19.302408856Z [inf]  2025-10-01 13:33:19,278 - KARMA-LiveBOT.Stats - INFO - 📊 Running server stats update...
+2025-10-01T13:33:19.302413790Z [inf]  2025-10-01 13:33:19,279 - KARMA-LiveBOT.Stats - INFO - 📊 No server stats channels configured
+2025-10-01T13:33:23.621583293Z [inf]  2025-10-01 13:33:23,615 - KARMA-LiveBOT - INFO - ✅ Refreshed creators cache: 2 creators
+2025-10-01T13:33:23.621593071Z [inf]  2025-10-01 13:33:23,615 - KARMA-LiveBOT - DEBUG - 🎮 Checking 1 Twitch creators
+2025-10-01T13:33:23.947278489Z [inf]  2025-10-01 13:33:23,945 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on twitch: is_live=False
+2025-10-01T13:33:53.955185192Z [inf]  2025-10-01 13:33:48,218 - KARMA-LiveBOT - INFO - 🤖 Bot status updated: 🧟‍♂️💜Watching Twitch: 1
+2025-10-01T13:34:23.944310409Z [inf]  2025-10-01 13:34:18,232 - KARMA-LiveBOT - INFO - 📊 STATS-UPDATE: Starting stats channels update...
+2025-10-01T13:34:23.944319302Z [inf]  2025-10-01 13:34:18,233 - KARMA-LiveBOT - INFO - 📊 STATS-UPDATE: No stats channels configured
+2025-10-01T13:34:25.958627934Z [inf]  2025-10-01 13:34:25,955 - KARMA-LiveBOT - DEBUG - 🎮 Checking 1 Twitch creators
+2025-10-01T13:34:26.298208057Z [inf]  2025-10-01 13:34:26,294 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on twitch: is_live=False
+2025-10-01T13:34:46.299592521Z [inf]  2025-10-01 13:34:40,809 - KARMA-LiveBOT - DEBUG - 🎵 Checking 2 TikTok creators
+2025-10-01T13:34:46.299599047Z [inf]  2025-10-01 13:34:40,809 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Starte intelligente Live-Verifikation...
+2025-10-01T13:34:46.299603180Z [inf]  2025-10-01 13:34:40,809 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Teste TikTokLive library...
+2025-10-01T13:34:46.299607112Z [inf]  2025-10-01 13:34:41,289 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive async call erfolgreich: True
+2025-10-01T13:34:46.299611362Z [inf]  2025-10-01 13:34:41,289 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive library bestätigt - user LIVE ✅
+2025-10-01T13:34:46.299615204Z [inf]  2025-10-01 13:34:41,289 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive library Ergebnis: True
+2025-10-01T13:34:46.299618962Z [inf]  2025-10-01 13:34:41,289 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Teste HTML-Parsing von https://www.tiktok.com/@sturmpelz11...
+2025-10-01T13:34:46.299624379Z [err]  2025-10-01 13:34:42,004 - KARMA-LiveBOT.TikTok - WARNING - TikTok sturmpelz11: SIGI_STATE nicht gefunden
+2025-10-01T13:34:46.299628520Z [inf]  2025-10-01 13:34:42,006 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: HTML-Parsing Ergebnis: False
+2025-10-01T13:34:46.299632613Z [inf]  2025-10-01 13:34:42,006 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: ✅ LIVE bestätigt via TikTokLive library (zuverlässig)!
+2025-10-01T13:34:46.299637380Z [inf]  2025-10-01 13:34:42,006 - KARMA-LiveBOT - INFO - 🎵 sturmpelz11 is LIVE on TikTok!
+2025-10-01T13:34:46.299641066Z [inf]  2025-10-01 13:34:42,007 - KARMA-LiveBOT - INFO - Handling stream status for ✨Sturmpelz✨ on tiktok: is_live=True
+2025-10-01T13:34:46.299645029Z [inf]  2025-10-01 13:34:42,007 - KARMA-LiveBOT - INFO - Creator ✨Sturmpelz✨ on tiktok: was_live=1, last_notif=2025-10-01, today=2025-10-01, should_notify=False
+2025-10-01T13:34:46.299656302Z [inf]  2025-10-01 13:34:44,009 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Starte intelligente Live-Verifikation...
+2025-10-01T13:34:46.299660465Z [inf]  2025-10-01 13:34:44,010 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Teste TikTokLive library...
+2025-10-01T13:34:46.299664400Z [inf]  2025-10-01 13:34:44,437 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive async call erfolgreich: False
+2025-10-01T13:34:46.299668424Z [inf]  2025-10-01 13:34:44,437 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive library bestätigt - user offline
+2025-10-01T13:34:46.299672487Z [inf]  2025-10-01 13:34:44,437 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive library Ergebnis: False
+2025-10-01T13:34:46.299676503Z [inf]  2025-10-01 13:34:44,437 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Teste HTML-Parsing von https://www.tiktok.com/@tikzzay...
+2025-10-01T13:34:46.299680341Z [err]  2025-10-01 13:34:44,828 - KARMA-LiveBOT.TikTok - WARNING - TikTok tikzzay: SIGI_STATE nicht gefunden
+2025-10-01T13:34:46.299684191Z [inf]  2025-10-01 13:34:44,829 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: HTML-Parsing Ergebnis: False
+2025-10-01T13:34:46.299688089Z [inf]  2025-10-01 13:34:44,829 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: ❌ Beide Methoden bestätigen - User offline
+2025-10-01T13:34:46.299692194Z [inf]  2025-10-01 13:34:44,830 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on tiktok: is_live=False
+2025-10-01T13:34:48.245795230Z [inf]  2025-10-01 13:34:48,242 - KARMA-LiveBOT - INFO - ✅ Keep-alive ping successful - preventing cloud sleep
+2025-10-01T13:35:28.251629317Z [inf]  2025-10-01 13:35:18,268 - KARMA-LiveBOT - INFO - 📱 SOCIAL-MEDIA-UPDATE: Starting social media stats channels update...
+2025-10-01T13:35:28.251636224Z [inf]  2025-10-01 13:35:18,269 - KARMA-LiveBOT - INFO - 📱 SOCIAL-MEDIA-UPDATE: No social media stats channels configured
+2025-10-01T13:35:28.307502472Z [inf]  2025-10-01 13:35:28,303 - KARMA-LiveBOT - DEBUG - 🎮 Checking 1 Twitch creators
+2025-10-01T13:35:28.635727268Z [inf]  2025-10-01 13:35:28,626 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on twitch: is_live=False
+2025-10-01T13:35:48.637729335Z [inf]  2025-10-01 13:35:47,777 - KARMA-LiveBOT - DEBUG - 📺 Checking 1 YouTube creators
+2025-10-01T13:35:48.637739152Z [inf]  2025-10-01 13:35:47,927 - KARMA-LiveBOT - INFO - YouTube scraping for tikzzay: OFFLINE (indicators: 0)
+2025-10-01T13:35:48.637749150Z [inf]  2025-10-01 13:35:47,929 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on youtube: is_live=False
+2025-10-01T13:35:48.637756834Z [inf]  2025-10-01 13:35:48,262 - KARMA-LiveBOT - INFO - 🔧 TIKTOK-RECOVERY: Starting TikTok task recovery check...
+2025-10-01T13:35:48.637762512Z [inf]  2025-10-01 13:35:48,263 - KARMA-LiveBOT - INFO - 🔧 TIKTOK-RECOVERY: Checking 2 TikTok creators...
+2025-10-01T13:35:48.637768856Z [inf]  2025-10-01 13:35:48,263 - KARMA-LiveBOT - INFO - 🔧 TIKTOK-RECOVERY: Using improved TikTok checker
+2025-10-01T13:35:48.637775251Z [inf]  2025-10-01 13:35:48,263 - KARMA-LiveBOT - INFO - 🔧 Testing TikTok connectivity for ✨Sturmpelz✨ (@sturmpelz11)...
+2025-10-01T13:35:48.637780822Z [inf]  2025-10-01 13:35:48,263 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Starte intelligente Live-Verifikation...
+2025-10-01T13:35:48.637786700Z [inf]  2025-10-01 13:35:48,263 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Teste TikTokLive library...
+2025-10-01T13:35:48.682961973Z [inf]  2025-10-01 13:35:48,680 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive async call erfolgreich: True
+2025-10-01T13:35:48.682968590Z [inf]  2025-10-01 13:35:48,680 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive library bestätigt - user LIVE ✅
+2025-10-01T13:35:48.682972917Z [inf]  2025-10-01 13:35:48,680 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: TikTokLive library Ergebnis: True
+2025-10-01T13:35:48.682977134Z [inf]  2025-10-01 13:35:48,680 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: Teste HTML-Parsing von https://www.tiktok.com/@sturmpelz11...
+2025-10-01T13:35:49.123929321Z [err]  2025-10-01 13:35:49,121 - KARMA-LiveBOT.TikTok - WARNING - TikTok sturmpelz11: SIGI_STATE nicht gefunden
+2025-10-01T13:35:49.127921237Z [inf]  2025-10-01 13:35:49,123 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: HTML-Parsing Ergebnis: False
+2025-10-01T13:35:49.127929280Z [inf]  2025-10-01 13:35:49,123 - KARMA-LiveBOT.TikTok - INFO - TikTok sturmpelz11: ✅ LIVE bestätigt via TikTokLive library (zuverlässig)!
+2025-10-01T13:35:49.127935386Z [inf]  2025-10-01 13:35:49,123 - KARMA-LiveBOT - INFO - ✅ TikTok recovery successful for ✨Sturmpelz✨
+2025-10-01T13:35:49.127941908Z [inf]  2025-10-01 13:35:49,123 - KARMA-LiveBOT - INFO - 🔧 Testing TikTok connectivity for TikZ aka. Zay (@tikzzay)...
+2025-10-01T13:35:49.127948053Z [inf]  2025-10-01 13:35:49,123 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Starte intelligente Live-Verifikation...
+2025-10-01T13:35:49.127953578Z [inf]  2025-10-01 13:35:49,123 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Teste TikTokLive library...
+2025-10-01T13:35:49.583992750Z [inf]  2025-10-01 13:35:49,580 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive async call erfolgreich: False
+2025-10-01T13:35:49.584001731Z [inf]  2025-10-01 13:35:49,580 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive library bestätigt - user offline
+2025-10-01T13:35:49.584006101Z [inf]  2025-10-01 13:35:49,580 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: TikTokLive library Ergebnis: False
+2025-10-01T13:35:49.584010316Z [inf]  2025-10-01 13:35:49,580 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: Teste HTML-Parsing von https://www.tiktok.com/@tikzzay...
+2025-10-01T13:35:49.936972713Z [err]  2025-10-01 13:35:49,933 - KARMA-LiveBOT.TikTok - WARNING - TikTok tikzzay: SIGI_STATE nicht gefunden
+2025-10-01T13:35:49.936979978Z [inf]  2025-10-01 13:35:49,935 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: HTML-Parsing Ergebnis: False
+2025-10-01T13:35:49.936986070Z [inf]  2025-10-01 13:35:49,936 - KARMA-LiveBOT.TikTok - INFO - TikTok tikzzay: ❌ Beide Methoden bestätigen - User offline
+2025-10-01T13:35:49.936990664Z [inf]  2025-10-01 13:35:49,936 - KARMA-LiveBOT - INFO - ✅ TikTok recovery successful for TikZ aka. Zay
+2025-10-01T13:35:49.936994910Z [inf]  2025-10-01 13:35:49,936 - KARMA-LiveBOT - INFO - 🔧 TIKTOK-RECOVERY: Cache management handled by improved checker
+2025-10-01T13:35:49.940342417Z [inf]  2025-10-01 13:35:49,936 - KARMA-LiveBOT - INFO - 🔧 TIKTOK-RECOVERY: Completed - Success: 2, Failed: 0
+2025-10-01T13:36:39.945975197Z [inf]  2025-10-01 13:36:30,641 - KARMA-LiveBOT - INFO - ✅ Refreshed creators cache: 2 creators
+2025-10-01T13:36:39.945982404Z [inf]  2025-10-01 13:36:30,641 - KARMA-LiveBOT - DEBUG - 🎮 Checking 1 Twitch creators
+2025-10-01T13:36:39.945986487Z [inf]  2025-10-01 13:36:30,979 - KARMA-LiveBOT - INFO - Handling stream status for TikZ aka. Zay on twitch: is_live=False
+2025-10-01T13:36:48.228429247Z [inf]  2025-10-01 13:36:48,224 - KARMA-LiveBOT - INFO - 🤖 Bot status updated: 🧟‍♀️🩵Watching TikTok: 2
+2025-10-01T13:36:48.285880309Z [inf]  2025-10-01 13:36:48,282 - KARMA-LiveBOT - INFO - 🔄 AUTO-RESTART: Initiating scheduled 12-hour restart...
+2025-10-01T13:36:48.285889094Z [inf]  2025-10-01 13:36:48,283 - KARMA-LiveBOT - INFO - 🔄 AUTO-RESTART: Closing connections...
+2025-10-01T13:36:48.285896575Z [inf]  2025-10-01 13:36:48,283 - KARMA-LiveBOT - INFO - 🔄 AUTO-RESTART: Exiting for restart...

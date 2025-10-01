@@ -9,20 +9,35 @@ KARMA-LiveBOT is a Discord bot designed to monitor and notify users about live s
 - Stats channels auto-update every 5 minutes - manual renaming will be overwritten
 
 ## Recent Changes
-- [2025-10-01] **Replit Environment Setup Completed:**
-  - Fresh GitHub clone successfully configured for Replit environment
-  - All Python dependencies installed via packager tool (discord.py, aiohttp, tiktoklive, httpx, openai, PyNaCl, etc.)
-  - requirements.txt cleaned up (removed duplicates)
-  - .gitignore file created for Python project
+- [2025-10-01] **Railway.com Auto-Restart Fix:**
+  - Fixed Railway.com auto-restart issue: Changed `os._exit(0)` to `os._exit(1)` in auto_restart_task()
+  - Exit-Code 0 = "successful exit" → Railway.com does NOT restart
+  - Exit-Code 1 = "restart needed" → Railway.com automatically restarts
+  - Bot now correctly restarts every 12 hours on Railway.com deployment
+  - Architect review: Pass with caution (recommends graceful shutdown for future improvement)
+- [2025-10-01] **TikTok Stream Title & Viewer Count Fix:**
+  - Fixed TikTok notifications displaying hardcoded placeholder data
+  - Now extracts real stream title from `liveRoomInfo.title` or `titleStruct.default`
+  - Extracts real viewer count from `liveRoomInfo.userCount` with fallback
+  - Added logging for extracted title when user is live
+  - All early return paths now include title and viewer_count for consistency
+  - Fallback to "{username} Live Stream" when SIGI_STATE not found (normal TikTok HTML variation)
+  - Architect review: Pass with minor improvements implemented
+- [2025-10-01] **Fresh GitHub Clone Setup on Replit:**
+  - Successfully imported and configured GitHub clone for Replit environment
+  - Created .gitignore file for Python project (preserving karma_bot.db with existing data)
+  - All Python dependencies installed: discord.py, aiohttp, tiktoklive, httpx, openai, PyNaCl, beautifulsoup4, brotli, schedule, requests
   - Workflow configured: "KARMA-LiveBOT" (python main.py) with webview output on port 5000
-  - Bot successfully connected to Discord as "Karma LiveBOT#2866" (2 guilds)
+  - Bot successfully connected to Discord as "Karma LiveBOT#2866" (2 guilds: KARMA COM. SERVER, ✨Sturmpelz✨)
   - All platform tasks operational: Twitch, YouTube, TikTok, Stats, Social Media
   - 20 slash commands registered and synced globally
   - HTTP health check server running on 0.0.0.0:5000 with /health and /status endpoints
   - OpenAI Auto-Repair System initialized successfully
-  - SQLite database (karma_bot.db) loaded with existing data
-  - All environment variables verified and working
-  - Python runtime: 3.11.13
+  - SQLite database (karma_bot.db) loaded with 15 creators and existing configuration
+  - All environment variables verified and working (DISCORD_TOKEN, DISCORD_APP_ID, etc.)
+  - Python runtime: 3.11.x
+  - Project structure: Modular architecture with separate files for each platform and feature
+  - Ready for deployment and production use
 - [2025-09-30] **Custom Commands System Implemented:**
   - New `custom_commands` database table with guild-specific command storage
   - `/custom create` - Modal-based command creation with embed and button support

@@ -2495,9 +2495,11 @@ async def auto_restart_task():
         logger.info("🔄 AUTO-RESTART: Closing connections...")
         # Cleanup removed - improved_tiktok_checker handles its own session management
         
-        # Exit - Railway.com will automatically restart the bot
-        logger.info("🔄 AUTO-RESTART: Exiting for restart...")
-        os._exit(0)
+        # Exit with code 1 - Railway.com will automatically restart the bot
+        # Note: Exit code 0 means "successful exit" and Railway won't restart
+        # Exit code 1 means "restart needed" and Railway will restart automatically
+        logger.info("🔄 AUTO-RESTART: Exiting with code 1 for automatic Railway restart...")
+        os._exit(1)
         
     except Exception as e:
         logger.error(f"🚨 AUTO-RESTART ERROR: {e}")
