@@ -3323,6 +3323,7 @@ async def on_ready():
     from event_commands import EventCommands, UtilityCommands
     from custom_commands import CustomCommands
     from giveaway_commands import GiveawayCommands
+    from welcome_commands import WelcomeCommands
     
     # Add cogs with debug logging
     logger.info("Adding CreatorManagement cog...")
@@ -3339,6 +3340,8 @@ async def on_ready():
     await bot.add_cog(CustomCommands(bot, db))
     logger.info("Adding GiveawayCommands cog...")
     await bot.add_cog(GiveawayCommands(bot, db))
+    logger.info("Adding WelcomeCommands cog...")
+    await bot.add_cog(WelcomeCommands(bot, db))
     
     logger.info(f"Bot tree has {len(bot.tree.get_commands())} commands")
     

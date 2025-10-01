@@ -9,6 +9,26 @@ KARMA-LiveBOT is a Discord bot designed to monitor and notify users about live s
 - Stats channels auto-update every 5 minutes - manual renaming will be overwritten
 
 ## Recent Changes
+- [2025-10-01] **Welcome System Implementiert:**
+  - Neue Datei `welcome_commands.py` mit vollständigem Welcome-System
+  - `/welcome` - Konfiguration von Welcome-Channel, Nachricht, Auto-Role und Banner-URL
+  - `/welcome_status` - Anzeige aktueller Server-Konfiguration
+  - Automatische Begrüßung neuer Member mit:
+    - Custom Banner-Bild (800x300px, server-konfigurierbar)
+    - Profilbild-Overlay (150px circular avatar)
+    - Username-Display mit Fallback-Font
+    - Auto-Role-Zuweisung (falls konfiguriert)
+  - Neue Datenbank-Tabelle: `welcome_config`
+  - Sicherheits-Features:
+    - Bounded image streaming (10MB Limit mit chunk-basiertem Download)
+    - Content-Type Validation (nur image/* erlaubt)
+    - PIL MAX_IMAGE_PIXELS safeguard gegen Decompression Bombs
+    - Timeouts (5s total, 3s connect) für alle Downloads
+    - ClientSession Wiederverwendung via cog_load/cog_unload
+  - 21 Commands total (vorher 20) - 1 neuer Welcome-Command
+  - Pillow für Bildbearbeitung hinzugefügt
+  - ⚠️ SSRF-Hinweis: Admin-supplied Banner-URLs können theoretisch interne IPs ansprechen (Design-Limitierung)
+  - Architect review: Fail (funktional vollständig, aber SSRF-Risiko verbleibt)
 - [2025-10-01] **Railway.com Auto-Restart Fix:**
   - Fixed Railway.com auto-restart issue: Changed `os._exit(0)` to `os._exit(1)` in auto_restart_task()
   - Exit-Code 0 = "successful exit" → Railway.com does NOT restart

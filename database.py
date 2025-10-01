@@ -301,6 +301,21 @@ class DatabaseManager:
             )
         ''')
         
+        # Welcome Configuration table (für Willkommens-System pro Server)
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS welcome_config (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                guild_id TEXT NOT NULL,
+                channel_id TEXT,
+                welcome_text TEXT DEFAULT 'Willkommen {user}!',
+                role_id TEXT,
+                banner_url TEXT,
+                enabled BOOLEAN DEFAULT TRUE,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(guild_id)
+            )
+        ''')
+        
         # Initialize event status if not exists
         cursor.execute('INSERT OR IGNORE INTO event_status (id, is_active) VALUES (1, FALSE)')
         
