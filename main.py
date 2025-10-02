@@ -2698,7 +2698,7 @@ async def post_logs_to_dev_channel(log_files_to_delete):
 # Log Cleanup Task
 @tasks.loop(hours=6)
 async def log_cleanup_task():
-    """Clean old log files every 6 hours, keep only 10 newest files"""
+    """Post current logs to dev channel every 6 hours and clean old log files (keep only 10 newest)"""
     try:
         logger.info("🗑️ LOG-CLEANUP: Starting log cleanup process...")
         
@@ -2708,6 +2708,9 @@ async def log_cleanup_task():
             './logs/',
             './',
         ]
+        
+        # Track if we've already posted logs (to avoid duplicates)
+        logs_posted = False
         
         for log_path in log_paths:
             try:
@@ -2729,16 +2732,16 @@ async def log_cleanup_task():
                 # Sort by modification time (newest first)
                 log_files.sort(key=lambda x: x[1], reverse=True)
                 
+                # Post ALL current logs to dev channel every 6 hours (only once from /tmp/logs/)
+                if log_path == '/tmp/logs/' and log_files and not logs_posted:
+                    logger.info(f"🗑️ LOG-CLEANUP: Posting {len(log_files)} current log file(s) to dev channel...")
+                    await post_logs_to_dev_channel(log_files)
+                    logger.info("🗑️ LOG-CLEANUP: Logs posted to dev channel successfully")
+                    logs_posted = True
+                
                 # Keep only 10 newest, delete the rest
                 if len(log_files) > 10:
                     files_to_delete = log_files[10:]
-                    
-                    # Post logs to dev channel before deletion (only on first path to avoid duplicates)
-                    if log_path == '/tmp/logs/' and files_to_delete:
-                        logger.info(f"🗑️ LOG-CLEANUP: Backing up {len(files_to_delete)} files before deletion...")
-                        await post_logs_to_dev_channel(files_to_delete)
-                        logger.info("🗑️ LOG-CLEANUP: Backup completed, proceeding with deletion...")
-                    
                     deleted_count = 0
                     
                     for file_path, _ in files_to_delete:

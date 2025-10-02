@@ -34,3 +34,19 @@ The bot utilizes a modular, MEE6-style architecture built on `discord.py` and us
 -   **Streaming Platform APIs:** Twitch API, YouTube Data API v3, TikTok (web scraping).
 -   **Python Libraries:** `discord.py`, `aiohttp`, `requests`, `BeautifulSoup4`, `sqlite3`, `tiktoklive`, `httpx`, `openai`, `PyNaCl`, `brotli`, `schedule`, `Pillow`.
 -   **Infrastructure:** SQLite Database (`karma_bot.db`), Environment Variables.
+
+## Replit Setup (October 1, 2025)
+- **Environment:** Python 3.11 on Replit NixOS
+- **Workflow:** "Discord Bot" running `python main.py` (console output)
+- **Required Secrets:** All environment variables are configured in Replit Secrets:
+  - DISCORD_TOKEN - Discord bot authentication token
+  - DISCORD_APP_ID - Discord application ID
+  - TWITCH_CLIENT_ID - Twitch API client ID
+  - TWITCH_CLIENT_SECRET - Twitch API client secret
+  - YOUTUBE_API_KEY - YouTube Data API v3 key
+  - OPENAI_API_KEY - OpenAI API key for auto-repair system
+  - DEV_CHANNEL_ID - Discord channel for developer notifications and log posting
+  - MAIN_SERVER_ID - Main Discord server ID
+  - BOT_DEVELOPER_ID - Bot developer's Discord user ID
+- **Status:** Bot successfully running and connected to Discord, monitoring 2 guilds with all platform tasks (Twitch, YouTube, TikTok) operational
+- **Log Posting:** Automatic log posting to DEV_CHANNEL_ID every 6 hours (configured Oct 1, 2025)
